@@ -1,0 +1,28 @@
+{
+  "name": "@qalaam/tajweed-detector",
+  "version": "0.0.1",
+  "description": "Qalaam — tajweed-rule scorers (Madd duration, Ghunna nasalization, qalqalah). Pure TS using @qalaam/prosody primitives. Per strategy §8.6 + ADR-0007 disclaimer.",
+  "license": "Apache-2.0",
+  "private": false,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src tests",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@qalaam/core": "workspace:*",
+    "@qalaam/prosody": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  }
+}

@@ -1,0 +1,106 @@
+# --- Node / pnpm ---
+node_modules/
+.pnpm-store/
+.turbo/
+*.tsbuildinfo
+dist/
+build/
+out/
+coverage/
+.next/
+.nuxt/
+.svelte-kit/
+.cache/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# --- Python / uv ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+.uv/
+.python-version.local
+
+# --- Env / secrets ---
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+!.env.example
+secrets/
+*.pem
+*.key
+*.crt
+
+# --- IDE / editors ---
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.shared.json
+.idea/
+*.swp
+*.swo
+.fleet/
+.zed/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Generated codegen artifacts pinned via separate rules in package .gitignore ---
+# (We DO commit codegen output; per-package .gitignore handles it.)
+
+# --- Data (large; via Git LFS) ---
+data/qul.sqlite
+data/qul.sqlite-journal
+data/quran-align/
+data/audio-cache/
+
+# --- Local dev artifacts ---
+.local/
+tmp/
+.tmp/
+*.local
+.docker/
+docker-compose.override.yml
+
+# --- ML / training ---
+ml/checkpoints/
+ml/datasets/raw/
+wandb/
+mlruns/
+*.ckpt
+*.safetensors
+*.pt
+*.pth
+*.onnx
+
+# --- Testing ---
+playwright-report/
+test-results/
+.nyc_output/
+
+# --- Misc ---
+*.pid
+.history/
+.changeset/*-changeset.md
+!.changeset/config.json
+!.changeset/README.md

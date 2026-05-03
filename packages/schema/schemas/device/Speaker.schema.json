@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/device/Speaker.schema.json",
+  "title": "Speaker",
+  "description": "A controllable audio endpoint (Cast device, Sonos, AirPlay, browser tab, HA media_player, etc.). Per ADR-0003.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "adapter", "name", "capabilities", "state"],
+  "properties": {
+    "id": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "adapter": {
+      "type": "string",
+      "enum": ["web", "ha", "cast", "airplay", "sonos", "mqtt", "bluetooth", "dlna", "snapcast"],
+      "description": "Adapter identifier — see ADR-0003 for the v1 set."
+    },
+    "externalId": {
+      "type": "string",
+      "description": "Adapter-specific identifier (Cast UUID, Sonos household:player, HA entity_id, etc.)."
+    },
+    "name": { "type": "string", "minLength": 1 },
+    "room": { "type": ["string", "null"] },
+    "capabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": ["play_url", "pause", "resume", "seek", "volume", "queue", "group", "announce", "duck"]
+      }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["idle", "playing", "paused", "buffering", "off", "unavailable"]
+        },
+        "positionMs": { "$ref": "../common/Primitives.schema.json#/$defs/Milliseconds" },
+        "mediaId": { "type": ["string", "null"] },
+        "volume": { "type": "number", "minimum": 0, "maximum": 1 },
+        "isMuted": { "type": "boolean" },
+        "groupMembers": {
+          "type": "array",
+          "items": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" }
+        }
+      }
+    },
+    "lastSeenAt": { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" }
+  }
+}

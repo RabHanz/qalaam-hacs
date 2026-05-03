@@ -1,0 +1,19 @@
+{
+  "name": "@qalaam/codegen",
+  "version": "0.0.1",
+  "description": "Qalaam — codegen runner. JSON Schema → TS + Pydantic. Per ADR-0008.",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "files": ["run.ts", "run_python.py", "README.md"],
+  "scripts": {
+    "codegen": "tsx run.ts"
+  },
+  "dependencies": {
+    "json-schema-to-typescript": "^15.0.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

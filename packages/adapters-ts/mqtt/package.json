@@ -1,0 +1,31 @@
+{
+  "name": "@qalaam/adapter-mqtt",
+  "version": "0.0.1",
+  "description": "Qalaam — MQTT topic adapter. Pairs with ESPHome media_player and Snapcast clients. Per ADR-0003.",
+  "license": "Apache-2.0",
+  "private": false,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src tests",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@qalaam/adapter-interface": "workspace:*",
+    "@qalaam/core": "workspace:*",
+    "mqtt": "^5.10.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  }
+}

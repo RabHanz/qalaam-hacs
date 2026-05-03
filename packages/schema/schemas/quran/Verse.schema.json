@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/quran/Verse.schema.json",
+  "title": "Verse",
+  "description": "A single Quranic verse. Mushaf-agnostic at the data layer (per ADR-0002 + strategy §7.2 same-mushaf rule).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["verseKey", "surah", "ayah", "textUthmani"],
+  "properties": {
+    "verseKey": { "$ref": "../common/Primitives.schema.json#/$defs/VerseKey" },
+    "surah": { "$ref": "../common/Primitives.schema.json#/$defs/SurahNumber" },
+    "ayah": { "$ref": "../common/Primitives.schema.json#/$defs/AyahNumber" },
+    "juz": { "$ref": "../common/Primitives.schema.json#/$defs/JuzNumber" },
+    "hizb": { "$ref": "../common/Primitives.schema.json#/$defs/HizbNumber" },
+    "rubElHizb": { "$ref": "../common/Primitives.schema.json#/$defs/RubElHizbNumber" },
+    "ruku": { "$ref": "../common/Primitives.schema.json#/$defs/RukuNumber" },
+    "manzil": { "$ref": "../common/Primitives.schema.json#/$defs/ManzilNumber" },
+    "pageMadani15": { "$ref": "../common/Primitives.schema.json#/$defs/PageNumber" },
+    "textUthmani": {
+      "type": "string",
+      "description": "Arabic text in Uthmani script (canonical). Sourced from QUL.",
+      "minLength": 1
+    },
+    "textUthmaniTajweed": {
+      "type": "string",
+      "description": "Arabic text with embedded tajweed-rule HTML markup (per quran-tajweed CC-BY-4.0)."
+    },
+    "textIndopak": { "type": "string", "description": "Arabic text in Indo-Pak script." },
+    "textImlaei": { "type": "string", "description": "Arabic text in Imlaei (modern) script." },
+    "textQpcHafs": { "type": "string", "description": "QPC Hafs script (Quran Phonetic Compositional)." },
+    "wordCount": { "type": "integer", "minimum": 1 },
+    "isSajdah": { "type": "boolean", "default": false }
+  }
+}

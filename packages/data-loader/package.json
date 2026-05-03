@@ -1,0 +1,40 @@
+{
+  "name": "@qalaam/data-loader",
+  "version": "0.0.1",
+  "description": "Qalaam — local data substrate. QUL SQLite + cpfair/quran-align + quran/quran-tajweed (per ADR-0002).",
+  "license": "Apache-2.0",
+  "private": false,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./qul": { "types": "./dist/qul/index.d.ts", "import": "./dist/qul/index.js" },
+    "./quran-align": {
+      "types": "./dist/quran-align/index.d.ts",
+      "import": "./dist/quran-align/index.js"
+    },
+    "./quran-tajweed": {
+      "types": "./dist/quran-tajweed/index.d.ts",
+      "import": "./dist/quran-tajweed/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src tests",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@qalaam/core": "workspace:*",
+    "@qalaam/types-ts": "workspace:*",
+    "better-sqlite3": "^11.5.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.9.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  }
+}

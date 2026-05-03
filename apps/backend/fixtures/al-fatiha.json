@@ -1,0 +1,103 @@
+{
+  "_comment": "Al-Fatiha verse fixtures used as the dev/test stand-in for QUL when data/qul.sqlite isn't downloaded. Sourced from Tanzil Uthmani; CC-BY 3.0 with attribution. Per ADR-0002.",
+  "verses": {
+    "1:1": {
+      "verseKey": "1:1",
+      "surah": 1,
+      "ayah": 1,
+      "juz": 1,
+      "hizb": 1,
+      "rubElHizb": 1,
+      "ruku": 1,
+      "manzil": 1,
+      "pageMadani15": 1,
+      "textUthmani": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
+      "wordCount": 4,
+      "isSajdah": false
+    },
+    "1:2": {
+      "verseKey": "1:2",
+      "surah": 1,
+      "ayah": 2,
+      "juz": 1,
+      "hizb": 1,
+      "rubElHizb": 1,
+      "ruku": 1,
+      "manzil": 1,
+      "pageMadani15": 1,
+      "textUthmani": "ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَٰلَمِينَ",
+      "wordCount": 4,
+      "isSajdah": false
+    },
+    "1:3": {
+      "verseKey": "1:3",
+      "surah": 1,
+      "ayah": 3,
+      "juz": 1,
+      "hizb": 1,
+      "rubElHizb": 1,
+      "ruku": 1,
+      "manzil": 1,
+      "pageMadani15": 1,
+      "textUthmani": "ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
+      "wordCount": 2,
+      "isSajdah": false
+    },
+    "1:4": {
+      "verseKey": "1:4",
+      "surah": 1,
+      "ayah": 4,
+      "juz": 1,
+      "hizb": 1,
+      "rubElHizb": 1,
+      "ruku": 1,
+      "manzil": 1,
+      "pageMadani15": 1,
+      "textUthmani": "مَٰلِكِ يَوْمِ ٱلدِّينِ",
+      "wordCount": 3,
+      "isSajdah": false
+    },
+    "1:5": {
+      "verseKey": "1:5",
+      "surah": 1,
+      "ayah": 5,
+      "juz": 1,
+      "hizb": 1,
+      "rubElHizb": 1,
+      "ruku": 1,
+      "manzil": 1,
+      "pageMadani15": 1,
+      "textUthmani": "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
+      "wordCount": 4,
+      "isSajdah": false
+    },
+    "1:6": {
+      "verseKey": "1:6",
+      "surah": 1,
+      "ayah": 6,
+      "juz": 1,
+      "hizb": 1,
+      "rubElHizb": 1,
+      "ruku": 1,
+      "manzil": 1,
+      "pageMadani15": 1,
+      "textUthmani": "ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ",
+      "wordCount": 3,
+      "isSajdah": false
+    },
+    "1:7": {
+      "verseKey": "1:7",
+      "surah": 1,
+      "ayah": 7,
+      "juz": 1,
+      "hizb": 1,
+      "rubElHizb": 1,
+      "ruku": 1,
+      "manzil": 1,
+      "pageMadani15": 1,
+      "textUthmani": "صِرَٰطَ ٱلَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ ٱلْمَغْضُوبِ عَلَيْهِمْ وَلَا ٱلضَّآلِّينَ",
+      "wordCount": 8,
+      "isSajdah": false
+    }
+  }
+}

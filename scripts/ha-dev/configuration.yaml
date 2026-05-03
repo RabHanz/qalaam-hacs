@@ -1,0 +1,16 @@
+# Minimal HA configuration for the dev container. The Qalaam integration is
+# loaded automatically once `custom_components/qalaam` is mounted (per
+# docker-compose.dev.yml). Add the integration via UI: Settings → Devices & Services
+# → Add Integration → "Qalaam".
+
+default_config:
+http:
+  cors_allowed_origins:
+    - http://localhost:3000
+    - http://localhost:4000
+
+# Minimal logger gate — verbose for our integration during dev, normal everywhere else.
+logger:
+  default: info
+  logs:
+    custom_components.qalaam: debug

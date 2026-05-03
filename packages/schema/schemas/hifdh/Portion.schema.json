@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/hifdh/Portion.schema.json",
+  "title": "Portion",
+  "description": "A range of verses being memorized as a unit. Default unit: half-page or page (per strategy §7.1). Mushaf-agnostic — represented as ayah ranges.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "planId", "startVerseKey", "endVerseKey", "status", "reviewState"],
+  "properties": {
+    "id": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "planId": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "startVerseKey": { "$ref": "../common/Primitives.schema.json#/$defs/VerseKey" },
+    "endVerseKey": { "$ref": "../common/Primitives.schema.json#/$defs/VerseKey" },
+    "status": {
+      "type": "string",
+      "enum": ["new", "sabqi", "manzil", "weak", "locked"],
+      "description": "Sabaq/sabqi/manzil + weak (needs attention) + locked (consolidated). Per strategy §7.1."
+    },
+    "reviewState": { "$ref": "./ReviewState.schema.json" },
+    "lockedReciterSlug": {
+      "type": ["string", "null"],
+      "description": "Per single-reciter rule (strategy §7.1): locked at first memorization; nullable for new portions."
+    },
+    "createdAt": { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" },
+    "lastSeenAt": { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" }
+  }
+}

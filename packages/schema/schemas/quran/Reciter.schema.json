@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/quran/Reciter.schema.json",
+  "title": "Reciter",
+  "description": "A reciter (qari) — biographical metadata + identifier mapping across upstream sources.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "slug", "name", "style"],
+  "properties": {
+    "id": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Stable URL-safe identifier (e.g., 'mishary-alafasy', 'abdul-basit')."
+    },
+    "name": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["en", "ar"],
+      "properties": {
+        "en": { "type": "string", "minLength": 1 },
+        "ar": { "type": "string", "minLength": 1 }
+      }
+    },
+    "style": { "$ref": "../common/Primitives.schema.json#/$defs/RecitationStyle" },
+    "riwayah": {
+      "$ref": "../common/Primitives.schema.json#/$defs/Riwayah",
+      "default": "hafs"
+    },
+    "qfReciterId": {
+      "type": ["integer", "null"],
+      "description": "Quran.Foundation API reciter ID, when available."
+    },
+    "qulReciterId": {
+      "type": ["string", "null"],
+      "description": "QUL reciter slug/ID, when available."
+    },
+    "everyayahKey": {
+      "type": ["string", "null"],
+      "description": "everyayah.com folder key for direct MP3 download."
+    },
+    "bio": { "type": "string", "description": "Brief biographical note (Markdown)." },
+    "isLicensedForCloning": {
+      "type": "boolean",
+      "default": false,
+      "description": "Per ADR-0007: only true if explicit voice-cloning license has been obtained from the reciter or estate. v1.0-v1.5 always false; reciter cloning gated until v2.5+."
+    }
+  }
+}

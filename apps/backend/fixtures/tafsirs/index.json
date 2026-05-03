@@ -1,0 +1,23 @@
+{
+  "_comment": "Tafsir metadata for the v0.1 bundled set. Per ADR-0002 + strategy §4.6.",
+  "tafsirs": [
+    {
+      "id": "22222222-2222-4222-8222-222222222201",
+      "slug": "muyassar",
+      "language": "ar",
+      "name": "التفسير الميسر",
+      "scholar": "Group of scholars (King Fahd Complex)",
+      "license": "public-domain",
+      "delivery": "bundled"
+    },
+    {
+      "id": "22222222-2222-4222-8222-222222222202",
+      "slug": "saheeh-footnotes",
+      "language": "en",
+      "name": "Saheeh International — Footnotes",
+      "scholar": "Saheeh International",
+      "license": "permission-granted",
+      "delivery": "bundled"
+    }
+  ]
+}

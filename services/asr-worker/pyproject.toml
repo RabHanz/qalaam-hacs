@@ -1,0 +1,34 @@
+[project]
+name = "qalaam-asr-worker"
+version = "0.0.1"
+description = "Qalaam — on-device ASR worker. Wraps faster-whisper with the Tarteel-tuned Quran model. Per ADR-0005."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = { text = "AGPL-3.0" }
+authors = [{ name = "Qalaam Maintainers" }]
+
+dependencies = [
+    "fastapi>=0.115.5",
+    "uvicorn[standard]>=0.32.1",
+    "pydantic>=2.9.0",
+    "structlog>=24.4.0",
+    "qalaam-types",
+    "qalaam-core",
+    # Heavy ML deps (faster-whisper + ctranslate2) intentionally NOT pinned here —
+    # they're installed by the Dockerfile so devs can iterate the API without GPU.
+]
+
+[tool.uv.sources]
+qalaam-types = { workspace = true }
+qalaam-core = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/qalaam_asr_worker"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

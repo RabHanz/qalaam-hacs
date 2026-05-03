@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/khatm/KhatmClaim.schema.json",
+  "title": "KhatmClaim",
+  "description": "A user's claimed range within a khatm. Aggregates roll up to the khatm's progress bar.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "khatmId", "userId", "range", "claimedAt"],
+  "properties": {
+    "id": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "khatmId": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "userId": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["startVerseKey", "endVerseKey"],
+      "properties": {
+        "startVerseKey": { "$ref": "../common/Primitives.schema.json#/$defs/VerseKey" },
+        "endVerseKey": { "$ref": "../common/Primitives.schema.json#/$defs/VerseKey" }
+      }
+    },
+    "claimedAt": { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" },
+    "completedAt": {
+      "anyOf": [
+        { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" },
+        { "type": "null" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/hifdh/ReviewState.schema.json",
+  "title": "ReviewState",
+  "description": "FSRS-6 spaced-repetition state for a single Hifdh portion. Per ADR-0004. Field names match the FSRS-6 reference (Anki 25.07+).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["stability", "difficulty", "lastReviewed", "due", "lapses", "reps", "fsrsVersion"],
+  "properties": {
+    "fsrsVersion": {
+      "type": "string",
+      "enum": ["6.0"],
+      "description": "FSRS algorithm version. Locked to 6.0 in v0.5; bump only with explicit migration."
+    },
+    "stability": {
+      "type": "number",
+      "minimum": 0,
+      "description": "FSRS stability parameter (S) — interval at which retrievability hits the target."
+    },
+    "difficulty": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "FSRS difficulty parameter (D) — 1-10 scale."
+    },
+    "lastReviewed": { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" },
+    "due": { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" },
+    "lapses": { "type": "integer", "minimum": 0 },
+    "reps": { "type": "integer", "minimum": 0 },
+    "elapsedDays": { "type": "number", "minimum": 0 },
+    "scheduledDays": { "type": "number", "minimum": 0 },
+    "retrievabilityAtDue": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Target retrievability (default 0.9 in FSRS-6)."
+    }
+  }
+}

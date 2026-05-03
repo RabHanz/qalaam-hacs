@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/curriculum/Lesson.schema.json",
+  "title": "Lesson",
+  "description": "A single curriculum lesson — alphabet → tajweed → connected recitation → mastery (per §9.1).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "slug", "level", "order", "title", "kind"],
+  "properties": {
+    "id": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "slug": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "level": {
+      "type": "integer",
+      "enum": [1, 2, 3, 4],
+      "description": "1=alphabet, 2=tajweed fundamentals, 3=connected recitation, 4=advanced mastery."
+    },
+    "order": { "type": "integer", "minimum": 1 },
+    "title": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["en"],
+      "properties": {
+        "en": { "type": "string", "minLength": 1 },
+        "ar": { "type": "string" }
+      }
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "letter-introduction",
+        "vowel-mark",
+        "tajweed-rule",
+        "ayah-practice",
+        "surah-mastery",
+        "concept"
+      ]
+    },
+    "tajweedRule": {
+      "type": ["string", "null"],
+      "description": "If kind='tajweed-rule', which rule (e.g., 'ghunnah', 'idghaam-with-ghunnah')."
+    },
+    "verseRange": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["startVerseKey", "endVerseKey"],
+          "properties": {
+            "startVerseKey": { "$ref": "../common/Primitives.schema.json#/$defs/VerseKey" },
+            "endVerseKey": { "$ref": "../common/Primitives.schema.json#/$defs/VerseKey" }
+          }
+        },
+        { "type": "null" }
+      ]
+    },
+    "estimatedMinutes": { "type": "integer", "minimum": 1, "maximum": 120 },
+    "prerequisiteLessonIds": {
+      "type": "array",
+      "items": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" }
+    }
+  }
+}

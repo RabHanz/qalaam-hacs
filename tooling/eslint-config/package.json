@@ -1,0 +1,19 @@
+{
+  "name": "@qalaam/eslint-config",
+  "version": "0.0.1",
+  "description": "Qalaam — shared ESLint flat configs.",
+  "license": "Apache-2.0",
+  "private": false,
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./node": "./node.js",
+    "./react": "./react.js"
+  },
+  "files": ["index.js", "node.js", "react.js", "README.md"],
+  "peerDependencies": {
+    "eslint": "^9.15.0",
+    "typescript-eslint": "^8.16.0"
+  }
+}

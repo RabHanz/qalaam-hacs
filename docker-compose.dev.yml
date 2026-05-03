@@ -1,0 +1,150 @@
+# Qalaam — local development stack.
+# Brings up everything Qalaam services depend on locally:
+# - postgres + redis (data layer per ADR-0010)
+# - mailhog (email magic-link auth in dev)
+# - minio (S3-compatible local R2 stand-in)
+# - ha-dev (Home Assistant Core in dev mode for the qalaam custom_component)
+# - device-bridge, asr-worker, tts-worker (Python sidecars per ADR-0009)
+#
+# Usage: `make docker-up` / `make docker-down`
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: qalaam-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: qalaam
+      POSTGRES_PASSWORD: qalaam
+      POSTGRES_DB: qalaam_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - qalaam-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qalaam"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: qalaam-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - qalaam-redis-data:/data
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: qalaam-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+
+  minio:
+    image: minio/minio:latest
+    container_name: qalaam-minio
+    restart: unless-stopped
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: qalaam
+      MINIO_ROOT_PASSWORD: qalaam-dev-secret
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - qalaam-minio-data:/data
+
+  ha-dev:
+    # Home Assistant in dev mode with our custom_component mounted.
+    # Bring up with `docker compose --profile ha up ha-dev`.
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: qalaam-ha-dev
+    restart: unless-stopped
+    profiles: ["ha"]
+    network_mode: host  # required for mDNS/zeroconf discovery
+    environment:
+      TZ: UTC
+    volumes:
+      - ./.local/ha-config:/config
+      - ./integrations/homeassistant/custom_components/qalaam:/config/custom_components/qalaam:ro
+      - ./apps/ha-panel/dist:/config/custom_components/qalaam/panel_dist:ro
+    depends_on:
+      ha-bootstrap:
+        condition: service_completed_successfully
+
+  ha-bootstrap:
+    # One-shot init that drops a minimal configuration.yaml into the HA config
+    # before HA boots, so HA starts in API-accessible mode.
+    image: alpine:3.20
+    container_name: qalaam-ha-bootstrap
+    profiles: ["ha"]
+    volumes:
+      - ./.local/ha-config:/config
+      - ./scripts/ha-dev/configuration.yaml:/seed/configuration.yaml:ro
+    command: >
+      sh -c "
+        mkdir -p /config &&
+        if [ ! -f /config/configuration.yaml ]; then
+          cp /seed/configuration.yaml /config/configuration.yaml;
+          echo 'Seeded configuration.yaml';
+        else
+          echo 'configuration.yaml already exists; skipping seed';
+        fi
+      "
+
+  device-bridge:
+    # Python sidecar hosting pychromecast + pyatv (per ADR-0003)
+    # Built from services/device-bridge/Dockerfile in Phase 10.
+    build:
+      context: .
+      dockerfile: services/device-bridge/Dockerfile
+    container_name: qalaam-device-bridge
+    restart: unless-stopped
+    profiles: ["devices"]
+    network_mode: host
+    environment:
+      PYTHONUNBUFFERED: "1"
+
+  asr-worker:
+    # On-device ASR (per ADR-0005) — the worker hosts faster-whisper for the SaaS dev path.
+    # In production, this runs on the user's device.
+    build:
+      context: .
+      dockerfile: services/asr-worker/Dockerfile
+    container_name: qalaam-asr-worker
+    restart: unless-stopped
+    profiles: ["ml"]
+    ports:
+      - "5001:5001"
+    environment:
+      ASR_MODEL_ID: tarteel-ai/whisper-base-ar-quran
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - qalaam-models:/models
+
+  tts-worker:
+    # TTS (Habibi long-term per ADR-0006; ElevenLabs proxy in MVP per ADR-0014).
+    build:
+      context: .
+      dockerfile: services/tts-worker/Dockerfile
+    container_name: qalaam-tts-worker
+    restart: unless-stopped
+    profiles: ["ml"]
+    ports:
+      - "5002:5002"
+    environment:
+      TTS_PROVIDER: elevenlabs  # switchable to "habibi"
+      PYTHONUNBUFFERED: "1"
+    env_file:
+      - .env
+
+volumes:
+  qalaam-postgres-data:
+  qalaam-redis-data:
+  qalaam-minio-data:
+  qalaam-models:

@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/device/Adapter.schema.json",
+  "title": "Adapter",
+  "description": "Metadata for a registered protocol adapter (ADR-0003).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "displayName", "supportedCapabilities"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "enum": ["web", "ha", "cast", "airplay", "sonos", "mqtt", "bluetooth", "dlna", "snapcast"]
+    },
+    "displayName": { "type": "string", "minLength": 1 },
+    "supportedCapabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": ["play_url", "pause", "resume", "seek", "volume", "queue", "group", "announce", "duck"]
+      }
+    },
+    "requiresPairing": { "type": "boolean", "default": false },
+    "transport": {
+      "type": "string",
+      "enum": ["in-process", "websocket", "grpc", "subprocess"],
+      "description": "How the adapter is invoked from the core layer."
+    },
+    "implementationLanguage": {
+      "type": "string",
+      "enum": ["typescript", "python"]
+    }
+  }
+}

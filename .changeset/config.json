@@ -1,0 +1,29 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.0.4/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [],
+  "linked": [
+    ["@qalaam/types-ts", "@qalaam/types-py"]
+  ],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": [
+    "qalaam-web",
+    "qalaam-backend",
+    "qalaam-mobile",
+    "qalaam-ha-panel",
+    "qalaam-studio",
+    "qalaam-asr-worker",
+    "qalaam-tts-worker",
+    "qalaam-prosody-worker",
+    "qalaam-realtime-feedback",
+    "qalaam-device-bridge",
+    "qalaam-homeassistant"
+  ],
+  "privatePackages": {
+    "version": false,
+    "tag": false
+  }
+}

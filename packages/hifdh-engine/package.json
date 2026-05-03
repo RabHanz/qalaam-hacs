@@ -1,0 +1,32 @@
+{
+  "name": "@qalaam/hifdh-engine",
+  "version": "0.0.1",
+  "description": "Qalaam — Hifdh memorization engine. FSRS-6 + sabaq/sabqi/manzil generator + mutashabihat-aware re-queueing. Per ADR-0004.",
+  "license": "Apache-2.0",
+  "private": false,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src tests",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@qalaam/core": "workspace:*",
+    "@qalaam/types-ts": "workspace:*",
+    "ts-fsrs": "^4.4.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "fast-check": "^3.23.1",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  }
+}

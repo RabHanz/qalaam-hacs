@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/quran/Translation.schema.json",
+  "title": "Translation",
+  "description": "Metadata for a translation edition. Per-verse translation text lives in QUL or fawazahmed0/quran-api (per ADR-0002).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "slug", "language", "name", "translator", "license"],
+  "properties": {
+    "id": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "slug": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "language": { "$ref": "../common/Primitives.schema.json#/$defs/LangCode" },
+    "name": { "type": "string", "minLength": 1 },
+    "translator": { "type": "string", "minLength": 1 },
+    "license": {
+      "type": "string",
+      "enum": [
+        "public-domain",
+        "cc-by-4.0",
+        "cc-by-sa-4.0",
+        "cc-by-nd-4.0",
+        "permission-granted",
+        "kfgqpc",
+        "government-issued",
+        "proprietary"
+      ],
+      "description": "License classification — drives whether we ship locally or fetch online only."
+    },
+    "yearPublished": { "type": "integer", "minimum": 1500, "maximum": 2099 },
+    "qfTranslationId": {
+      "type": ["integer", "null"],
+      "description": "Quran.Foundation translation resource ID."
+    },
+    "qulTranslationId": { "type": ["string", "null"] },
+    "fawazahmedKey": {
+      "type": ["string", "null"],
+      "description": "Key on fawazahmed0/quran-api (e.g., 'eng-saheeh', 'urd-mawlanasaee...'). Used for lazy-mirror per §4.2."
+    }
+  }
+}

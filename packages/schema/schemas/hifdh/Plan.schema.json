@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/hifdh/Plan.schema.json",
+  "title": "Plan",
+  "description": "A user's Hifdh memorization plan. Borrows the Range/Portion/Schedule trichotomy from Tarteel verbatim (per ADR borrowing in §21.5/§21.11.1).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "userId", "range", "dailyPortion", "schedule", "mushaf", "createdAt"],
+  "properties": {
+    "id": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "userId": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "name": { "type": "string", "maxLength": 120 },
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "What range of Quran is the user planning to memorize?",
+      "oneOf": [
+        {
+          "required": ["kind", "verseRange"],
+          "properties": {
+            "kind": { "const": "verses" },
+            "verseRange": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["startVerseKey", "endVerseKey"],
+              "properties": {
+                "startVerseKey": { "$ref": "../common/Primitives.schema.json#/$defs/VerseKey" },
+                "endVerseKey": { "$ref": "../common/Primitives.schema.json#/$defs/VerseKey" }
+              }
+            }
+          }
+        },
+        {
+          "required": ["kind", "surahs"],
+          "properties": {
+            "kind": { "const": "surahs" },
+            "surahs": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "../common/Primitives.schema.json#/$defs/SurahNumber" }
+            }
+          }
+        },
+        {
+          "required": ["kind", "juzs"],
+          "properties": {
+            "kind": { "const": "juzs" },
+            "juzs": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "../common/Primitives.schema.json#/$defs/JuzNumber" }
+            }
+          }
+        },
+        {
+          "required": ["kind"],
+          "properties": {
+            "kind": { "const": "whole-quran" }
+          }
+        }
+      ]
+    },
+    "dailyPortion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "description": "How much per day? Default unit is half-page for new memorizers (per strategy §7.1).",
+      "oneOf": [
+        { "properties": { "kind": { "const": "half-page" } }, "required": ["kind"] },
+        { "properties": { "kind": { "const": "page" } }, "required": ["kind"] },
+        { "properties": { "kind": { "const": "two-pages" } }, "required": ["kind"] },
+        {
+          "required": ["kind", "minutes"],
+          "properties": {
+            "kind": { "const": "minutes" },
+            "minutes": { "type": "integer", "minimum": 5, "maximum": 240 }
+          }
+        },
+        {
+          "required": ["kind", "verses"],
+          "properties": {
+            "kind": { "const": "verses" },
+            "verses": { "type": "integer", "minimum": 1, "maximum": 50 }
+          }
+        }
+      ]
+    },
+    "schedule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "oneOf": [
+        { "properties": { "kind": { "const": "daily" } }, "required": ["kind"] },
+        {
+          "required": ["kind", "weekdays"],
+          "properties": {
+            "kind": { "const": "weekdays" },
+            "weekdays": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+              }
+            }
+          }
+        },
+        { "properties": { "kind": { "const": "no-schedule" } }, "required": ["kind"] }
+      ]
+    },
+    "mushaf": { "$ref": "../common/Primitives.schema.json#/$defs/MushafLayout" },
+    "lockedReciterSlug": {
+      "type": ["string", "null"],
+      "description": "Per single-reciter rule (strategy §7.1)."
+    },
+    "graceDaysPerMonth": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5,
+      "default": 2,
+      "description": "Streak grace days — never punish a missed day (strategy §21.14)."
+    },
+    "createdAt": { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" },
+    "targetCompletionDate": { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Date" }
+  }
+}

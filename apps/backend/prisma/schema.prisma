@@ -1,0 +1,243 @@
+// Qalaam — Prisma schema (PostgreSQL).
+// Mirrors entities defined in `packages/schema/schemas/`.
+// Per ADR-0008: schema is the source of truth; this file MUST stay aligned.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  directUrl         = env("DIRECT_DATABASE_URL")
+}
+
+enum SubscriptionTier {
+  free
+  premium
+  pro
+  comp
+}
+
+enum FamilyRole {
+  guardian
+  member
+  child
+}
+
+enum PortionStatus {
+  new
+  sabqi
+  manzil
+  weak
+  locked
+}
+
+enum RatingSource {
+  self
+  parent
+  asr
+  teacher
+}
+
+enum MistakeType {
+  omission
+  substitution
+  order
+  tajweed
+  hesitation
+  mutashabihat_swap
+}
+
+enum KhatmKind {
+  funeral
+  ramadan
+  rolling_weekly
+  hifdh_class
+  general
+}
+
+model User {
+  id                   String   @id @default(uuid()) @db.Uuid
+  email                String   @unique
+  displayName          String?
+  preferredLanguage    String   @default("en")
+  preferredMushaf      String   @default("madani_15")
+  preferredReciterSlug String?
+  tier                 SubscriptionTier @default(free)
+  isMinor              Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  lastSeenAt           DateTime @default(now())
+  deletedAt            DateTime?
+
+  familyMemberships    FamilyMember[]
+  hifdhPlans           HifdhPlan[]
+  khatmsCreated        Khatm[] @relation("KhatmCreatedBy")
+  khatmClaims          KhatmClaim[]
+  lessonProgress       LessonProgress[]
+
+  @@index([deletedAt])
+}
+
+model Family {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String
+  createdAt       DateTime @default(now())
+  createdByUserId String   @db.Uuid
+  maxSeats        Int      @default(6)
+
+  members         FamilyMember[]
+  khatms          Khatm[]
+}
+
+model FamilyMember {
+  id                  String   @id @default(uuid()) @db.Uuid
+  familyId            String   @db.Uuid
+  userId              String   @db.Uuid
+  role                FamilyRole
+  displayName         String?
+  joinedAt            DateTime @default(now())
+  consentToShareStats Boolean  @default(true)
+
+  family              Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user                User   @relation(fields: [userId],   references: [id], onDelete: Cascade)
+
+  @@unique([familyId, userId])
+  @@index([userId])
+}
+
+model HifdhPlan {
+  id                   String   @id @default(uuid()) @db.Uuid
+  userId               String   @db.Uuid
+  name                 String?
+  /// JSON: { kind: 'verses' | 'surahs' | 'juzs' | 'whole-quran', ...payload }
+  range                Json
+  /// JSON: { kind: 'half-page'|'page'|'two-pages'|'minutes'|'verses', ...payload }
+  dailyPortion         Json
+  /// JSON: { kind: 'daily'|'weekdays'|'no-schedule', ...payload }
+  schedule             Json
+  mushaf               String   @default("madani_15")
+  lockedReciterSlug    String?
+  graceDaysPerMonth    Int      @default(2)
+  targetCompletionDate DateTime?
+  createdAt            DateTime @default(now())
+
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  portions             HifdhPortion[]
+
+  @@index([userId])
+}
+
+model HifdhPortion {
+  id                String   @id @default(uuid()) @db.Uuid
+  planId            String   @db.Uuid
+  startVerseKey     String
+  endVerseKey       String
+  status            PortionStatus
+  /// JSON: ReviewState (FSRS-6 fields)
+  reviewState       Json
+  lockedReciterSlug String?
+  createdAt         DateTime @default(now())
+  lastSeenAt        DateTime @default(now())
+
+  plan              HifdhPlan       @relation(fields: [planId], references: [id], onDelete: Cascade)
+  ratings           RatingEvent[]
+  mistakes          MistakeEvent[]
+
+  @@index([planId, status])
+  @@index([planId])
+}
+
+model RatingEvent {
+  id        String       @id @default(uuid()) @db.Uuid
+  portionId String       @db.Uuid
+  timestamp DateTime
+  fluency   Int
+  accuracy  Int
+  source    RatingSource
+  comment   String?
+
+  portion   HifdhPortion @relation(fields: [portionId], references: [id], onDelete: Cascade)
+
+  @@index([portionId, timestamp])
+}
+
+model MistakeEvent {
+  id                String       @id @default(uuid()) @db.Uuid
+  portionId         String       @db.Uuid
+  verseKey          String
+  wordIndex         Int?
+  errorType         MistakeType
+  swappedToVerseKey String?
+  reciterId         String?
+  timestamp         DateTime
+  userOverridden    Boolean      @default(false)
+
+  portion           HifdhPortion @relation(fields: [portionId], references: [id], onDelete: Cascade)
+
+  @@index([portionId, verseKey])
+  @@index([errorType, timestamp])
+}
+
+model Khatm {
+  id                   String   @id @default(uuid()) @db.Uuid
+  kind                 KhatmKind
+  title                String
+  intentionFor         String?
+  /// JSON: { kind: 'family' | 'invite-link', ...payload }
+  scope                Json
+  createdAt            DateTime @default(now())
+  createdByUserId      String   @db.Uuid
+  familyId             String?  @db.Uuid
+  targetCompletionDate DateTime?
+  completedAt          DateTime?
+
+  createdBy            User    @relation("KhatmCreatedBy", fields: [createdByUserId], references: [id])
+  family               Family? @relation(fields: [familyId], references: [id])
+  claims               KhatmClaim[]
+}
+
+model KhatmClaim {
+  id            String    @id @default(uuid()) @db.Uuid
+  khatmId       String    @db.Uuid
+  userId        String    @db.Uuid
+  startVerseKey String
+  endVerseKey   String
+  claimedAt     DateTime  @default(now())
+  completedAt   DateTime?
+
+  khatm Khatm @relation(fields: [khatmId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId],  references: [id])
+
+  @@unique([khatmId, userId, startVerseKey, endVerseKey])
+  @@index([khatmId])
+}
+
+model LessonProgress {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @db.Uuid
+  lessonId    String
+  status      String    // 'not-started' | 'in-progress' | 'completed' | 'mastered'
+  score       Float?
+  attempts    Int       @default(0)
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+}
+
+model AudioCache {
+  id          String   @id @default(uuid()) @db.Uuid
+  textHash    String
+  reciterSlug String
+  audioUrl    String
+  createdAt   DateTime @default(now())
+  accessCount Int      @default(0)
+
+  @@unique([textHash, reciterSlug])
+  @@index([textHash])
+}

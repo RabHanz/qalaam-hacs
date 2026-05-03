@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/curriculum/LessonProgress.schema.json",
+  "title": "LessonProgress",
+  "description": "Per-user lesson progress.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "userId", "lessonId", "status"],
+  "properties": {
+    "id": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "userId": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "lessonId": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "status": {
+      "type": "string",
+      "enum": ["not-started", "in-progress", "completed", "mastered"]
+    },
+    "score": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Last assessment score, when applicable."
+    },
+    "attempts": { "type": "integer", "minimum": 0 },
+    "startedAt": {
+      "anyOf": [
+        { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" },
+        { "type": "null" }
+      ]
+    },
+    "completedAt": {
+      "anyOf": [
+        { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" },
+        { "type": "null" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20.18.0'
+  PNPM_VERSION: '9.12.3'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  pr-validation:
+    name: PR validation (outcome reference)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check PR description has Outcome line
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if ! echo "$PR_BODY" | grep -qE '^Outcome:\s*O-[0-9]+'; then
+            echo "::error::PR description must include an 'Outcome: O-XX' line referencing STRATEGY_AND_ROADMAP.md §23.2"
+            exit 1
+          fi
+          echo "✓ Outcome reference present"
+
+  ts-lint:
+    name: TS lint + format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - uses: pnpm/action-setup@v4
+        with: { version: '${{ env.PNPM_VERSION }}' }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm codegen
+      - name: Verify codegen has no drift
+        run: |
+          if ! git diff --exit-code -- 'packages/types-ts/dist/**' 'packages/types-py/qalaam_types/**'; then
+            echo "::error::Codegen output is out of sync. Run 'pnpm codegen' and commit."
+            exit 1
+          fi
+      - run: pnpm lint
+
+  ts-typecheck:
+    name: TS typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: '${{ env.PNPM_VERSION }}' }
+      - uses: actions/setup-node@v4
+        with: { node-version: '${{ env.NODE_VERSION }}', cache: 'pnpm' }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm codegen
+      - run: pnpm typecheck
+
+  ts-test:
+    name: TS tests + build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: '${{ env.PNPM_VERSION }}' }
+      - uses: actions/setup-node@v4
+        with: { node-version: '${{ env.NODE_VERSION }}', cache: 'pnpm' }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm codegen
+      - run: pnpm test
+      - run: pnpm build
+
+  py-checks:
+    name: Python lint + typecheck + test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '${{ env.PYTHON_VERSION }}' }
+      - uses: astral-sh/setup-uv@v3
+        with: { enable-cache: true }
+      - uses: pnpm/action-setup@v4
+        with: { version: '${{ env.PNPM_VERSION }}' }
+      - uses: actions/setup-node@v4
+        with: { node-version: '${{ env.NODE_VERSION }}', cache: 'pnpm' }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm codegen
+      - run: uv sync --all-extras --dev
+      - run: pnpm py:lint
+      - run: pnpm py:typecheck
+      - run: pnpm py:test
+
+  ha-integration-validation:
+    name: HA integration (hassfest + HACS)
+    runs-on: ubuntu-latest
+    if: hashFiles('integrations/homeassistant/custom_components/qalaam/manifest.json') != ''
+    steps:
+      - uses: actions/checkout@v4
+      - name: hassfest
+        uses: home-assistant/actions/hassfest@master
+      - name: HACS validation
+        uses: hacs/action@main
+        with:
+          category: integration

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/user/Family.schema.json",
+  "title": "Family",
+  "description": "A household / family group. Family Plan is THE plan, not an upsell (per §21.11 design principle).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "name", "createdAt", "createdByUserId"],
+  "properties": {
+    "id": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "createdAt": { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" },
+    "createdByUserId": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "maxSeats": { "type": "integer", "minimum": 1, "maximum": 20, "default": 6 }
+  }
+}

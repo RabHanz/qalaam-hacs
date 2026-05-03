@@ -1,0 +1,70 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "globalDependencies": [
+    "**/.env.*local",
+    "tsconfig.base.json",
+    ".prettierrc",
+    "eslint.config.js"
+  ],
+  "globalEnv": ["NODE_ENV"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build", "codegen"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**", "build/**"],
+      "inputs": [
+        "src/**",
+        "schemas/**",
+        "package.json",
+        "tsconfig.json",
+        "next.config.*"
+      ],
+      "env": ["NODE_ENV"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["^build"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"],
+      "outputs": [],
+      "inputs": [
+        "src/**",
+        "*.json",
+        "*.ts",
+        "*.tsx",
+        "*.js",
+        "eslint.config.js"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": ["^build", "codegen"],
+      "outputs": [],
+      "inputs": ["src/**", "tsconfig.json", "*.d.ts"]
+    },
+    "test": {
+      "dependsOn": ["^build", "codegen"],
+      "outputs": ["coverage/**"],
+      "inputs": ["src/**", "tests/**", "vitest.config.*"]
+    },
+    "test:watch": {
+      "cache": false,
+      "persistent": true
+    },
+    "codegen": {
+      "outputs": [
+        "packages/types-ts/dist/**",
+        "packages/types-py/qalaam_types/**"
+      ],
+      "inputs": [
+        "packages/schema/schemas/**",
+        "packages/schema/codegen.config.json",
+        "packages/types-py/codegen.toml"
+      ]
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}

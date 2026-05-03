@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/quran/Tafsir.schema.json",
+  "title": "Tafsir",
+  "description": "Metadata for a tafsir edition. Per-verse tafsir text fetched lazily from QUL or QF API.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "slug", "language", "name", "scholar", "license", "delivery"],
+  "properties": {
+    "id": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "slug": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "language": { "$ref": "../common/Primitives.schema.json#/$defs/LangCode" },
+    "name": { "type": "string", "minLength": 1 },
+    "scholar": { "type": "string", "minLength": 1 },
+    "yearAuthored": { "type": ["integer", "null"], "minimum": 600, "maximum": 2099 },
+    "license": {
+      "type": "string",
+      "enum": ["public-domain", "cc-by-4.0", "permission-granted", "proprietary"]
+    },
+    "delivery": {
+      "type": "string",
+      "enum": ["bundled", "lazy-mirror", "live-only"],
+      "description": "bundled = ships with offline package; lazy-mirror = downloaded on demand; live-only = always over network."
+    },
+    "qfTafsirId": { "type": ["integer", "null"] },
+    "qulTafsirId": { "type": ["string", "null"] }
+  }
+}

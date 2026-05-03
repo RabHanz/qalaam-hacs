@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/user/FamilyMember.schema.json",
+  "title": "FamilyMember",
+  "description": "A user's role in a family. Drives parent-dashboard permissions per §7.4.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "familyId", "userId", "role", "joinedAt"],
+  "properties": {
+    "id": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "familyId": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "userId": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "role": {
+      "type": "string",
+      "enum": ["guardian", "member", "child"],
+      "description": "Guardians can see all members' Hifdh dashboards. Children's stats are visible only to family per §16."
+    },
+    "displayName": {
+      "type": ["string", "null"],
+      "description": "Family-display nickname (e.g., 'Aisha (8)') overriding the user's global display name."
+    },
+    "joinedAt": { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" },
+    "consentToShareStats": {
+      "type": "boolean",
+      "default": true,
+      "description": "Past age ~10, child can toggle off parent visibility (strategy §7.4 daily-summary-only rule)."
+    }
+  }
+}

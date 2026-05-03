@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/user/User.schema.json",
+  "title": "User",
+  "description": "A Qalaam user account. PII-bearing — extra care in privacy and storage (ADR-0010 + ADR-0012).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "email", "createdAt", "tier"],
+  "properties": {
+    "id": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "email": { "type": "string", "format": "email" },
+    "displayName": { "type": ["string", "null"], "maxLength": 80 },
+    "preferredLanguage": { "$ref": "../common/Primitives.schema.json#/$defs/LangCode" },
+    "preferredMushaf": { "$ref": "../common/Primitives.schema.json#/$defs/MushafLayout" },
+    "preferredReciterSlug": { "type": ["string", "null"] },
+    "tier": {
+      "type": "string",
+      "enum": ["free", "premium", "pro", "comp"],
+      "description": "Billing tier. 'comp' = comped via 'I can't afford it' tier (per §21.11.1)."
+    },
+    "isMinor": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, child-safety constraints apply (no public sharing, parent consent for ASR)."
+    },
+    "createdAt": { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" },
+    "lastSeenAt": { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" },
+    "deletedAt": {
+      "anyOf": [
+        { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" },
+        { "type": "null" }
+      ],
+      "description": "Soft-delete timestamp; user data is purged 30 days after this is set."
+    }
+  }
+}

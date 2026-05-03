@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/khatm/Khatm.schema.json",
+  "title": "Khatm",
+  "description": "A group Quran-completion (khatm). Modes per strategy §10.6. Family-private only — no public sharing.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "kind", "title", "createdAt", "createdByUserId", "scope"],
+  "properties": {
+    "id": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "kind": {
+      "type": "string",
+      "enum": ["funeral", "ramadan", "rolling-weekly", "hifdh-class", "general"],
+      "description": "Common framings the UI specializes for."
+    },
+    "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "intentionFor": {
+      "type": ["string", "null"],
+      "description": "Optional dedication (e.g., 'for the maghfirah of [name]')."
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "oneOf": [
+        {
+          "required": ["kind", "familyId"],
+          "properties": {
+            "kind": { "const": "family" },
+            "familyId": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" }
+          }
+        },
+        {
+          "required": ["kind", "inviteCode"],
+          "properties": {
+            "kind": { "const": "invite-link" },
+            "inviteCode": { "type": "string", "pattern": "^[a-z0-9]{8,32}$" }
+          }
+        }
+      ]
+    },
+    "createdAt": { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" },
+    "createdByUserId": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "targetCompletionDate": { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Date" },
+    "completedAt": {
+      "anyOf": [
+        { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" },
+        { "type": "null" }
+      ]
+    }
+  }
+}

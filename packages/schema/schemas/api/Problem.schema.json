@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/api/Problem.schema.json",
+  "title": "Problem",
+  "description": "RFC 9457 problem-detail object — every API error response uses this shape.",
+  "type": "object",
+  "required": ["type", "title", "status"],
+  "properties": {
+    "type": { "type": "string", "format": "uri", "default": "about:blank" },
+    "title": { "type": "string" },
+    "status": { "type": "integer", "minimum": 100, "maximum": 599 },
+    "detail": { "type": "string" },
+    "instance": { "type": "string", "format": "uri" },
+    "code": {
+      "type": "string",
+      "description": "Stable Qalaam error code (e.g., 'qalaam.hifdh.plan-not-found')."
+    },
+    "outcomeImpacted": {
+      "type": "string",
+      "pattern": "^O-[0-9]+$",
+      "description": "Which outcome (per §23.2) is degraded by this error — for diagnostics."
+    }
+  }
+}

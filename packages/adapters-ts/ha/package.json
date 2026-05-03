@@ -1,0 +1,31 @@
+{
+  "name": "@qalaam/adapter-ha",
+  "version": "0.0.1",
+  "description": "Qalaam — Home Assistant as adapter via home-assistant-js-websocket. Inherits HA's entire media_player matrix. Per ADR-0003.",
+  "license": "Apache-2.0",
+  "private": false,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src tests",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@qalaam/adapter-interface": "workspace:*",
+    "@qalaam/core": "workspace:*",
+    "home-assistant-js-websocket": "^9.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  }
+}

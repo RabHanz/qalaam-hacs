@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/quran/MutashabihatCluster.schema.json",
+  "title": "MutashabihatCluster",
+  "description": "A cluster of similar verses (mutashabihat) that students commonly confuse. Sourced from QUL `morphology_phrases` per ADR-0002. Drives mutashabihat-aware drills (strategy §7.2, §23.2 outcome O-05).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["clusterId", "memberVerseKeys"],
+  "properties": {
+    "clusterId": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "qulPhraseId": {
+      "type": ["string", "null"],
+      "description": "QUL `morphology_phrases.id` for upstream traceability."
+    },
+    "memberVerseKeys": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": { "$ref": "../common/Primitives.schema.json#/$defs/VerseKey" }
+    },
+    "sharedPhrase": {
+      "type": "string",
+      "description": "The Arabic phrase that members share (Uthmani script).",
+      "minLength": 1
+    },
+    "divergencePoints": {
+      "type": "array",
+      "description": "Per-member: where this verse diverges from the shared phrase.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["verseKey", "divergesAtWordIndex"],
+        "properties": {
+          "verseKey": { "$ref": "../common/Primitives.schema.json#/$defs/VerseKey" },
+          "divergesAtWordIndex": { "$ref": "../common/Primitives.schema.json#/$defs/WordIndex" },
+          "uniqueContinuation": { "type": "string" }
+        }
+      }
+    }
+  }
+}

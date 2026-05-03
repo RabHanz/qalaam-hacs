@@ -1,0 +1,16 @@
+{
+  "*.{ts,tsx,js,jsx,mjs,cjs}": [
+    "prettier --write --cache",
+    "eslint --fix --cache"
+  ],
+  "*.{json,jsonc,yaml,yml,md,html,css}": [
+    "prettier --write --cache"
+  ],
+  "*.py": [
+    "uv run ruff format",
+    "uv run ruff check --fix"
+  ],
+  "packages/schema/schemas/**/*.json": [
+    "pnpm codegen"
+  ]
+}

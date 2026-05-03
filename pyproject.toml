@@ -1,0 +1,115 @@
+[project]
+name = "qalaam-workspace"
+version = "0.0.0"
+description = "Qalaam — Python workspace root (uv)"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Qalaam Maintainers" }]
+
+# Workspace declaration — uv discovers all member packages declared here
+[tool.uv.workspace]
+members = [
+    "packages/types-py",
+    "packages/api-client-py",
+    "packages/core-py",
+    "packages/asr",
+    "packages/prosody",
+    "packages/tajweed-detector",
+    "services/asr-worker",
+    "services/tts-worker",
+    "services/prosody-worker",
+    "services/realtime-feedback",
+    "services/device-bridge",
+    "integrations/homeassistant",
+    "ml",
+]
+exclude = ["**/node_modules", "**/dist", "**/.venv"]
+
+# Workspace-wide dev tooling
+[dependency-groups]
+dev = [
+    "ruff>=0.7.4",
+    "mypy>=1.13.0",
+    "pytest>=8.3.3",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "respx>=0.21.1",
+    "pyright>=1.1.388",
+    "datamodel-code-generator>=0.26.3",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [
+    "**/.venv",
+    "**/dist",
+    "**/build",
+    "**/node_modules",
+    "**/__pycache__",
+    "packages/types-py/qalaam_types/**",  # generated
+]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+    "N",      # pep8-naming
+    "ASYNC",  # async best practices
+    "S",      # flake8-bandit
+    "RUF",    # ruff-specific
+    "ANN",    # missing type annotations (strict per CLAUDE.md)
+    "PERF",   # perflint
+    "PL",     # pylint
+]
+ignore = [
+    "S101",   # assert-used (allowed in tests)
+    "PLR0913", # too many args (we use Pydantic, often legitimate)
+    "ANN401", # disallow Any (we want Any explicitly forbidden but allow targeted overrides)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S", "ANN"]
+"**/conftest.py" = ["S", "ANN"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unreachable = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+no_implicit_optional = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_reexport = true
+strict_equality = true
+extra_checks = true
+exclude = [
+    "packages/types-py/qalaam_types/.*",  # generated
+    "build/.*",
+    "dist/.*",
+    ".venv/.*",
+]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+asyncio_mode = "auto"
+filterwarnings = ["error"]

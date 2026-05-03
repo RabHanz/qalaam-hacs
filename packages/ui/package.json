@@ -1,0 +1,39 @@
+{
+  "name": "@qalaam/ui",
+  "version": "0.0.1",
+  "description": "Qalaam — shared design-system primitives. Token-driven, accessible, RTL-aware, framework-agnostic React.",
+  "license": "Apache-2.0",
+  "private": false,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./tokens": { "types": "./dist/tokens/index.d.ts", "import": "./dist/tokens/index.js" },
+    "./primitives": { "types": "./dist/primitives/index.d.ts", "import": "./dist/primitives/index.js" },
+    "./hooks": { "types": "./dist/hooks/index.d.ts", "import": "./dist/hooks/index.js" }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src tests",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.1.0",
+    "@types/node": "^22.9.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "happy-dom": "^15.11.7",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  }
+}

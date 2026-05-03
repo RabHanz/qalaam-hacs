@@ -1,0 +1,48 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    background: var(--color-surface-base);
+    color: var(--color-teal-700);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  /* RTL-aware mixed-language line wrapping per CLAUDE.md design non-negotiable. */
+  .arabic {
+    font-family: var(--font-arabic-uthmani);
+    direction: rtl;
+    unicode-bidi: plaintext;
+    line-height: 1.9;
+  }
+
+  /* Skeleton loader per CLAUDE.md §11.3: skeletons, not spinners. */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--color-surface-overlay) 0%,
+      var(--color-cream-200) 50%,
+      var(--color-surface-overlay) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+    border-radius: var(--radius-sm);
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Focus ring (keyboard nav non-negotiable per CLAUDE.md). */
+  :focus-visible {
+    outline: 2px solid var(--color-gold-500);
+    outline-offset: 2px;
+  }
+}

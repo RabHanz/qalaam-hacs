@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/device/PlayCommand.schema.json",
+  "title": "PlayCommand",
+  "description": "Universal play instruction issued from `packages/core` to any adapter. Per ADR-0003.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["speakerId", "mediaUrl"],
+  "properties": {
+    "speakerId": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "mediaUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "Resolved playable URL (audio.qurancdn.com, R2-hosted TTS, or HTTPS stream)."
+    },
+    "mediaTitle": { "type": "string" },
+    "mediaArtist": { "type": "string" },
+    "verseKey": {
+      "$ref": "../common/Primitives.schema.json#/$defs/VerseKey",
+      "description": "Quranic context — drives word-by-word highlighting on UI clients."
+    },
+    "reciterSlug": { "type": "string" },
+    "announce": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if this is a duck-and-restore announcement (e.g., 'sabaq starts now')."
+    },
+    "duck": { "type": "boolean", "default": false },
+    "enqueue": {
+      "type": "string",
+      "enum": ["replace", "next", "add", "play"],
+      "default": "replace"
+    }
+  }
+}

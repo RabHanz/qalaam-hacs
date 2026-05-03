@@ -1,0 +1,25 @@
+node_modules/
+.next/
+.turbo/
+dist/
+build/
+out/
+coverage/
+pnpm-lock.yaml
+*.min.js
+*.min.css
+
+# Generated codegen output (committed but auto-formatted by codegen tool)
+packages/types-ts/dist/
+packages/types-py/qalaam_types/
+
+# Vendored data
+data/
+
+# Python
+__pycache__/
+.venv/
+.uv/
+
+# Docs that should not be reformatted
+CHANGELOG.md

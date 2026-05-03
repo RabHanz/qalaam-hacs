@@ -1,0 +1,5 @@
+# Vendored data is fetched on demand; only README.md is tracked in this dir.
+*
+!.gitignore
+!README.md
+.tmp/

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/api/CloudSyncEnvelope.schema.json",
+  "$comment": "CLOUD-SYNC: privacy boundary enforced — referenced types must NOT include audio buffers (ADR-0005, strategy §24.3).",
+  "title": "CloudSyncEnvelope",
+  "description": "Wrapper for any cloud-synced batch from device → server. Privacy-architectural: only derived signals, never audio.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["clientVersion", "deviceId", "syncedAt", "events"],
+  "properties": {
+    "clientVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-z0-9.-]+)?$"
+    },
+    "deviceId": {
+      "type": "string",
+      "description": "Stable per-device identifier (NOT user-identifying on its own)."
+    },
+    "syncedAt": { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" },
+    "events": {
+      "type": "array",
+      "maxItems": 500,
+      "items": {
+        "oneOf": [
+          { "$ref": "../hifdh/RatingEvent.schema.json" },
+          { "$ref": "../hifdh/MistakeEvent.schema.json" }
+        ]
+      }
+    }
+  }
+}

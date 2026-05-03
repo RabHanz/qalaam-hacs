@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# Husky pre-commit — runs lint-staged on changed files.
+# Per CLAUDE.md §11.2: lint and type-check before every commit.
+
+pnpm exec lint-staged

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/hifdh/RatingEvent.schema.json",
+  "title": "RatingEvent",
+  "description": "A single rating of a portion's recitation. Two-axis (fluency × accuracy) per strategy §7.2; the FSRS grade is derived in `packages/hifdh-engine`.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "portionId", "timestamp", "fluency", "accuracy", "source"],
+  "properties": {
+    "id": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "portionId": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "timestamp": { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" },
+    "fluency": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3,
+      "description": "0=halted, 1=hesitant, 2=mostly smooth, 3=fluent."
+    },
+    "accuracy": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3,
+      "description": "0=major errors, 1=minor errors, 2=tajweed-only nits, 3=clean."
+    },
+    "source": {
+      "type": "string",
+      "enum": ["self", "parent", "asr", "teacher"],
+      "description": "Who/what rated this. ASR ratings are derived from on-device Whisper-Quran (ADR-0005)."
+    },
+    "comment": { "type": ["string", "null"], "maxLength": 500 }
+  }
+}

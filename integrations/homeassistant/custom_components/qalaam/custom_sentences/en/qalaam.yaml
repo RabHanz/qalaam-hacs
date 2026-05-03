@@ -1,0 +1,39 @@
+# Qalaam Voice sentences — English.
+# Per HA Voice Chapter 11: declare two pipelines per satellite (Arabic + English).
+# Arabic sentences live in custom_sentences/ar/qalaam.yaml.
+language: en
+intents:
+  QalaamPlaySurah:
+    data:
+      - sentences:
+          - "play surah {surah}"
+          - "recite surah {surah}"
+          - "play {surah}"
+        slots:
+          surah: "{surah}"
+
+  QalaamPlayAyah:
+    data:
+      - sentences:
+          - "play ayah {surah} {ayah}"
+          - "play verse {surah} {ayah}"
+          - "play {surah}:{ayah}"
+        slots:
+          surah: "{surah}"
+          ayah: "{ayah}"
+
+  QalaamStartHifdh:
+    data:
+      - sentences:
+          - "start my hifdh session"
+          - "start hifdh"
+          - "begin memorization"
+          - "test me"
+
+lists:
+  surah:
+    wildcard: true
+  ayah:
+    range:
+      from: 1
+      to: 286

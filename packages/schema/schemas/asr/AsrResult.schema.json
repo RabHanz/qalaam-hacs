@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/asr/AsrResult.schema.json",
+  "$comment": "Cloud-syncable. Contains derived signals only (no audio).",
+  "title": "AsrResult",
+  "description": "Output of the on-device ASR pipeline (per ADR-0005). Contains transcribed text + word-level confidence + alignment, but NOT the source audio.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["transcript", "wordResults", "expectedVerseKey", "modelId"],
+  "properties": {
+    "transcript": {
+      "type": "string",
+      "description": "Decoded Arabic text from the model."
+    },
+    "wordResults": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["wordIndex", "expectedWord", "actualWord", "isMatch"],
+        "properties": {
+          "wordIndex": { "$ref": "../common/Primitives.schema.json#/$defs/WordIndex" },
+          "expectedWord": { "type": "string" },
+          "actualWord": { "type": "string" },
+          "isMatch": { "type": "boolean" },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "alignmentStartMs": { "$ref": "../common/Primitives.schema.json#/$defs/Milliseconds" },
+          "alignmentEndMs": { "$ref": "../common/Primitives.schema.json#/$defs/Milliseconds" }
+        }
+      }
+    },
+    "expectedVerseKey": { "$ref": "../common/Primitives.schema.json#/$defs/VerseKey" },
+    "modelId": {
+      "type": "string",
+      "description": "Hugging Face model ID (e.g., 'tarteel-ai/whisper-base-ar-quran' or 'KheemP/whisper-base-quran-lora')."
+    },
+    "modelVersionHash": { "type": "string", "description": "Pinned model version hash for reproducibility." },
+    "processedAt": { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/asr/LocalAudioBuffer.schema.json",
+  "$comment": "LOCAL-ONLY: must not appear in cloud-sync transport schemas. Privacy boundary enforced by tooling/codegen/check-privacy-boundaries.ts (ADR-0005).",
+  "title": "LocalAudioBuffer",
+  "description": "Raw audio chunk for on-device ASR processing. NEVER transmitted to cloud (per strategy §24.3 privacy architecture).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["sampleRate", "channels", "samples", "capturedAt"],
+  "properties": {
+    "sampleRate": { "type": "integer", "enum": [16000, 22050, 44100, 48000] },
+    "channels": { "type": "integer", "minimum": 1, "maximum": 2 },
+    "samples": {
+      "type": "string",
+      "contentEncoding": "base64",
+      "description": "Base64-encoded PCM-Float32 samples. In-memory only."
+    },
+    "capturedAt": { "$ref": "../common/Primitives.schema.json#/$defs/Iso8601Timestamp" },
+    "vadConfidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Voice Activity Detection confidence — used to gate the model and reduce battery drain (per ADR-0005 risk mitigation)."
+    }
+  }
+}

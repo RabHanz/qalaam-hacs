@@ -1,0 +1,32 @@
+{
+  "name": "@qalaam/api-client-ts",
+  "version": "0.0.1",
+  "description": "Qalaam — Quran.Foundation API client (OAuth2 client_credentials, Tier A) + Qalaam-backend client. ToS-compliant caching (≤7d).",
+  "license": "Apache-2.0",
+  "private": false,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./qf": { "types": "./dist/qf/index.d.ts", "import": "./dist/qf/index.js" }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src tests",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@qalaam/core": "workspace:*",
+    "@qalaam/types-ts": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "msw": "^2.6.4",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  }
+}

@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# Conventional Commits enforcement (commitlint).
+
+pnpm exec commitlint --edit "$1"

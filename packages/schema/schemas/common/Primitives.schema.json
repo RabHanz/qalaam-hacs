@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/common/Primitives.schema.json",
+  "title": "Common Primitives",
+  "description": "Shared primitive types referenced across Qalaam schemas. Append-only — never break existing $defs.",
+  "$defs": {
+    "VerseKey": {
+      "type": "string",
+      "pattern": "^([1-9]|[1-9][0-9]|10[0-9]|11[0-4]):([1-9][0-9]{0,2})$",
+      "description": "Canonical verse identifier in the form 'surah:ayah'. Surah ∈ [1, 114]; ayah ∈ [1, 286] but bounded by surah's actual ayah count.",
+      "examples": ["1:1", "2:255", "112:1"]
+    },
+    "SurahNumber": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 114,
+      "description": "Surah index (1-114)."
+    },
+    "AyahNumber": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 286,
+      "description": "Ayah index within a surah (1-286 max — surah 2 al-Baqarah)."
+    },
+    "JuzNumber": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 30
+    },
+    "HizbNumber": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 60
+    },
+    "RubElHizbNumber": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 240
+    },
+    "RukuNumber": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 558
+    },
+    "ManzilNumber": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 7
+    },
+    "PageNumber": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 604,
+      "description": "Madani 15-line mushaf page number (1-604). Indo-Pak 16-line uses different page boundaries — see Mushaf schema."
+    },
+    "WordIndex": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Zero-based word index within an ayah."
+    },
+    "Milliseconds": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Millisecond duration or timestamp offset."
+    },
+    "LangCode": {
+      "type": "string",
+      "pattern": "^[a-z]{2,3}(-[A-Z]{2})?$",
+      "description": "BCP 47 language tag (e.g., 'en', 'ar', 'ur', 'fr-CA')."
+    },
+    "Iso8601Timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp in UTC."
+    },
+    "Iso8601Date": {
+      "type": "string",
+      "format": "date"
+    },
+    "Uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "MushafLayout": {
+      "type": "string",
+      "enum": ["madani_15", "indopak_16", "uthmani_v1", "uthmani_v2"],
+      "description": "Supported mushaf layouts. Per ADR-0002 — backed by QUL `mushaf_layouts` table."
+    },
+    "RecitationStyle": {
+      "type": "string",
+      "enum": ["murattal", "mujawwad"]
+    },
+    "Riwayah": {
+      "type": "string",
+      "enum": ["hafs", "warsh", "qaloon", "duri", "shuba", "khalaf"],
+      "description": "Canonical Qira'at riwayah. Hafs is the default."
+    }
+  }
+}

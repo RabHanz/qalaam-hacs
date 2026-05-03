@@ -1,0 +1,76 @@
+play_ayah:
+  name: Play Ayah
+  description: Play a specific ayah on the target media player.
+  fields:
+    surah:
+      name: Surah
+      description: Surah number (1..114)
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 114
+          mode: box
+    ayah:
+      name: Ayah
+      description: Ayah number within the surah
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 286
+          mode: box
+    reciter_slug:
+      name: Reciter
+      description: Reciter slug (defaults to user's preferred reciter)
+      required: false
+      selector:
+        text:
+    target:
+      name: Target media player
+      description: Which speaker to play on
+      required: true
+      selector:
+        entity:
+          domain: media_player
+
+play_surah:
+  name: Play Surah
+  description: Play an entire surah on the target media player.
+  fields:
+    surah:
+      name: Surah
+      description: Surah number (1..114)
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 114
+          mode: box
+    reciter_slug:
+      name: Reciter
+      description: Reciter slug (defaults to user's preferred)
+      required: false
+      selector:
+        text:
+    target:
+      name: Target media player
+      required: true
+      selector:
+        entity:
+          domain: media_player
+
+start_memorization_session:
+  name: Start Hifdh memorization session
+  description: |
+    Begin today's Hifdh session for the linked Qalaam user. Fires the
+    `qalaam_hifdh_session_started` event on the bus — automations can hook into
+    it (dim lights, mute TV, send "sabaq starts now" announcement to the kid's
+    room speaker, etc.).
+  fields:
+    user:
+      name: User
+      description: Qalaam user identifier (defaults to primary)
+      required: false
+      selector:
+        text:

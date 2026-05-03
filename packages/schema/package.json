@@ -1,0 +1,37 @@
+{
+  "name": "@qalaam/schema",
+  "version": "0.0.1",
+  "description": "Qalaam — JSON Schema source of truth (per ADR-0008). Codegens TS + Python types.",
+  "license": "Apache-2.0",
+  "private": false,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schemas/*": "./schemas/*"
+  },
+  "files": ["dist", "schemas", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "codegen": "tsx ../../tooling/codegen/run.ts",
+    "lint": "eslint src tooling tests",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  }
+}

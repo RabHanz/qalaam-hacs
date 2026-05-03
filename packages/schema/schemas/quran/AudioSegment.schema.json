@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalaam.app/schemas/quran/AudioSegment.schema.json",
+  "title": "AudioSegment",
+  "description": "Word-level audio timing for a single ayah by a specific reciter. Source-of-truth for follow-along highlighting and ASR alignment (ADR-0002, ADR-0005).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["verseKey", "reciterId", "wordSegments", "totalDurationMs"],
+  "properties": {
+    "verseKey": { "$ref": "../common/Primitives.schema.json#/$defs/VerseKey" },
+    "reciterId": { "$ref": "../common/Primitives.schema.json#/$defs/Uuid" },
+    "wordSegments": {
+      "type": "array",
+      "description": "Per-word timing tuples in playback order. Indices are 0-based.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["wordIndex", "startMs", "endMs"],
+        "properties": {
+          "wordIndex": { "$ref": "../common/Primitives.schema.json#/$defs/WordIndex" },
+          "startMs": { "$ref": "../common/Primitives.schema.json#/$defs/Milliseconds" },
+          "endMs": { "$ref": "../common/Primitives.schema.json#/$defs/Milliseconds" }
+        }
+      }
+    },
+    "totalDurationMs": { "$ref": "../common/Primitives.schema.json#/$defs/Milliseconds" },
+    "audioUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL of the source audio file. May resolve to audio.qurancdn.com or a Cloudflare R2 mirror."
+    },
+    "source": {
+      "type": "string",
+      "enum": ["qul", "quran-align", "quran-foundation", "qalaam-aligned"],
+      "description": "Provenance of the timing data."
+    },
+    "humanCorrected": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if timings were human-reviewed (QUL human-corrected segments)."
+    }
+  }
+}
