@@ -26,9 +26,10 @@
 | 11 — HA integration v1 | 12 | 12 | **100%** | All entities, services, voice, panel; themed (HA light/dark/custom CSS-var driven); cache-busted module URL; restorable backups; runbook live. |
 | 12 — Mobile (v1.5) | 8 | 0 | 0% | Deferred per ADR-0013. |
 | 13 — Khatm + azkar + adhan polish | 8 | 8 | **100%** | khatm engine + adhan wrapper + **expanded Hisn al-Muslim catalog (50+ entries, hadith-graded sahih/hasan/quran across morning/evening/post-salah/sleep/wake/situational/general; tests assert grading-clean catalog) + family-private weekly leaderboard** with explicit ikhlas framing, no rank labels, "you" tag without changing visual order, "fresh start" non-blaming copy, accessible bar chart with progressbar role + aria values; 7 dedicated tests. |
-| 14 — Voice cloning + teach-back (v2.0) | 18 | 16 | ~89% | tts-worker (**real ElevenLabs API + R2/in-mem cache + perceptual watermark — 15 tests**), Habibi stub, ml/ skeletons (whisper + habibi + voice-similarity), packages/prosody (pure-TS F0/RMS/DTW), packages/tajweed-detector (Madd/Ghunna heuristics + confidence floors), services/realtime-feedback (WS streaming), services/prosody-worker (FastAPI batch), packages/ui-recite (RecordButton, WaveformViz, WordResultStrip, FeedbackSession), apps/web /recite/[verseKey] route wired end-to-end. **Pending:** real Habibi GPU inference (~$200-500 GPU run), qalqalah/madd onset model. |
+| 14 — Voice cloning + teach-back (v2.0) | 18 | 17 | ~94% | tts-worker (**real ElevenLabs API + R2/in-mem cache + perceptual watermark + ADR-0019 quranic-guard — 27 tests**), Habibi stub, ml/ skeletons (whisper + habibi + voice-similarity), packages/prosody (pure-TS F0/RMS/DTW), packages/tajweed-detector (Madd/Ghunna heuristics + confidence floors), services/realtime-feedback (WS streaming), services/prosody-worker (FastAPI batch), packages/ui-recite (RecordButton, WaveformViz, WordResultStrip, FeedbackSession), apps/web /recite/[verseKey] route wired end-to-end. **Pending:** real Habibi GPU inference (~$200-500 GPU run), qalqalah/madd onset model. |
 | 15 — Curriculum (v2.0) | 8 | 8 | **100%** | Full 4-level catalog: 32 (alphabet) + 40 (tajweed) + 30 (recitation) + 11 (mastery) = 113 lessons. Prereq chain validated. `LEVEL_META` for UI. `@qalaam/ui-learn` with LessonCard / LessonList / LessonView / LevelProgressBar / MakhrajDiagram. /learn + /learn/[level] + /learn/[level]/[slug] routes. Backend `/v1/curriculum/*` + Markdown body wiring deferred to v0.5. |
 | 16 — QF Tier B (v2+) | 4 | 1 | ~25% | Placeholder client. Deferred. |
+| 17 — QUL deep ingestion (v0.5 → v2.0) | 22 | 5 | ~23% | License-aware framework + 3 sub-reader scaffolds (metadata, mutashabihat-v2, word-by-word) + inventory doc + ADR-0020. **Pending:** 4 more sub-readers, 5 ingest scripts, backend routes, UI consumption. Per ADR-0020, every ingested row carries source_id/source_url/license/attribution_required columns; CI gate refuses `unverified` bundles. |
 
 **Overall progress:** approximately 269 / 273 line items = **~98% of v0.1 + v0.5 + v1.0 + v2.0 scaffolding** complete.
 
@@ -498,10 +499,11 @@ These exist before v0.1 starts; they govern everything that comes after.
 
 **Outcome served:** O-06, O-18. **ADR:** 0006, 0007, 0014.
 
-### 14.1 MVP path: ElevenLabs API
+### 14.1 MVP path: ElevenLabs API (scope = app-voice ONLY per ADR-0019)
 - [x] `services/tts-worker/src/qalaam_tts_worker/providers/elevenlabs.py` — real API call (env-gated on `ELEVENLABS_API_KEY`; deterministic stub otherwise) with voice_settings (stability, similarity_boost, speed)
 - [x] Cache to Cloudflare R2 — `cache.py` with `R2Cache` (S3-compatible PUT/HEAD via httpx, falls back to in-memory when not configured) + `InMemoryCache` LRU; deterministic SHA-256 cache_key over (text, voice_slug, speed, model_id)
-- [x] Watermarking for AI-generated audio (US AI Voice Rights Act compliance) — `watermark.py` with `embed_watermark` + `extract_watermark` (28-byte tail envelope: 8-byte magic + 4-byte version + 16-byte SHA-256(tag)[:16]); v1.5 swaps in `audiowmark` for in-signal robustness; 15 dedicated tests (cache + watermark + provider integration verifying cached bytes carry the watermark).
+- [x] Watermarking for AI-generated audio (US AI Voice Rights Act compliance) — `watermark.py` with `embed_watermark` + `extract_watermark` (28-byte tail envelope: 8-byte magic + 4-byte version + 16-byte SHA-256(tag)[:16]); v1.5 swaps in `audiowmark` for in-signal robustness
+- [x] **Scope clarification per ADR-0019:** voice slugs split into `qalaam-app-voice` / `qalaam-app-voice-warm` (UI/system speech) and `qalaam-house-mujawwad` (RESERVED for Habibi-TTS-MSA-Quran v2.5+; refused by ElevenLabs). `quranic_guard.py` runtime gate refuses any synthesize request with: reserved recitation slug, caller-supplied `verse_key`, end-of-ayah glyph U+06DD, hamzat al-wasl alif U+0671, tashkeel density >25%, or known Quranic-opener fingerprint. Refusals surface as HTTP 422 with structured hint pointing at `/v1/audio/by_verse`. 27 dedicated tests (cache + watermark + provider integration + quranic-guard signals + server refusal paths).
 
 ### 14.2 Self-host path: Habibi-TTS-MSA
 - [ ] `services/tts-worker/src/providers/habibi.py`
@@ -543,6 +545,49 @@ These exist before v0.1 starts; they govern everything that comes after.
 
 - [ ] PKCE + OIDC flow for Quran.com bookmark sync
 - [ ] Reciprocal sync (push/pull notes, bookmarks, last-read)
+
+---
+
+## Phase 17 — QUL deep ingestion (v0.5 → v2.0)
+
+**Outcome served:** O-04, O-08, O-13, O-18, O-19. **ADR:** 0020. **Inventory:** `Docs/research/qul-inventory.md`.
+
+QUL exposes ~14 distinct data resources (152 recitations, 27 mushaf layouts, 209 translations, 115 tafsirs, 28 scripts, 8 metadata tables, 5,277 mutashabihat phrases, 4,001 ayah-similarity pairs, 77,429 morphology entries, etc). v0.1 uses ~10% of this. Phase 17 brings the rest in, **license-aware** — every ingested row carries `source_id`, `source_url`, `license`, `attribution_required` columns enforced by `packages/data-loader/src/qul/license.ts`.
+
+### 17.1 Framework
+- [x] `packages/data-loader/src/qul/license.ts` — `LicenseTag` taxonomy (public-domain | factual | permissive-with-credit | kfgqpc-terms | digitalkhatt-anane | gpl-derivative | per-translator | per-reciter | unverified) + `isBundleSafe()` + `attributionLine()`
+- [x] `Docs/research/qul-inventory.md` — full audit of QUL resources mapped to Qalaam outcomes
+- [x] ADR-0020 documenting the per-resource sub-reader pattern
+
+### 17.2 Sub-reader scaffolding (TS interfaces + prepared statements; populated by ingest scripts in 17.3)
+- [x] `quran-metadata.ts` — Surah info / Juz / Hizb / Rub / Manzil / Ruku / Sajda (license: factual; bundle-safe)
+- [x] `mutashabihat-extended.ts` — 5,277 phrase clusters + 4,001 ayah-similarity pairs with `watchlistFor(verseKey, limit)` (license: permissive-with-credit)
+- [x] `word-by-word.ts` — wbw translations + (gated) morphology, `enableMorphology: false` default to refuse copyleft surfacing without explicit opt-in (license: permissive-with-credit + gpl-derivative)
+- [ ] `mushaf-layouts.ts` — full 27-layout coverage (KFGQPC V1/V2/V4, Indopak 9/13/15/16-line, Nastaleeq, DigitalKhatt, Ligature SVG)
+- [ ] `recitation-segments.ts` — 62 segmented reciters with word-level timestamps
+- [ ] `surah-info.ts` — 9-language context cards (revelation place + period + themes + key topics)
+- [ ] `quran-scripts.ts` — Indopak Nastaleeq + KFGQPC V4 with tajweed (extends current Uthmani-only)
+
+### 17.3 Ingest scripts (one-shot, license-gated)
+- [ ] `scripts/data/ingest-qul-metadata.ts` — pulls QUL resource IDs 63-70 → `qalaam_v1_qul_metadata_*` tables
+- [ ] `scripts/data/ingest-qul-mutashabihat-v2.ts` — pulls full 5,277 phrases + 4,001 pairs → `qalaam_v1_qul_mutashabihat_v2_*`
+- [ ] `scripts/data/ingest-qul-wbw.ts` — pulls 16 word-by-word translation packs (English first; Urdu + Indonesian follow)
+- [ ] `scripts/data/ingest-qul-layouts.ts` — pulls priority mushaf layouts (KFGQPC V4 + Indopak 15-line first)
+- [ ] `scripts/data/ingest-qul-recitations.ts` — pulls Husary + Minshawi + Abdul Basit Murattal segmented timings
+- [ ] CI gate: refuse to bundle any row tagged `unverified` into a production build
+
+### 17.4 Backend route surfacing
+- [ ] `apps/backend/src/routes/v1/metadata/{surah,juz,hizb,ruku}.ts` — surface QuranMetadataReader
+- [ ] `apps/backend/src/routes/v1/mutashabihat/[verse].ts` — clusters + watchlist
+- [ ] `apps/backend/src/routes/v1/wbw/[verse].ts` — word-by-word; morphology gated by `?include=morphology` + auth tier
+- [ ] `apps/backend/src/routes/v1/surah-info/[surah].ts`
+- [ ] `apps/backend/src/routes/v1/layouts/[layout]/page/[N].ts` — page-faithful layout serving
+
+### 17.5 UI consumption
+- [ ] DeepStudyPane: pull surah-info + word-by-word + (opt-in) morphology
+- [ ] Reader: layout switcher (Madani 15-line, Indopak 15-line, KFGQPC V4)
+- [ ] Hifdh portion engine: switch from juz-only to ruku/hizb/manzil-aware portion-splits
+- [ ] Mutashabihat-watchlist surface in `RatingTrigger` + `ParentDashboard`
 
 ---
 

@@ -12,6 +12,7 @@ from fastapi import FastAPI, HTTPException
 from .models import SynthesizeRequest, SynthesizeResponse, Voice
 from .providers.elevenlabs import ElevenLabsProvider
 from .providers.habibi import HabibiProvider
+from .quranic_guard import QuranicTextRefused
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 structlog.configure(
@@ -56,19 +57,41 @@ def healthz() -> dict[str, str]:
 
 @app.get("/v1/voices", response_model=list[Voice])
 def list_voices() -> list[Voice]:
-    # Per ADR-0007: only Qalaam-house voices through v1.5.
+    """Per ADR-0007 + ADR-0019: app-voice slugs through v1.5; recitation slug
+    reserved (refused by ElevenLabs at synthesize time)."""
     return [
         Voice(
-            slug="qalaam-house",
-            name="Qalaam house voice (Murattal)",
-            description="Multi-reciter-blend voice trained on a corpus of multiple reciters. Not attributable to any individual.",
+            slug="qalaam-app-voice",
+            name="Qalaam app voice",
+            description=(
+                "General-purpose Arabic + English voice for Qalaam UI/system speech: "
+                "settings prompts, deep-study explanations, session cues, daily summary "
+                "narration. NOT used for Quranic recitation (those are served from "
+                "pre-recorded reciter audio via /v1/audio/by_verse)."
+            ),
             is_licensed_for_cloning=False,
+            intended_use="app-speech",
+        ),
+        Voice(
+            slug="qalaam-app-voice-warm",
+            name="Qalaam app voice (warm)",
+            description=(
+                "Softer alternate for night-mode / sleep flows. Same scope as "
+                "qalaam-app-voice — never used for Quranic verses."
+            ),
+            is_licensed_for_cloning=False,
+            intended_use="app-speech",
         ),
         Voice(
             slug="qalaam-house-mujawwad",
-            name="Qalaam house voice (Mujawwad)",
-            description="Same blend with melodic recitation style.",
+            name="Qalaam house voice (Mujawwad) — RESERVED for v2.5+",
+            description=(
+                "Reserved for Habibi-TTS-MSA fine-tuned on the Quran corpus per "
+                "ADR-0006/0007. Refused by ElevenLabs (no tajweed model). "
+                "Will become available once the Habibi backend is wired in v2.5."
+            ),
             is_licensed_for_cloning=False,
+            intended_use="recitation",
         ),
     ]
 
@@ -77,6 +100,19 @@ def list_voices() -> list[Voice]:
 async def synthesize(req: SynthesizeRequest) -> SynthesizeResponse:
     try:
         return await provider.synthesize(req)
+    except QuranicTextRefused as err:
+        # 422 (not 502) — the request is well-formed but routed to the wrong
+        # provider. Body carries a hint pointing at /v1/audio/by_verse.
+        _LOG.warning("tts.synthesize.refused.quranic", err=str(err), verse_key=req.verse_key)
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "qalaam.tts.quranic-text-refused",
+                "message": str(err),
+                "hint": "Route Quranic verses through /v1/audio/by_verse/<verse_key>/<reciter>.",
+                "verse_key": req.verse_key,
+            },
+        ) from err
     except Exception as err:  # noqa: BLE001
         _LOG.error("tts.synthesize.failed", err=str(err))
         raise HTTPException(status_code=502, detail=str(err)) from err

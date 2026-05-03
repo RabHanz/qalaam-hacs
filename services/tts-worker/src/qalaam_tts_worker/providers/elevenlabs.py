@@ -24,6 +24,7 @@ import httpx
 
 from ..cache import AudioCache, CachedAudio, InMemoryCache, R2Cache, cache_key
 from ..models import SynthesizeRequest, SynthesizeResponse
+from ..quranic_guard import QuranicTextRefused, refuse_if_quranic
 from ..watermark import embed_watermark
 
 _LOG: Final = logging.getLogger(__name__)
@@ -37,10 +38,19 @@ def _voice_id_for(voice_slug: str) -> str:
 
     The mapping is env-driven (not hard-coded) so the same binary can serve
     different ElevenLabs voice_ids per environment without a redeploy.
+
+    Per ADR-0019: `qalaam-house-mujawwad` is reserved for Habibi-TTS-MSA-Quran
+    (v2.5+) and MUST NOT route through ElevenLabs. The mapping refuses it.
     """
+    if voice_slug == "qalaam-house-mujawwad":
+        raise QuranicTextRefused(
+            f"voice_slug {voice_slug!r} is reserved for Quran-trained models; "
+            f"ElevenLabs (general MSA TTS) cannot render tajweed-correct "
+            f"recitation. See ADR-0019."
+        )
     env_key = {
-        "qalaam-house": "ELEVENLABS_VOICE_ID_QALAAM_HOUSE",
-        "qalaam-house-mujawwad": "ELEVENLABS_VOICE_ID_QALAAM_HOUSE_MUJAWWAD",
+        "qalaam-app-voice": "ELEVENLABS_VOICE_ID_QALAAM_APP_VOICE",
+        "qalaam-app-voice-warm": "ELEVENLABS_VOICE_ID_QALAAM_APP_VOICE_WARM",
     }.get(voice_slug, "")
     if not env_key:
         raise ValueError(f"No env mapping for voice_slug {voice_slug!r}")
@@ -67,6 +77,10 @@ class ElevenLabsProvider:
         self.watermark_tag = watermark_tag
 
     async def synthesize(self, req: SynthesizeRequest) -> SynthesizeResponse:
+        # Hard guard FIRST — before cache, before generate. We never want a
+        # cached Quranic-text result to be served from this provider either.
+        refuse_if_quranic(req)
+
         key = req.cache_key or cache_key(
             text=req.text,
             voice_slug=req.voice_slug,

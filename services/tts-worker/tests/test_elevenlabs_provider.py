@@ -20,7 +20,7 @@ async def test_stub_path_when_no_api_key() -> None:
     os.environ.pop("ELEVENLABS_API_KEY", None)
     provider = ElevenLabsProvider(cache=InMemoryCache())
     res = await provider.synthesize(
-        SynthesizeRequest(text="Bismillah", voice_slug="qalaam-house")
+        SynthesizeRequest(text="Bismillah", voice_slug="qalaam-app-voice")
     )
     assert res.cached is False
     assert res.is_ai_generated is True
@@ -33,7 +33,7 @@ async def test_cache_hit_skips_generation() -> None:
     os.environ.pop("ELEVENLABS_API_KEY", None)
     cache = InMemoryCache()
     provider = ElevenLabsProvider(cache=cache)
-    req = SynthesizeRequest(text="Alhamdulillah", voice_slug="qalaam-house")
+    req = SynthesizeRequest(text="Alhamdulillah", voice_slug="qalaam-app-voice")
     first = await provider.synthesize(req)
     second = await provider.synthesize(req)
     assert first.cached is False
@@ -55,7 +55,7 @@ async def test_cached_bytes_carry_perceptual_watermark() -> None:
     cache = InMemoryCache()
     provider = ElevenLabsProvider(cache=cache)
     res = await provider.synthesize(
-        SynthesizeRequest(text="bismillahirahmaanirraheem", voice_slug="qalaam-house")
+        SynthesizeRequest(text="bismillahirahmaanirraheem", voice_slug="qalaam-app-voice")
     )
     # In-memory cache returns data: URLs; pull the bytes back out.
     assert res.audio_url.startswith("data:audio/mpeg;base64,")
@@ -72,12 +72,12 @@ async def test_explicit_cache_key_is_honoured() -> None:
     provider = ElevenLabsProvider(cache=cache)
     a = await provider.synthesize(
         SynthesizeRequest(
-            text="X", voice_slug="qalaam-house", cache_key="explicit-key"
+            text="X", voice_slug="qalaam-app-voice", cache_key="explicit-key"
         )
     )
     b = await provider.synthesize(
         SynthesizeRequest(
-            text="Y", voice_slug="qalaam-house", cache_key="explicit-key"
+            text="Y", voice_slug="qalaam-app-voice", cache_key="explicit-key"
         )
     )
     # Same explicit cache key — second call hits, even though text differs.

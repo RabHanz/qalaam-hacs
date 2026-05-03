@@ -2390,6 +2390,8 @@ Per CLAUDE.md §11.1, every significant decision gets an ADR. ADRs live in `Docs
 | ADR-0016 | Data flywheel architecture — corrections-only sync (no audio to cloud) | Accepted | O-02, O-05, O-07 | `adrs/ADR-0016-data-flywheel-architecture.md` |
 | ADR-0017 | i18n strategy — `next-intl` + RTL/LTR + dual-pipeline Voice | Proposed | O-04, O-19 | `adrs/ADR-0017-i18n-strategy.md` |
 | ADR-0018 | Cache invalidation policy — align HTTP cache-control with QF ToS 7-day cap | Accepted | O-01, O-11 | `adrs/ADR-0018-cache-invalidation.md` |
+| ADR-0019 | TTS scope — app-voice only; Quranic verses NEVER synthesized by general-purpose TTS | Accepted | O-06, O-08, O-13 (foundation; voice-quality + adab guard) | `adrs/ADR-0019-tts-scope-app-voice-only.md` |
+| ADR-0020 | QUL deep ingestion — license-aware, per-resource sub-readers under `qalaam_v1_qul_*` | Accepted | O-04, O-08, O-13, O-18, O-19 | `adrs/ADR-0020-qul-deep-ingestion.md` |
 
 Statuses: Proposed → Accepted → Deprecated → Superseded.
 

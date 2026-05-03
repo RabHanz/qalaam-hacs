@@ -9,6 +9,11 @@
  * **Note on schema:** the QUL upstream schema evolves. We pin reads to a
  * versioned view (`qalaam_v1_*` via `migrations/`) so a QUL bump can be
  * absorbed without rippling through every consumer.
+ *
+ * **Deep ingestion (ADR-0020):** in addition to the v0.1 verse + segment +
+ * mutashabihat reads, this module re-exports the per-resource sub-readers
+ * (metadata, mutashabihat-v2, word-by-word, etc.) so callers can compose
+ * exactly the surface they need without pulling the whole QUL substrate.
  */
 import { existsSync } from 'node:fs';
 
@@ -16,14 +21,32 @@ import Database, { type Database as DB, type Statement } from 'better-sqlite3';
 
 import { QalaamError, type VerseKey, parseVerseKey } from '@qalaam/core';
 
+import type { LicenseMetadata } from './license.js';
+import {
+  type MutashabihatExtendedReader,
+  buildMutashabihatExtendedReader,
+} from './mutashabihat-extended.js';
+import {
+  type QuranMetadataReader,
+  buildQuranMetadataReader,
+} from './quran-metadata.js';
 import type {
   QulAudioSegmentRow,
   QulMushafLayoutRow,
   QulMutashabihatRow,
   QulVerseRow,
 } from './types.js';
+import {
+  type WordByWordReader,
+  type WordByWordReaderOptions,
+  buildWordByWordReader,
+} from './word-by-word.js';
 
 export type { QulAudioSegmentRow, QulMushafLayoutRow, QulMutashabihatRow, QulVerseRow };
+export * from './license.js';
+export * from './quran-metadata.js';
+export * from './mutashabihat-extended.js';
+export * from './word-by-word.js';
 
 interface RawVerse {
   verse_key: string;
@@ -62,6 +85,17 @@ export interface QulReader {
   getAudioSegments(key: VerseKey, reciterId: string): QulAudioSegmentRow[];
   getMutashabihatCluster(key: VerseKey): QulMutashabihatRow[];
   getMushafLayout(layout: QulMushafLayoutRow['layout']): QulMushafLayoutRow[];
+  /**
+   * Per-resource sub-readers (ADR-0020). Callers attach the relevant
+   * `LicenseMetadata` at open time so attribution is enforced consistently.
+   */
+  metadata(meta: LicenseMetadata): QuranMetadataReader;
+  mutashabihatV2(meta: LicenseMetadata): MutashabihatExtendedReader;
+  wordByWord(
+    translationMeta: LicenseMetadata,
+    morphologyMeta: LicenseMetadata | null,
+    options?: WordByWordReaderOptions,
+  ): WordByWordReader;
   close(): void;
 }
 
@@ -69,7 +103,10 @@ interface PreparedStatements {
   getVerse: Statement<[string], RawVerse | undefined>;
   getSegments: Statement<[string, string], RawSegment>;
   getClusters: Statement<[string], RawCluster>;
-  getMushafLayout: Statement<[string], { layout: string; page: number; first_verse_key: string; lines_per_page: number }>;
+  getMushafLayout: Statement<
+    [string],
+    { layout: string; page: number; first_verse_key: string; lines_per_page: number }
+  >;
 }
 
 class QulReaderImpl implements QulReader {
@@ -172,6 +209,25 @@ class QulReaderImpl implements QulReader {
       firstVerseKey: parseVerseKey(r.first_verse_key),
       linesPerPage: r.lines_per_page,
     }));
+  }
+
+  public metadata(meta: LicenseMetadata): QuranMetadataReader {
+    this.assertOpen();
+    return buildQuranMetadataReader(this.db, meta);
+  }
+
+  public mutashabihatV2(meta: LicenseMetadata): MutashabihatExtendedReader {
+    this.assertOpen();
+    return buildMutashabihatExtendedReader(this.db, meta);
+  }
+
+  public wordByWord(
+    translationMeta: LicenseMetadata,
+    morphologyMeta: LicenseMetadata | null,
+    options?: WordByWordReaderOptions,
+  ): WordByWordReader {
+    this.assertOpen();
+    return buildWordByWordReader(this.db, translationMeta, morphologyMeta, options);
   }
 
   public close(): void {
