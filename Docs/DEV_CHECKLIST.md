@@ -26,7 +26,7 @@
 | 11 — HA integration v1 | 12 | 12 | **100%** | All entities, services, voice, panel; themed (HA light/dark/custom CSS-var driven); cache-busted module URL; restorable backups; runbook live. |
 | 12 — Mobile (v1.5) | 8 | 0 | 0% | Deferred per ADR-0013. |
 | 13 — Khatm + azkar + adhan polish | 8 | 8 | **100%** | khatm engine + adhan wrapper + **expanded Hisn al-Muslim catalog (50+ entries, hadith-graded sahih/hasan/quran across morning/evening/post-salah/sleep/wake/situational/general; tests assert grading-clean catalog) + family-private weekly leaderboard** with explicit ikhlas framing, no rank labels, "you" tag without changing visual order, "fresh start" non-blaming copy, accessible bar chart with progressbar role + aria values; 7 dedicated tests. |
-| 14 — Voice cloning + teach-back (v2.0) | 18 | 13 | ~72% | tts-worker (ElevenLabs MVP + Habibi stub), ml/ skeletons (whisper + habibi + voice-similarity), packages/prosody (pure-TS F0/RMS/DTW), packages/tajweed-detector (Madd/Ghunna heuristics + confidence floors), services/realtime-feedback (WS streaming), services/prosody-worker (FastAPI batch), packages/ui-recite (RecordButton, WaveformViz, WordResultStrip, FeedbackSession), apps/web /recite/[verseKey] route wired end-to-end. **Pending:** real ElevenLabs API call wiring, real Habibi GPU inference, qalqalah/madd onset model. |
+| 14 — Voice cloning + teach-back (v2.0) | 18 | 16 | ~89% | tts-worker (**real ElevenLabs API + R2/in-mem cache + perceptual watermark — 15 tests**), Habibi stub, ml/ skeletons (whisper + habibi + voice-similarity), packages/prosody (pure-TS F0/RMS/DTW), packages/tajweed-detector (Madd/Ghunna heuristics + confidence floors), services/realtime-feedback (WS streaming), services/prosody-worker (FastAPI batch), packages/ui-recite (RecordButton, WaveformViz, WordResultStrip, FeedbackSession), apps/web /recite/[verseKey] route wired end-to-end. **Pending:** real Habibi GPU inference (~$200-500 GPU run), qalqalah/madd onset model. |
 | 15 — Curriculum (v2.0) | 8 | 8 | **100%** | Full 4-level catalog: 32 (alphabet) + 40 (tajweed) + 30 (recitation) + 11 (mastery) = 113 lessons. Prereq chain validated. `LEVEL_META` for UI. `@qalaam/ui-learn` with LessonCard / LessonList / LessonView / LevelProgressBar / MakhrajDiagram. /learn + /learn/[level] + /learn/[level]/[slug] routes. Backend `/v1/curriculum/*` + Markdown body wiring deferred to v0.5. |
 | 16 — QF Tier B (v2+) | 4 | 1 | ~25% | Placeholder client. Deferred. |
 
@@ -499,9 +499,9 @@ These exist before v0.1 starts; they govern everything that comes after.
 **Outcome served:** O-06, O-18. **ADR:** 0006, 0007, 0014.
 
 ### 14.1 MVP path: ElevenLabs API
-- [ ] `services/tts-worker/src/providers/elevenlabs.ts`
-- [ ] Cache to Cloudflare R2
-- [ ] Watermarking for AI-generated audio (US AI Voice Rights Act compliance)
+- [x] `services/tts-worker/src/qalaam_tts_worker/providers/elevenlabs.py` — real API call (env-gated on `ELEVENLABS_API_KEY`; deterministic stub otherwise) with voice_settings (stability, similarity_boost, speed)
+- [x] Cache to Cloudflare R2 — `cache.py` with `R2Cache` (S3-compatible PUT/HEAD via httpx, falls back to in-memory when not configured) + `InMemoryCache` LRU; deterministic SHA-256 cache_key over (text, voice_slug, speed, model_id)
+- [x] Watermarking for AI-generated audio (US AI Voice Rights Act compliance) — `watermark.py` with `embed_watermark` + `extract_watermark` (28-byte tail envelope: 8-byte magic + 4-byte version + 16-byte SHA-256(tag)[:16]); v1.5 swaps in `audiowmark` for in-signal robustness; 15 dedicated tests (cache + watermark + provider integration verifying cached bytes carry the watermark).
 
 ### 14.2 Self-host path: Habibi-TTS-MSA
 - [ ] `services/tts-worker/src/providers/habibi.py`

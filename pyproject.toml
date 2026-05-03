@@ -11,17 +11,13 @@ authors = [{ name = "Qalaam Maintainers" }]
 [tool.uv.workspace]
 members = [
     "packages/types-py",
-    "packages/api-client-py",
     "packages/core-py",
     "packages/asr",
-    "packages/prosody",
-    "packages/tajweed-detector",
     "services/asr-worker",
     "services/tts-worker",
     "services/prosody-worker",
     "services/realtime-feedback",
     "services/device-bridge",
-    "integrations/homeassistant",
     "ml",
 ]
 exclude = ["**/node_modules", "**/dist", "**/.venv"]
