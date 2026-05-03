@@ -1,7 +1,9 @@
-"""Qalaam binary_sensor entities.
+"""Qalaam binary_sensor entities — backed by the coordinator's snapshots.
 
 - binary_sensor.qalaam_is_reciting    — true while a Qalaam verse is playing.
-- binary_sensor.qalaam_in_session     — true while a Hifdh session is active.
+- binary_sensor.qalaam_in_session     — true while a Hifdh session is active
+  (heuristic v0.1: portions due today AND currently reciting; v0.5 has a real
+  per-user `in_session` flag from the backend).
 """
 
 from __future__ import annotations
@@ -41,13 +43,24 @@ async def async_setup_entry(
 
 class QalaamBinarySensor(QalaamEntity, BinarySensorEntity):
     def __init__(
-        self, coordinator: QalaamCoordinator, description: BinarySensorEntityDescription
+        self,
+        coordinator: QalaamCoordinator,
+        description: BinarySensorEntityDescription,
     ) -> None:
         super().__init__(coordinator)
         self.entity_description = description
-        self._attr_unique_id = f"{coordinator.entry.entry_id}-binary_sensor-{description.key}"
+        self._attr_unique_id = (
+            f"{coordinator.entry.entry_id}-binary_sensor-{description.key}"
+        )
 
     @property
     def is_on(self) -> bool:
-        # v0.5 wires to /v1/now-playing for is_reciting and Hifdh session for in_session.
+        if self.coordinator.data is None:
+            return False
+        snap = self.coordinator.data
+        key = self.entity_description.key
+        if key == "is_reciting":
+            return snap.now_playing.is_playing
+        if key == "in_session":
+            return snap.hifdh.today_session_count > 0 and snap.now_playing.is_playing
         return False

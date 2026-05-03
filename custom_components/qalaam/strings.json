@@ -45,7 +45,9 @@
       "current_verse": { "name": "Current verse" },
       "streak_days": { "name": "Streak" },
       "next_prayer": { "name": "Next prayer" },
-      "today_session_count": { "name": "Portions due today" }
+      "today_session_count": { "name": "Portions due today" },
+      "grace_days_remaining": { "name": "Grace days remaining" },
+      "current_sabqi": { "name": "Current sabqi" }
     },
     "binary_sensor": {
       "is_reciting": { "name": "Reciting" },
