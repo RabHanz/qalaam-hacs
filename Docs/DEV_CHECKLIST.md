@@ -450,8 +450,9 @@ These exist before v0.1 starts; they govern everything that comes after.
 - [x] `select` entities: `select.qalaam_reciter`, `select.qalaam_mushaf`
 - [x] `todo` entity: `todo.qalaam_hifdh_plan` (TodoListEntity with UPDATE_TODO_ITEM)
 - [x] `calendar` entity: `calendar.qalaam_review_schedule` (CalendarEntity)
-- [x] `sensor` entities: `current_verse`, `streak_days` (TOTAL_INCREASING), `next_prayer` (TIMESTAMP), `today_session_count` (MEASUREMENT)
+- [x] `sensor` entities: `current_verse`, `streak_days` (TOTAL_INCREASING), `next_prayer` (TIMESTAMP), `today_session_count` (MEASUREMENT), `grace_days_remaining` (MEASUREMENT), `current_sabqi`
 - [x] `binary_sensor` entities: `is_reciting`, `in_session`
+- [x] Coordinator wires `/v1/hifdh/state` + `/v1/now-playing/:speakerId` (soft-fail per endpoint); sensors + binary_sensors read from `coordinator.data` with `extra_state_attributes` (weakest_pages, mutashabihat_watchlist, manzil_cycle_position, reciter_slug, position_ms). **Verified live on shadowserver:** streak=7, current_verse=2:255, current_sabqi=2:255-2:257, portions_due_today=3, both binary_sensors=on.
 - [x] `button` entities: `test_me`, `mark_memorized`
 - [x] Voice intents: `QalaamPlaySurah`, `QalaamPlayAyah`, `QalaamStartHifdh`
 - [x] Lovelace panel: `apps/ha-panel` registered via `frontend.async_register_built_in_panel` + static path via `hass.http.async_register_static_paths`
