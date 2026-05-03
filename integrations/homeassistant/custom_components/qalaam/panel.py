@@ -32,17 +32,13 @@ _LOGGER: Final = logging.getLogger(__name__)
 _STUB_MARKER: Final = "/* QALAAM_PANEL_STUB */"
 
 
-async def async_register_panel(hass: HomeAssistant) -> None:
-    """Idempotent panel registration. Safe to call after every config-entry setup."""
-    if PANEL_URL_PATH in hass.data.get("frontend_panels", {}):
-        return
+def _ensure_panel_dir_sync(panel_dir: Path, js_path: Path) -> str:
+    """Sync filesystem prep — runs in HA executor so we never block the loop.
 
-    panel_dir = Path(__file__).parent / "panel_dist"
+    Creates the panel_dist dir, writes a stub bundle if no real bundle is
+    present, and returns the version tag to use in the cache-busting suffix.
+    """
     panel_dir.mkdir(exist_ok=True)
-    js_path = panel_dir / PANEL_JS_FILENAME
-
-    # Only write a stub when there's truly no bundle on disk. The marker guards
-    # against accidentally overwriting a real, pushed bundle.
     if not js_path.exists():
         js_path.write_text(
             f"{_STUB_MARKER}\n"
@@ -51,6 +47,25 @@ async def async_register_panel(hass: HomeAssistant) -> None:
             "// can register the qalaam-panel element on first load without a name clash.\n",
             encoding="utf-8",
         )
+    try:
+        return str(int(js_path.stat().st_mtime))
+    except OSError:
+        return "0"
+
+
+async def async_register_panel(hass: HomeAssistant) -> None:
+    """Idempotent panel registration. Safe to call after every config-entry setup."""
+    if PANEL_URL_PATH in hass.data.get("frontend_panels", {}):
+        return
+
+    panel_dir = Path(__file__).parent / "panel_dist"
+    js_path = panel_dir / PANEL_JS_FILENAME
+
+    # Filesystem work goes through the executor — HA forbids sync I/O on the
+    # event loop and will warn (or in stricter releases, raise).
+    version_tag = await hass.async_add_executor_job(
+        _ensure_panel_dir_sync, panel_dir, js_path
+    )
 
     # cache_headers=False so a freshly-scp'd bundle is picked up on next request
     # without waiting out a long cache TTL.
@@ -60,10 +75,6 @@ async def async_register_panel(hass: HomeAssistant) -> None:
 
     # Cache-busting suffix so any historical stub entry in the browser cache is
     # bypassed by a different URL on the new registration.
-    try:
-        version_tag = str(int(js_path.stat().st_mtime))
-    except OSError:
-        version_tag = "0"
     module_url = f"{PANEL_STATIC_URL}/{PANEL_JS_FILENAME}?v={version_tag}"
 
     async_register_built_in_panel(
