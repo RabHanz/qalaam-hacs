@@ -1,0 +1,20 @@
+{
+  "name": "Qalaam Quran",
+  "render_readme": true,
+  "homeassistant": "2024.12.0",
+  "iot_class": "cloud_polling",
+  "content_in_root": false,
+  "country": ["ALL"],
+  "domains": [
+    "media_player",
+    "media_source",
+    "select",
+    "sensor",
+    "binary_sensor",
+    "todo",
+    "calendar",
+    "button"
+  ],
+  "filename": "qalaam.zip",
+  "hide_default_branch": true
+}

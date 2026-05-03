@@ -1,0 +1,16 @@
+{
+  "domain": "qalaam",
+  "name": "Qalaam Quran",
+  "version": "0.1.0",
+  "documentation": "https://github.com/qalaam-org/qalaam/tree/main/integrations/homeassistant",
+  "issue_tracker": "https://github.com/qalaam-org/qalaam/issues",
+  "codeowners": ["@qalaam-org"],
+  "config_flow": true,
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "dependencies": ["http", "media_source", "frontend"],
+  "after_dependencies": ["frontend"],
+  "requirements": ["aiohttp>=3.10"],
+  "loggers": ["custom_components.qalaam"],
+  "quality_scale": "silver"
+}

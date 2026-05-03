@@ -1,0 +1,51 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect Qalaam",
+        "description": "Enter the API key from your Qalaam account ({docs_url}).",
+        "data": {
+          "api_key": "API key",
+          "base_url": "Base URL"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate Qalaam",
+        "description": "Your API key was rejected. Paste a new one.",
+        "data": { "api_key": "API key" }
+      }
+    },
+    "error": { "auth": "Invalid API key or unreachable Qalaam server." },
+    "abort": { "already_configured": "This Qalaam account is already configured." }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Qalaam options",
+        "description": "Pick the speaker Qalaam should route playback to, and your default reciter.",
+        "data": {
+          "target_player": "Target media player",
+          "default_reciter_slug": "Default reciter slug",
+          "user_id": "Qalaam user id"
+        }
+      }
+    }
+  },
+  "entity": {
+    "media_player": { "qalaam_player": { "name": "Qalaam" } },
+    "sensor": {
+      "current_verse": { "name": "Current verse" },
+      "streak_days": { "name": "Streak" },
+      "next_prayer": { "name": "Next prayer" },
+      "today_session_count": { "name": "Portions due today" }
+    },
+    "binary_sensor": {
+      "is_reciting": { "name": "Reciting" },
+      "in_session": { "name": "Hifdh session active" }
+    },
+    "select": { "reciter": { "name": "Reciter" }, "mushaf": { "name": "Mushaf" } },
+    "button": { "test_me": { "name": "Test me" }, "mark_memorized": { "name": "Mark memorized" } },
+    "todo": { "hifdh_plan": { "name": "Hifdh plan" } },
+    "calendar": { "review_schedule": { "name": "Hifdh review schedule" } }
+  }
+}
