@@ -19,6 +19,9 @@ import { curriculumRoutes } from './routes/v1/curriculum.js';
 import { hifdhStateRoutes } from './routes/v1/hifdh-state.js';
 import { hifdhRoutes } from './routes/v1/hifdh.js';
 import { nowPlayingRoutes } from './routes/v1/now-playing.js';
+import { qulMetadataRoutes } from './routes/v1/qul-metadata.js';
+import { qulMutashabihatRoutes } from './routes/v1/qul-mutashabihat.js';
+import { qulWbwRoutes } from './routes/v1/qul-wbw.js';
 import { recitationsRoutes } from './routes/v1/recitations.js';
 import { translationsRoutes } from './routes/v1/translations.js';
 import { versesRoutes } from './routes/v1/verses.js';
@@ -68,6 +71,9 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   await app.register(nowPlayingRoutes);
   await app.register(translationsRoutes);
   await app.register(curriculumRoutes);
+  await app.register(qulMetadataRoutes, { config });
+  await app.register(qulMutashabihatRoutes, { config });
+  await app.register(qulWbwRoutes, { config });
 
   return app;
 }
@@ -92,6 +98,6 @@ async function main(): Promise<void> {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === `file://${process.argv[1] ?? ''}`) {
   await main();
 }

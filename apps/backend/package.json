@@ -29,6 +29,7 @@
     "@prisma/client": "^6.0.0",
     "@qalaam/api-client-ts": "workspace:*",
     "@qalaam/core": "workspace:*",
+    "@qalaam/curriculum": "workspace:*",
     "@qalaam/data-loader": "workspace:*",
     "@qalaam/hifdh-engine": "workspace:*",
     "@qalaam/types-ts": "workspace:*",

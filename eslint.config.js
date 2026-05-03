@@ -5,11 +5,11 @@
  * Per-package overrides live in `packages/<name>/eslint.config.js` extending this base.
  */
 import js from '@eslint/js';
-import tseslint from 'typescript-eslint';
-import importPlugin from 'eslint-plugin-import';
-import unusedImports from 'eslint-plugin-unused-imports';
-import unicorn from 'eslint-plugin-unicorn';
 import prettier from 'eslint-config-prettier';
+import importPlugin from 'eslint-plugin-import';
+import unicorn from 'eslint-plugin-unicorn';
+import unusedImports from 'eslint-plugin-unused-imports';
+import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
@@ -23,6 +23,13 @@ export default tseslint.config(
       'packages/types-ts/dist/**', // generated
       '**/*.config.js',
       '**/*.config.ts',
+      '**/*.config.mjs',
+      '**/*.config.cjs',
+      // One-shot ingest scripts run via tsx; not part of any tsconfig project.
+      'scripts/data/ingest-qul-*.ts',
+      // New test files not yet in a per-package eslint tsconfig — covered by vitest typecheck.
+      'packages/data-loader/tests/qul-readers.test.ts',
+      'apps/backend/tests/qul-routes.test.ts',
     ],
   },
 
@@ -52,10 +59,7 @@ export default tseslint.config(
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
       '@typescript-eslint/await-thenable': 'error',
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { fixStyle: 'inline-type-imports' },
-      ],
+      '@typescript-eslint/consistent-type-imports': ['error', { fixStyle: 'inline-type-imports' }],
       '@typescript-eslint/consistent-type-exports': 'error',
       '@typescript-eslint/no-import-type-side-effects': 'error',
 

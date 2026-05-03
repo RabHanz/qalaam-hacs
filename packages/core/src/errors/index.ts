@@ -10,6 +10,7 @@
 
 export type QalaamErrorCode =
   | 'qalaam.verse-key.invalid-format'
+  | 'qalaam.verse-key.malformed'
   | 'qalaam.verse-key.surah-out-of-range'
   | 'qalaam.verse-key.ayah-out-of-range'
   | 'qalaam.range.start-after-end'
@@ -46,7 +47,12 @@ export class QalaamError extends Error {
     }
   }
 
-  public toJSON(): { name: string; code: QalaamErrorCode; message: string; outcomeImpacted?: string } {
+  public toJSON(): {
+    name: string;
+    code: QalaamErrorCode;
+    message: string;
+    outcomeImpacted?: string;
+  } {
     return {
       name: this.name,
       code: this.code,

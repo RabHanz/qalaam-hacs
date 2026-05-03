@@ -17,36 +17,48 @@
  */
 import { existsSync } from 'node:fs';
 
+import { QalaamError, type VerseKey, parseVerseKey } from '@qalaam/core';
 import Database, { type Database as DB, type Statement } from 'better-sqlite3';
 
-import { QalaamError, type VerseKey, parseVerseKey } from '@qalaam/core';
-
-import type { LicenseMetadata } from './license.js';
+import { type MushafLayoutsReader, buildMushafLayoutsReader } from './mushaf-layouts.js';
 import {
   type MutashabihatExtendedReader,
   buildMutashabihatExtendedReader,
 } from './mutashabihat-extended.js';
+import { type QuranMetadataReader, buildQuranMetadataReader } from './quran-metadata.js';
 import {
-  type QuranMetadataReader,
-  buildQuranMetadataReader,
-} from './quran-metadata.js';
-import type {
-  QulAudioSegmentRow,
-  QulMushafLayoutRow,
-  QulMutashabihatRow,
-  QulVerseRow,
-} from './types.js';
+  type QuranScriptsReader,
+  type ScriptSlug,
+  buildQuranScriptsReader,
+} from './quran-scripts.js';
+import {
+  type RecitationSegmentsReader,
+  buildRecitationSegmentsReader,
+} from './recitation-segments.js';
+import { type SurahInfoReader, buildSurahInfoReader } from './surah-info.js';
 import {
   type WordByWordReader,
   type WordByWordReaderOptions,
   buildWordByWordReader,
 } from './word-by-word.js';
 
-export type { QulAudioSegmentRow, QulMushafLayoutRow, QulMutashabihatRow, QulVerseRow };
+import type { LicenseMetadata } from './license.js';
+import type {
+  QulAudioSegmentRow,
+  QulMushafLayoutRow,
+  QulMutashabihatRow,
+  QulVerseRow,
+} from './types.js';
+
 export * from './license.js';
-export * from './quran-metadata.js';
+export * from './mushaf-layouts.js';
 export * from './mutashabihat-extended.js';
+export * from './quran-metadata.js';
+export * from './quran-scripts.js';
+export * from './recitation-segments.js';
+export * from './surah-info.js';
 export * from './word-by-word.js';
+export type { QulAudioSegmentRow, QulMushafLayoutRow, QulMutashabihatRow, QulVerseRow };
 
 interface RawVerse {
   verse_key: string;
@@ -96,6 +108,12 @@ export interface QulReader {
     morphologyMeta: LicenseMetadata | null,
     options?: WordByWordReaderOptions,
   ): WordByWordReader;
+  mushafLayouts(meta: LicenseMetadata): MushafLayoutsReader;
+  recitationSegments(
+    reciterLicenses: ReadonlyMap<string, LicenseMetadata>,
+  ): RecitationSegmentsReader;
+  surahInfo(metaPerLanguage: ReadonlyMap<string, LicenseMetadata>): SurahInfoReader;
+  quranScripts(scriptLicenses: ReadonlyMap<ScriptSlug, LicenseMetadata>): QuranScriptsReader;
   close(): void;
 }
 
@@ -228,6 +246,30 @@ class QulReaderImpl implements QulReader {
   ): WordByWordReader {
     this.assertOpen();
     return buildWordByWordReader(this.db, translationMeta, morphologyMeta, options);
+  }
+
+  public mushafLayouts(meta: LicenseMetadata): MushafLayoutsReader {
+    this.assertOpen();
+    return buildMushafLayoutsReader(this.db, meta);
+  }
+
+  public recitationSegments(
+    reciterLicenses: ReadonlyMap<string, LicenseMetadata>,
+  ): RecitationSegmentsReader {
+    this.assertOpen();
+    return buildRecitationSegmentsReader(this.db, reciterLicenses);
+  }
+
+  public surahInfo(metaPerLanguage: ReadonlyMap<string, LicenseMetadata>): SurahInfoReader {
+    this.assertOpen();
+    return buildSurahInfoReader(this.db, metaPerLanguage);
+  }
+
+  public quranScripts(
+    scriptLicenses: ReadonlyMap<ScriptSlug, LicenseMetadata>,
+  ): QuranScriptsReader {
+    this.assertOpen();
+    return buildQuranScriptsReader(this.db, scriptLicenses);
   }
 
   public close(): void {

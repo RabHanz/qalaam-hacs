@@ -7,16 +7,17 @@
  * Arabic tafsir + Saheeh footnotes for Al-Fatiha. v0.5 wires the full Quran
  * via QUL.
  */
-import { Suspense } from 'react';
-import type { ReactNode } from 'react';
 
 import { QalaamError, parseVerseKey } from '@qalaam/core';
 import { DeepStudyPane } from '@qalaam/ui-quran';
+import { Suspense } from 'react';
 
 import { EmptyState } from '../../../../components/EmptyState.js';
 import { ErrorState } from '../../../../components/ErrorState.js';
 import { LoadingState } from '../../../../components/LoadingState.js';
 import { qalaamClient } from '../../../../lib/qalaam-client.js';
+
+import type { ReactNode } from 'react';
 
 interface PageProps {
   readonly params: Promise<{ surah: string; ayah: string }>;
@@ -66,7 +67,7 @@ async function StudyBody({
 
   const translations = TRANSLATIONS_TO_SHOW.flatMap((slug, i) => {
     const f = trVerseFetches[i];
-    if (!f || f.status !== 'fulfilled') return [];
+    if (f?.status !== 'fulfilled') return [];
     const meta = translationList.find((t) => t.slug === slug);
     return [
       {
@@ -79,7 +80,7 @@ async function StudyBody({
 
   const tafsirs = TAFSIRS_TO_SHOW.flatMap((slug, i) => {
     const f = tafsirVerseFetches[i];
-    if (!f || f.status !== 'fulfilled') return [];
+    if (f?.status !== 'fulfilled') return [];
     const meta = tafsirList.find((t) => t.slug === slug);
     return [
       {
@@ -126,8 +127,9 @@ export default async function StudyPage({ params }: PageProps): Promise<ReactNod
         </h1>
         <p className="text-sm opacity-70">Arabic · translations · tafsir</p>
       </header>
-      <Suspense fallback={<LoadingState label="Loading verse, translations, and tafsir…" lines={10} />}>
-        {/* @ts-expect-error: server-component async */}
+      <Suspense
+        fallback={<LoadingState label="Loading verse, translations, and tafsir…" lines={10} />}
+      >
         <StudyBody surahNumber={surahNumber} ayahNumber={ayahNumber} />
       </Suspense>
     </div>

@@ -5,16 +5,17 @@
  * immediately and hydrates as data arrives. Per CLAUDE.md §11.3 design
  * non-negotiables: empty / loading / error states all in place.
  */
-import { Suspense } from 'react';
-import type { ReactNode } from 'react';
 
 import { QalaamError } from '@qalaam/core';
 import { AyahLine, BasmalaHeader, MushafPage } from '@qalaam/ui-quran';
+import { Suspense } from 'react';
 
 import { EmptyState } from '../../../components/EmptyState.js';
 import { ErrorState } from '../../../components/ErrorState.js';
 import { LoadingState } from '../../../components/LoadingState.js';
 import { qalaamClient } from '../../../lib/qalaam-client.js';
+
+import type { ReactNode } from 'react';
 
 interface PageProps {
   readonly params: Promise<{ surah: string }>;
@@ -91,7 +92,6 @@ export default async function ReadSurahPage({ params }: PageProps): Promise<Reac
         <p className="text-sm opacity-70">Backed by Qalaam backend → QUL/fixture</p>
       </header>
       <Suspense fallback={<LoadingState label="Loading surah…" lines={8} />}>
-        {/* @ts-expect-error: server-component async */}
         <SurahBody surahNumber={surahNumber} />
       </Suspense>
     </div>

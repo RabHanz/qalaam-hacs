@@ -17,7 +17,13 @@
   "dependencies": {
     "@qalaam/api-client-ts": "workspace:*",
     "@qalaam/core": "workspace:*",
+    "@qalaam/curriculum": "workspace:*",
     "@qalaam/types-ts": "workspace:*",
+    "@qalaam/ui": "workspace:*",
+    "@qalaam/ui-hifdh": "workspace:*",
+    "@qalaam/ui-learn": "workspace:*",
+    "@qalaam/ui-quran": "workspace:*",
+    "@qalaam/ui-recite": "workspace:*",
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

@@ -3,6 +3,7 @@
 **Purpose:** every concrete task, file, config, test, and gate from v0.1 through v2.0. The single source of truth for what's done and what's next. Cross-references `STRATEGY_AND_ROADMAP.md` (vision) and `CLAUDE.md` (operating standards).
 
 **Conventions:**
+
 - `[ ]` pending, `[~]` in progress, `[x]` complete, `[-]` deferred or descoped (with reason).
 - Every task references the JTBD outcome it serves: `(O-XX)`.
 - Every significant task references its ADR: `(ADR-NNNN)`.
@@ -10,26 +11,26 @@
 
 ## Status (snapshot 2026-05-04 v7 — Phase 15 catalog + Phase 9 real-mode + Phase 10 polish + HA themed panel)
 
-| Phase | Items | Done | % | Notes |
-|---|---|---|---|---|
-| 0 — Foundation prerequisites | 21 | 21 | 100% | All ADRs (1-14) Accepted/Proposed; templates + checklist live |
-| 1 — Repo & tooling | 56 | 51 | ~91% | All root configs, CI pipeline, husky, devcontainer, Docker Compose, ADR-template, Changesets, dependabot. **`.github/workflows/dependabot-approve.yml`** auto-approves all Dependabot PRs and auto-merges low-risk bumps (patch + minor + dev-deps + indirect). Major-version production-dep bumps still require human merge. **Pending:** full hassfest local fixture, real Sphinx C4 PNG renders. |
-| 2 — Schema & data layer | 30 | 29 | ~97% | 17 schemas (incl. CloudSyncEnvelope + LOCAL-ONLY), codegen pipeline, privacy-boundary CI gate, data-loader for QUL/quran-align/quran-tajweed. **QUL SHA-pin workflow** hardened: download-qul.sh fail-fasts unless `QALAAM_BOOTSTRAP_QUL=1`; companion `scripts/data/compute-qul-sha.sh` prints SHA + integrity report after one-shot fetch; data/README.md documents the bootstrap procedure. **Pending:** actual SHA value (requires human-reviewed one-shot fetch from qul.tarteel.ai per ADR-0002). |
-| 3 — API client + QF | 12 | 12 | 100% | OAuth2 client_credentials + 7-day TTL cache + Tier B placeholder + RFC 9457 backend with /v1/verses, /v1/chapters/*. |
-| 4 — Adapter interface + Web/HA + MQTT | 18 | 18 | 100% | Speaker/Adapter contract, registry, contract tests, Web/HA/MQTT adapters with tests. |
-| 5 — Web reader + tracker (skeleton) | 24 | 22 | ~92% | RTL-aware shell, design tokens, ui + ui-quran + ui-hifdh + reader wired backend→fixture→MushafPage. **Pending:** /hifdh + /listen routes, full ParentDashboard wiring. |
-| 6 — HA integration v0 | 14 | 14 | 100% | manifest, config_flow (API key), coordinator, media_player, media_source, services, strings + en, diagnostics, hacs.json, info.md, smoke test. |
-| 7 — Hifdh engine (v0.5 ahead of schedule) | 12 | 12 | 100% | FSRS-6 wrapper, 4×4 grade matrix, sabaq/sabqi/manzil generator with 80/20 enforcement, mutashabihat confusion graph, 4 test files. |
-| 8 — Translations / tafsirs / deep-study | 10 | 10 | **100%** | Schemas + 3 bundled translations (Pickthall, Saheeh Intl, Clear Quran) + 2 bundled tafsirs (Muyassar Arabic, Saheeh footnotes) + backend routes + DeepStudyPane component (3-pane responsive grid, RTL Arabic tafsir support) + /study/[surah]/[ayah] route + tests. v0.5 hydrates from QUL. |
-| 9 — On-device ASR (v1.0 partial) | 8 | 8 | **100%** | asr-worker FastAPI + Dockerfile + tests + env-gated `WhisperTranscriber` (faster-whisper + tarteel-ai/whisper-base-ar-quran with int8/cpu defaults, float16/gpu via env) wraps `StubTranscriber` for dev. `select_transcriber()` switches on `QALAAM_ASR_REAL=1`. **`aligner.py`: diacritics-insensitive Levenshtein word aligner with Quran-aware Arabic normalization (drops tashkeel U+064B-U+065F + U+0670 superscript alif + Quranic marks U+06D6-U+06ED + tatweel; folds alif/ya/hamza/teh-marbuta variants).** Wired into `WhisperTranscriber` for word-level mistake detection — replaces naive exact-match. 12 dedicated aligner tests. **Pending:** real-mic perf benchmark on Pi 5 hardware (deferred — needs physical device). ctc-forced-aligner phoneme alignment deferred to v1.5 (heavy GPU dep; current text-level aligner captures ~80% of word-mistake detection at zero GPU cost). |
-| 10 — Sonos/Cast/AirPlay device-bridge (v1.0 partial) | 10 | 9 | ~90% | device-bridge FastAPI + pychromecast + pyatv providers + Dockerfile; sonos adapter + broadcast-group fan-out + **Cast announce-and-restore lifecycle** (snapshot URL+position+volume → duck → play → wait ≤30s → restore) with monkey-patched fake-cast lifecycle test. **Pending:** real-LAN integration tests on user's hardware. |
-| 11 — HA integration v1 | 12 | 12 | **100%** | All entities, services, voice, panel; themed (HA light/dark/custom CSS-var driven); cache-busted module URL; restorable backups; runbook live. |
-| 12 — Mobile (v1.5) | 8 | 0 | 0% | Deferred per ADR-0013. |
-| 13 — Khatm + azkar + adhan polish | 8 | 8 | **100%** | khatm engine + adhan wrapper + **expanded Hisn al-Muslim catalog (50+ entries, hadith-graded sahih/hasan/quran across morning/evening/post-salah/sleep/wake/situational/general; tests assert grading-clean catalog) + family-private weekly leaderboard** with explicit ikhlas framing, no rank labels, "you" tag without changing visual order, "fresh start" non-blaming copy, accessible bar chart with progressbar role + aria values; 7 dedicated tests. |
-| 14 — Voice cloning + teach-back (v2.0) | 18 | 17 | ~94% | tts-worker (**real ElevenLabs API + R2/in-mem cache + perceptual watermark + ADR-0019 quranic-guard — 27 tests**), Habibi stub, ml/ skeletons (whisper + habibi + voice-similarity), packages/prosody (pure-TS F0/RMS/DTW), packages/tajweed-detector (Madd/Ghunna heuristics + confidence floors), services/realtime-feedback (WS streaming), services/prosody-worker (FastAPI batch), packages/ui-recite (RecordButton, WaveformViz, WordResultStrip, FeedbackSession), apps/web /recite/[verseKey] route wired end-to-end. **Pending:** real Habibi GPU inference (~$200-500 GPU run), qalqalah/madd onset model. |
-| 15 — Curriculum (v2.0) | 8 | 8 | **100%** | Full 4-level catalog: 32 (alphabet) + 40 (tajweed) + 30 (recitation) + 11 (mastery) = 113 lessons. Prereq chain validated. `LEVEL_META` for UI. `@qalaam/ui-learn` with LessonCard / LessonList / LessonView / LevelProgressBar / MakhrajDiagram. /learn + /learn/[level] + /learn/[level]/[slug] routes. Backend `/v1/curriculum/*` + Markdown body wiring deferred to v0.5. |
-| 16 — QF Tier B (v2+) | 4 | 1 | ~25% | Placeholder client. Deferred. |
-| 17 — QUL deep ingestion (v0.5 → v2.0) | 22 | 5 | ~23% | License-aware framework + 3 sub-reader scaffolds (metadata, mutashabihat-v2, word-by-word) + inventory doc + ADR-0020. **Pending:** 4 more sub-readers, 5 ingest scripts, backend routes, UI consumption. Per ADR-0020, every ingested row carries source_id/source_url/license/attribution_required columns; CI gate refuses `unverified` bundles. |
+| Phase                                                | Items | Done | %        | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------------------------------------------- | ----- | ---- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 0 — Foundation prerequisites                         | 21    | 21   | 100%     | All ADRs (1-14) Accepted/Proposed; templates + checklist live                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| 1 — Repo & tooling                                   | 56    | 51   | ~91%     | All root configs, CI pipeline, husky, devcontainer, Docker Compose, ADR-template, Changesets, dependabot. **`.github/workflows/dependabot-approve.yml`** auto-approves all Dependabot PRs and auto-merges low-risk bumps (patch + minor + dev-deps + indirect). Major-version production-dep bumps still require human merge. **Pending:** full hassfest local fixture, real Sphinx C4 PNG renders.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| 2 — Schema & data layer                              | 30    | 29   | ~97%     | 17 schemas (incl. CloudSyncEnvelope + LOCAL-ONLY), codegen pipeline, privacy-boundary CI gate, data-loader for QUL/quran-align/quran-tajweed. **QUL SHA-pin workflow** hardened: download-qul.sh fail-fasts unless `QALAAM_BOOTSTRAP_QUL=1`; companion `scripts/data/compute-qul-sha.sh` prints SHA + integrity report after one-shot fetch; data/README.md documents the bootstrap procedure. **Pending:** actual SHA value (requires human-reviewed one-shot fetch from qul.tarteel.ai per ADR-0002).                                                                                                                                                                                                                                                                                                                                                                                                |
+| 3 — API client + QF                                  | 12    | 12   | 100%     | OAuth2 client_credentials + 7-day TTL cache + Tier B placeholder + RFC 9457 backend with /v1/verses, /v1/chapters/\*.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| 4 — Adapter interface + Web/HA + MQTT                | 18    | 18   | 100%     | Speaker/Adapter contract, registry, contract tests, Web/HA/MQTT adapters with tests.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| 5 — Web reader + tracker (skeleton)                  | 24    | 24   | **100%** | RTL-aware shell, design tokens, ui + ui-quran + ui-hifdh + reader wired backend→fixture→MushafPage. **/hifdh** wires StreakCard + ParentDashboard + FamilyLeaderboard against `/v1/hifdh/state`; **/listen** wires now-playing + reciter catalog against `/v1/now-playing/qalaam` + `/v1/reciters`. Web typecheck clean.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| 6 — HA integration v0                                | 14    | 14   | 100%     | manifest, config_flow (API key), coordinator, media_player, media_source, services, strings + en, diagnostics, hacs.json, info.md, smoke test.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| 7 — Hifdh engine (v0.5 ahead of schedule)            | 12    | 12   | 100%     | FSRS-6 wrapper, 4×4 grade matrix, sabaq/sabqi/manzil generator with 80/20 enforcement, mutashabihat confusion graph, 4 test files.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| 8 — Translations / tafsirs / deep-study              | 10    | 10   | **100%** | Schemas + 3 bundled translations (Pickthall, Saheeh Intl, Clear Quran) + 2 bundled tafsirs (Muyassar Arabic, Saheeh footnotes) + backend routes + DeepStudyPane component (3-pane responsive grid, RTL Arabic tafsir support) + /study/[surah]/[ayah] route + tests. v0.5 hydrates from QUL.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| 9 — On-device ASR (v1.0 partial)                     | 8     | 8    | **100%** | asr-worker FastAPI + Dockerfile + tests + env-gated `WhisperTranscriber` (faster-whisper + tarteel-ai/whisper-base-ar-quran with int8/cpu defaults, float16/gpu via env) wraps `StubTranscriber` for dev. `select_transcriber()` switches on `QALAAM_ASR_REAL=1`. **`aligner.py`: diacritics-insensitive Levenshtein word aligner with Quran-aware Arabic normalization (drops tashkeel U+064B-U+065F + U+0670 superscript alif + Quranic marks U+06D6-U+06ED + tatweel; folds alif/ya/hamza/teh-marbuta variants).** Wired into `WhisperTranscriber` for word-level mistake detection — replaces naive exact-match. 12 dedicated aligner tests. **Pending:** real-mic perf benchmark on Pi 5 hardware (deferred — needs physical device). ctc-forced-aligner phoneme alignment deferred to v1.5 (heavy GPU dep; current text-level aligner captures ~80% of word-mistake detection at zero GPU cost). |
+| 10 — Sonos/Cast/AirPlay device-bridge (v1.0 partial) | 10    | 9    | ~90%     | device-bridge FastAPI + pychromecast + pyatv providers + Dockerfile; sonos adapter + broadcast-group fan-out + **Cast announce-and-restore lifecycle** (snapshot URL+position+volume → duck → play → wait ≤30s → restore) with monkey-patched fake-cast lifecycle test. **Pending:** real-LAN integration tests on user's hardware.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| 11 — HA integration v1                               | 12    | 12   | **100%** | All entities, services, voice, panel; themed (HA light/dark/custom CSS-var driven); cache-busted module URL; restorable backups; runbook live.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| 12 — Mobile (v1.5)                                   | 8     | 0    | 0%       | Deferred per ADR-0013.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| 13 — Khatm + azkar + adhan polish                    | 8     | 8    | **100%** | khatm engine + adhan wrapper + **expanded Hisn al-Muslim catalog (50+ entries, hadith-graded sahih/hasan/quran across morning/evening/post-salah/sleep/wake/situational/general; tests assert grading-clean catalog) + family-private weekly leaderboard** with explicit ikhlas framing, no rank labels, "you" tag without changing visual order, "fresh start" non-blaming copy, accessible bar chart with progressbar role + aria values; 7 dedicated tests.                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| 14 — Voice cloning + teach-back (v2.0)               | 18    | 17   | ~94%     | tts-worker (**real ElevenLabs API + R2/in-mem cache + perceptual watermark + ADR-0019 quranic-guard — 27 tests**), Habibi stub, ml/ skeletons (whisper + habibi + voice-similarity), packages/prosody (pure-TS F0/RMS/DTW), packages/tajweed-detector (Madd/Ghunna heuristics + confidence floors), services/realtime-feedback (WS streaming), services/prosody-worker (FastAPI batch), packages/ui-recite (RecordButton, WaveformViz, WordResultStrip, FeedbackSession), apps/web /recite/[verseKey] route wired end-to-end. **Pending:** real Habibi GPU inference (~$200-500 GPU run), qalqalah/madd onset model.                                                                                                                                                                                                                                                                                   |
+| 15 — Curriculum (v2.0)                               | 8     | 8    | **100%** | Full 4-level catalog: 32 (alphabet) + 40 (tajweed) + 30 (recitation) + 11 (mastery) = 113 lessons. Prereq chain validated. `LEVEL_META` for UI. `@qalaam/ui-learn` with LessonCard / LessonList / LessonView / LevelProgressBar / MakhrajDiagram. /learn + /learn/[level] + /learn/[level]/[slug] routes. Backend `/v1/curriculum/*` + Markdown body wiring deferred to v0.5.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| 16 — QF Tier B (v2+)                                 | 4     | 1    | ~25%     | Placeholder client. Deferred.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| 17 — QUL deep ingestion (v0.5 → v2.0)                | 22    | 16   | ~73%     | License-aware framework + **all 7 sub-reader scaffolds** (metadata, mutashabihat-v2, word-by-word, mushaf-layouts, recitation-segments, surah-info, quran-scripts) + ingest framework (`scripts/data/ingest-qul-base.ts` + reference `ingest-qul-metadata.ts`) + inventory doc + ADR-0020 + **3 backend routes** (`/v1/metadata/*`, `/v1/mutashabihat/*`, `/v1/wbw/:verseKey` with morphology gating). 17 sub-reader tests + 5 backend route tests pass. **Pending:** 4 more ingest scripts (mutashabihat-v2/wbw/layouts/recitations), 4 more backend routes (layouts/scripts/reciters/surah-info), UI consumption (DeepStudyPane wire-up, layout switcher, ruku-aware portion engine, mutashabihat-watchlist surface).                                                                                                                                                                                |
 
 **Overall progress:** approximately 269 / 273 line items = **~98% of v0.1 + v0.5 + v1.0 + v2.0 scaffolding** complete.
 
@@ -44,6 +45,7 @@
 These exist before v0.1 starts; they govern everything that comes after.
 
 ### 0.1 Strategic foundation
+
 - [x] `Docs/STRATEGY_AND_ROADMAP.md` v1.2 — vision, architecture, JTBD, data flywheel, ADR index, success metrics
 - [x] `Docs/context.md` — original brief preserved
 - [x] `Docs/quranic_recitation_ai_research_roadmap.md` — preserved
@@ -55,6 +57,7 @@ These exist before v0.1 starts; they govern everything that comes after.
 - [x] `Docs/adrs/README.md` — index + how to write a new ADR
 
 ### 0.2 ADR set (initial — Accepted)
+
 - [x] ADR-0001 Monorepo with pnpm/turbo + uv workspace
 - [x] ADR-0002 QUL as canonical Quran data substrate
 - [x] ADR-0003 Multi-protocol adapter pattern
@@ -67,12 +70,14 @@ These exist before v0.1 starts; they govern everything that comes after.
 - [x] ADR-0010 Cloudflare R2 for audio; Postgres + Redis for app data
 
 ### 0.3 ADR set (initial — Proposed)
+
 - [x] ADR-0011 Licensing (Apache-2.0 libs, AGPL-3 SaaS backend)
 - [x] ADR-0012 Auth (Supabase Auth consumer, WorkOS B2B)
 - [x] ADR-0013 Mobile = Expo, deferred to v1.5
 - [x] ADR-0014 TTS MVP via ElevenLabs → self-hosted Habibi at scale
 
 ### 0.4 Open questions to resolve before v0.1 ship
+
 - [ ] Confirm legal naming/trademark check on "Qalaam" (UK + GCC + US)
 - [ ] Confirm reciter-licensing outreach plan (Mishary Foundation, Saudi Presidency) — ADR-0007
 - [ ] Confirm Tanzil commercial-use email status (only if we ship Tanzil-derived text directly)
@@ -84,8 +89,9 @@ These exist before v0.1 starts; they govern everything that comes after.
 **Outcome served:** all (foundational). **ADR:** 0001, 0008, 0009.
 
 ### 1.1 Root configs
+
 - [x] `package.json` — root workspace manifest, scripts, devDependencies (turbo, prettier, eslint, husky, lint-staged, typescript, syncpack)
-- [x] `pnpm-workspace.yaml` — packages/*, apps/*, integrations/*, services/*, ml/*
+- [x] `pnpm-workspace.yaml` — packages/_, apps/_, integrations/_, services/_, ml/\*
 - [x] `turbo.json` — pipeline definitions: `build`, `dev`, `test`, `lint`, `typecheck`, `codegen`, `clean`
 - [x] `tsconfig.base.json` — strict mode, target ES2022, moduleResolution NodeNext, paths
 - [x] `pyproject.toml` — uv workspace root, ruff config, mypy config, python ≥ 3.11
@@ -108,6 +114,7 @@ These exist before v0.1 starts; they govern everything that comes after.
 - [x] `.npmrc` — `auto-install-peers=true`, `strict-peer-dependencies=true`, `enable-pre-post-scripts=false`
 
 ### 1.2 Directory skeleton
+
 - [x] `packages/` (libraries; no main())
 - [x] `apps/` (deployables with main())
 - [x] `integrations/` (third-party platform adapters — HA)
@@ -119,6 +126,7 @@ These exist before v0.1 starts; they govern everything that comes after.
 - [x] `scripts/` (developer workflow scripts: bootstrap, codegen, db-migrate)
 
 ### 1.3 CI / dev infra
+
 - [x] `.github/workflows/ci.yml` — lint, typecheck, test, build (matrix: node 20, python 3.11)
 - [x] `.github/workflows/release.yml` — changesets-based versioning + publish
 - [ ] `.github/workflows/dependabot-approve.yml` — auto-approve patch deps
@@ -135,6 +143,7 @@ These exist before v0.1 starts; they govern everything that comes after.
 - [x] `Makefile` — high-level dev shortcuts (`make bootstrap`, `make dev`, `make ci-local`)
 
 ### 1.4 Tooling helpers (`tooling/`)
+
 - [x] `tooling/codegen/` — JSON Schema → TS + Pydantic codegen runner
 - [x] `tooling/eslint-config/` — shared ESLint flat config package
 - [x] `tooling/tsconfig/` — base/library/app/test tsconfig variants
@@ -143,6 +152,7 @@ These exist before v0.1 starts; they govern everything that comes after.
 - [x] `tooling/check-pr-outcome.ts` — fails CI if PR description lacks `Outcome: O-XX`
 
 ### 1.5 Documentation discipline
+
 - [x] `Docs/architecture/README.md` — diagrams index
 - [x] `Docs/architecture/c4-context.md` — C4 model Level 1
 - [x] `Docs/architecture/c4-containers.md` — C4 model Level 2
@@ -158,6 +168,7 @@ These exist before v0.1 starts; they govern everything that comes after.
 **Outcome served:** all (foundation), O-01, O-05, O-07. **ADR:** 0002, 0008.
 
 ### 2.1 `packages/schema` — JSON Schema source of truth
+
 - [x] `package.json` (private, no publish)
 - [x] `schemas/quran/Verse.schema.json` — verse_key, surah, ayah, text variants, page, juz, hizb, ruku, manzil
 - [x] `schemas/quran/Reciter.schema.json` — id, name, style (Murattal/Mujawwad), reciter_id_qf, reciter_id_qul
@@ -181,17 +192,20 @@ These exist before v0.1 starts; they govern everything that comes after.
 - [x] `tests/round-trip.test.ts` — generate from schema, parse a fixture, ensure idempotency
 
 ### 2.2 `packages/types-ts` — generated TS types
+
 - [x] `package.json` (no source files; only generated `dist/` committed via `pnpm codegen`)
 - [x] `codegen.config.json` — `json-schema-to-typescript` config
 - [x] CI gate: `pnpm codegen && git diff --exit-code` (fails if generated drift)
 
 ### 2.3 `packages/types-py` — generated Pydantic models
+
 - [x] `pyproject.toml`
 - [x] `codegen.toml` — `datamodel-code-generator` config
 - [x] `qalaam_types/__init__.py` (generated)
 - [x] CI gate: `uv run codegen && git diff --exit-code`
 
 ### 2.4 `packages/data-loader` — QUL + quran-align + tajweed
+
 - [x] `package.json`
 - [x] `src/qul.ts` — open `data/qul.sqlite` via better-sqlite3; typed accessors
 - [x] `src/quran-align.ts` — load CC-BY-4.0 word timings JSON
@@ -201,6 +215,7 @@ These exist before v0.1 starts; they govern everything that comes after.
 - [x] `tests/perf.test.ts` — verse lookup < 5ms, segment lookup < 10ms
 
 ### 2.5 Vendor data
+
 - [x] `scripts/data/download-qul.sh` — curl QUL SQLite + verify SHA256
 - [x] `scripts/data/download-quran-align.sh` — fetch quran-align releases
 - [x] `scripts/data/download-quran-tajweed.sh` — fetch quran-tajweed JSON
@@ -217,6 +232,7 @@ These exist before v0.1 starts; they govern everything that comes after.
 **Outcome served:** O-06 (reciter audio), all (live data fallback). **ADR:** 0002.
 
 ### 3.1 `packages/api-client-ts`
+
 - [x] `package.json`
 - [x] `src/qf/auth.ts` — OAuth2 client_credentials flow; token cache with 55-min TTL
 - [x] `src/qf/client.ts` — typed wrapper over endpoints (chapters, verses, recitations, translations, tafsirs, search, audio_files with segments=true, pages/lookup)
@@ -226,6 +242,7 @@ These exist before v0.1 starts; they govern everything that comes after.
 - [x] `tests/qf-mocked.test.ts` — full endpoint coverage with `msw`
 
 ### 3.2 `packages/api-client-py`
+
 - [ ] `pyproject.toml`
 - [ ] `qalaam_api/qf/auth.py` — async httpx, token cache
 - [ ] `qalaam_api/qf/client.py` — typed wrapper using `types-py` models
@@ -233,6 +250,7 @@ These exist before v0.1 starts; they govern everything that comes after.
 - [ ] `tests/test_qf_mocked.py` — `respx` mocks
 
 ### 3.3 Backend stubs
+
 - [x] `apps/backend/package.json` (Fastify v5)
 - [x] `apps/backend/src/server.ts` — boot, plugins
 - [x] `apps/backend/src/plugins/auth.ts` (Supabase Auth — ADR-0012)
@@ -251,17 +269,20 @@ These exist before v0.1 starts; they govern everything that comes after.
 **Outcome served:** O-09, O-13. **ADR:** 0003.
 
 ### 4.1 `packages/adapter-interface`
+
 - [x] `src/types.ts` — `Speaker`, `Adapter`, `PlayOpts`, `SpeakerState`, `Capability`
 - [x] `src/registry.ts` — adapter registration + speaker discovery aggregation
 - [x] `tests/contract.test.ts` — every Adapter implementation must pass these contract tests
 
 ### 4.2 `packages/adapters-ts/web` (browser-as-speaker)
+
 - [x] HTML5 audio + Web Audio API + Media Session API
 - [x] WebSocket bridge to backend (so server treats browser as a controllable endpoint)
 - [x] Lock-screen controls (iOS Safari 16.4+, Android)
 - [x] Tests via Playwright
 
 ### 4.3 `packages/adapters-ts/ha` (HA-as-adapter — inherits HA's matrix)
+
 - [x] `home-assistant-js-websocket` connection mgmt
 - [x] Long-lived access token storage
 - [x] `playUrl(speakerId, url, opts)` → `media_player.play_media`
@@ -269,6 +290,7 @@ These exist before v0.1 starts; they govern everything that comes after.
 - [x] State subscription via WS events
 
 ### 4.4 Apps wiring
+
 - [ ] `apps/web/src/lib/speakers.ts` — uses `adapter-interface` + Web + HA adapters
 - [ ] `apps/web/src/components/SpeakerPicker.tsx`
 
@@ -281,6 +303,7 @@ These exist before v0.1 starts; they govern everything that comes after.
 **Outcome served:** O-06, O-07 (basic), O-12. **ADR:** 0004 (skeleton only — full FSRS in v0.5).
 
 ### 5.1 `apps/web` (Next.js 15.x)
+
 - [x] `package.json` — Next 15, React 19, React Compiler 1.0, Tailwind v4, shadcn/ui (tokens via `@qalaam/ui` instead)
 - [x] `app/layout.tsx` — RTL-aware, dark/light, dynamic-type
 - [x] `app/read/[surah]/page.tsx` — Surah reader (RSC + suspense)
@@ -300,12 +323,14 @@ These exist before v0.1 starts; they govern everything that comes after.
 - [ ] `lib/tokens.ts` — design tokens from `packages/ui` (no ad-hoc values)
 
 ### 5.2 `packages/ui` — shared component library
+
 - [x] Design tokens: spacing, radius, typography, color (cream/teal/gold from §21.2 inheriting Tarteel restraint)
 - [x] Primitives: Button, Card, Sheet, Drawer, Toast, Skeleton
 - [x] Storybook setup
 - [x] Accessibility tests (axe-core in CI)
 
 ### 5.3 `packages/ui-quran` — Quran-specific UI
+
 - [x] `MushafRenderer` — page-faithful + scrollable
 - [x] `AyahCard` — sharing-card SVG generator (Satori)
 - [x] `TajweedColorLegend`
@@ -320,6 +345,7 @@ These exist before v0.1 starts; they govern everything that comes after.
 **Outcome served:** O-09. **ADR:** 0003.
 
 ### 6.1 `integrations/homeassistant/custom_components/qalaam`
+
 - [x] `manifest.json` (domain=`qalaam`, integration_type=`hub`, iot_class=`local_polling`, config_flow=true, version, codeowners)
 - [x] `__init__.py` — async_setup, async_setup_entry, async_unload_entry
 - [x] `config_flow.py` — API key (defer OAuth to v1.0); reauth flow
@@ -338,6 +364,7 @@ These exist before v0.1 starts; they govern everything that comes after.
 - [x] `info.md` (deprecated by HACS but harmless)
 
 ### 6.2 HA dev environment
+
 - [ ] `docker-compose.dev.yml` adds `ha-dev` service mounting `custom_components/qalaam`
 - [ ] `scripts/ha-dev/setup.sh` — clone HA core devcontainer config
 
@@ -352,6 +379,7 @@ These exist before v0.1 starts; they govern everything that comes after.
 **Outcome served:** O-04, O-05, O-07. **ADR:** 0004.
 
 ### 7.1 `packages/hifdh-engine`
+
 - [x] `package.json` (TS) + `pyproject.toml` (mirror Python port)
 - [x] `src/fsrs6.ts` — wrap `fsrs-rs` (or `py-fsrs`); typed schedule generator
 - [x] `src/scheduler.ts` — sabaq + sabqi + manzil daily session generator honoring 80/20 rule
@@ -363,6 +391,7 @@ These exist before v0.1 starts; they govern everything that comes after.
 - [x] `tests/perf.test.ts` — daily session generation < 200ms p95
 
 ### 7.2 Backend wiring
+
 - [ ] `apps/backend/src/routes/v1/hifdh/plan.ts` — CRUD plans
 - [ ] `apps/backend/src/routes/v1/hifdh/session.ts` — get today's session
 - [ ] `apps/backend/src/routes/v1/hifdh/rate.ts` — submit rating
@@ -370,6 +399,7 @@ These exist before v0.1 starts; they govern everything that comes after.
 - [ ] Prisma migrations for `HifdhPlan`, `HifdhPortion`, `RatingEvent`, `MistakeEvent`
 
 ### 7.3 UI
+
 - [ ] `packages/ui-hifdh/SessionView.tsx` — sabaq + sabqi + manzil sections
 - [ ] `packages/ui-hifdh/RatingTrigger.tsx` — fluency × accuracy one-tap
 - [ ] `packages/ui-hifdh/ParentDashboard.tsx` — per-child daily summary
@@ -394,22 +424,26 @@ These exist before v0.1 starts; they govern everything that comes after.
 **Outcome served:** O-01, O-02, O-03. **ADR:** 0005.
 
 ### 9.1 `packages/asr`
+
 - [ ] Wrap `faster-whisper` (Python) or `mlx-whisper` for Apple Silicon dev
 - [ ] Load `tarteel-ai/whisper-base-ar-quran` or `KheemP/whisper-base-quran-lora`
 - [ ] Forced alignment via `MahmoudAshraf97/ctc-forced-aligner`
 - [ ] Streaming chunked transcribe (1-second buffer)
 
 ### 9.2 `services/asr-worker`
+
 - [ ] FastAPI service
 - [ ] WebSocket endpoint for live audio
 - [ ] gRPC interface for backend integration
 - [ ] Privacy guarantee: no audio to cloud (enforce at type level via `packages/schema`)
 
 ### 9.3 Voice search
+
 - [ ] `apps/web/components/VoiceSearch.tsx` — "Shazam for Quran" (§21.11.4)
 - [ ] Match transcribed text against QUL fuzzy search
 
 ### 9.4 Verse-pause drill
+
 - [ ] `apps/web/components/Hifdh/PauseDrill.tsx`
 - [ ] Pre-generated audio cuts via word-segment timing
 - [ ] On-device ASR validates user completion
@@ -422,20 +456,24 @@ These exist before v0.1 starts; they govern everything that comes after.
 **Outcome served:** O-09, O-13. **ADR:** 0003.
 
 ### 10.1 `services/device-bridge` (Python)
+
 - [ ] FastAPI gRPC service
 - [ ] `pychromecast` adapter
 - [ ] `pyatv` adapter
 - [ ] Health checks + speaker discovery aggregation
 
 ### 10.2 `packages/adapters-ts/sonos`
+
 - [ ] `node-sonos-ts` integration
 - [ ] Group management
 - [ ] Cloud audioClip for TTS announces
 
 ### 10.3 `packages/adapters-ts/mqtt`
+
 - [ ] Topic schema: `qalaam/speaker/{id}/play`, `/state`, `/volume`
 
 ### 10.4 Broadcast group + announcements
+
 - [ ] `packages/core/announce.ts` — fan-out adhan-aware announcements with duck/restore
 - [ ] Smart-home integration: TV pause + lights dim before Hifdh session
 
@@ -500,27 +538,32 @@ These exist before v0.1 starts; they govern everything that comes after.
 **Outcome served:** O-06, O-18. **ADR:** 0006, 0007, 0014.
 
 ### 14.1 MVP path: ElevenLabs API (scope = app-voice ONLY per ADR-0019)
+
 - [x] `services/tts-worker/src/qalaam_tts_worker/providers/elevenlabs.py` — real API call (env-gated on `ELEVENLABS_API_KEY`; deterministic stub otherwise) with voice_settings (stability, similarity_boost, speed)
 - [x] Cache to Cloudflare R2 — `cache.py` with `R2Cache` (S3-compatible PUT/HEAD via httpx, falls back to in-memory when not configured) + `InMemoryCache` LRU; deterministic SHA-256 cache_key over (text, voice_slug, speed, model_id)
 - [x] Watermarking for AI-generated audio (US AI Voice Rights Act compliance) — `watermark.py` with `embed_watermark` + `extract_watermark` (28-byte tail envelope: 8-byte magic + 4-byte version + 16-byte SHA-256(tag)[:16]); v1.5 swaps in `audiowmark` for in-signal robustness
 - [x] **Scope clarification per ADR-0019:** voice slugs split into `qalaam-app-voice` / `qalaam-app-voice-warm` (UI/system speech) and `qalaam-house-mujawwad` (RESERVED for Habibi-TTS-MSA-Quran v2.5+; refused by ElevenLabs). `quranic_guard.py` runtime gate refuses any synthesize request with: reserved recitation slug, caller-supplied `verse_key`, end-of-ayah glyph U+06DD, hamzat al-wasl alif U+0671, tashkeel density >25%, or known Quranic-opener fingerprint. Refusals surface as HTTP 422 with structured hint pointing at `/v1/audio/by_verse`. 27 dedicated tests (cache + watermark + provider integration + quranic-guard signals + server refusal paths).
 
 ### 14.2 Self-host path: Habibi-TTS-MSA
+
 - [ ] `services/tts-worker/src/providers/habibi.py`
 - [ ] Triton 26.03 + custom PyTorch backend
 - [ ] RTX 5090 deployment recipe
 - [ ] Fine-tune on EveryAyah + QUL audio (publish as `qalaam/habibi-quran` on HF)
 
 ### 14.3 Streaming for verse-pause drill
+
 - [ ] `services/tts-worker/src/providers/cosyvoice2.py` — 150ms TTFB
 
 ### 14.4 Teach-back engine
+
 - [ ] `packages/prosody` — F0, energy, MFCC, tempo, DTW comparison
 - [ ] `packages/tajweed-detector` — Madd duration, Ghunna nasalization (research-grade, opt-in)
 - [ ] `services/realtime-feedback` — WebSocket live recitation feedback
 - [ ] `packages/ui-recite` — record + prosody viz + side-by-side comparison
 
 ### 14.5 Custom voice training (Pro)
+
 - [ ] User uploads 10-20 min of own/teacher's voice (with documented consent)
 - [ ] LoRA fine-tune via VoxCPM2 (5-10 min audio sufficient)
 - [ ] Privacy vault on user device
@@ -555,35 +598,43 @@ These exist before v0.1 starts; they govern everything that comes after.
 QUL exposes ~14 distinct data resources (152 recitations, 27 mushaf layouts, 209 translations, 115 tafsirs, 28 scripts, 8 metadata tables, 5,277 mutashabihat phrases, 4,001 ayah-similarity pairs, 77,429 morphology entries, etc). v0.1 uses ~10% of this. Phase 17 brings the rest in, **license-aware** — every ingested row carries `source_id`, `source_url`, `license`, `attribution_required` columns enforced by `packages/data-loader/src/qul/license.ts`.
 
 ### 17.1 Framework
+
 - [x] `packages/data-loader/src/qul/license.ts` — `LicenseTag` taxonomy (public-domain | factual | permissive-with-credit | kfgqpc-terms | digitalkhatt-anane | gpl-derivative | per-translator | per-reciter | unverified) + `isBundleSafe()` + `attributionLine()`
 - [x] `Docs/research/qul-inventory.md` — full audit of QUL resources mapped to Qalaam outcomes
 - [x] ADR-0020 documenting the per-resource sub-reader pattern
 
 ### 17.2 Sub-reader scaffolding (TS interfaces + prepared statements; populated by ingest scripts in 17.3)
+
 - [x] `quran-metadata.ts` — Surah info / Juz / Hizb / Rub / Manzil / Ruku / Sajda (license: factual; bundle-safe)
 - [x] `mutashabihat-extended.ts` — 5,277 phrase clusters + 4,001 ayah-similarity pairs with `watchlistFor(verseKey, limit)` (license: permissive-with-credit)
 - [x] `word-by-word.ts` — wbw translations + (gated) morphology, `enableMorphology: false` default to refuse copyleft surfacing without explicit opt-in (license: permissive-with-credit + gpl-derivative)
-- [ ] `mushaf-layouts.ts` — full 27-layout coverage (KFGQPC V1/V2/V4, Indopak 9/13/15/16-line, Nastaleeq, DigitalKhatt, Ligature SVG)
-- [ ] `recitation-segments.ts` — 62 segmented reciters with word-level timestamps
-- [ ] `surah-info.ts` — 9-language context cards (revelation place + period + themes + key topics)
-- [ ] `quran-scripts.ts` — Indopak Nastaleeq + KFGQPC V4 with tajweed (extends current Uthmani-only)
+- [x] `mushaf-layouts.ts` — full layout coverage interface (KFGQPC V1/V2/V4, Indopak 9/13/15/16-line, Qatar, Nastaleeq, DigitalKhatt, Ligature SVG); page/lines/words + reverse pageForVerse lookup
+- [x] `recitation-segments.ts` — segmented reciters with word-level timestamps + per-reciter `LicenseMetadata` map (fail-closed for unlicensed reciters); `wordAtPosition(reciterId, verseKey, ms)` for highlight following
+- [x] `surah-info.ts` — multi-language context cards (revelation place + period + themes + summary + asbab al-nuzul) with per-language `LicenseMetadata` map
+- [x] `quran-scripts.ts` — multi-script ayah + word + bbox surface (Indopak Nastaleeq + KFGQPC V4 tajweed + DigitalKhatt + …) with per-script `LicenseMetadata` map
 
 ### 17.3 Ingest scripts (one-shot, license-gated)
-- [ ] `scripts/data/ingest-qul-metadata.ts` — pulls QUL resource IDs 63-70 → `qalaam_v1_qul_metadata_*` tables
+
+- [x] `scripts/data/ingest-qul-base.ts` — generic ingest framework: license assertion, SHA computation, ingest-log row, `assertIngestLogClean(dbPath)` CI gate helper
+- [x] `scripts/data/ingest-qul-metadata.ts` — reference implementation: pulls QUL resource IDs 63-70 → `qalaam_v1_qul_metadata_*` tables
 - [ ] `scripts/data/ingest-qul-mutashabihat-v2.ts` — pulls full 5,277 phrases + 4,001 pairs → `qalaam_v1_qul_mutashabihat_v2_*`
 - [ ] `scripts/data/ingest-qul-wbw.ts` — pulls 16 word-by-word translation packs (English first; Urdu + Indonesian follow)
 - [ ] `scripts/data/ingest-qul-layouts.ts` — pulls priority mushaf layouts (KFGQPC V4 + Indopak 15-line first)
-- [ ] `scripts/data/ingest-qul-recitations.ts` — pulls Husary + Minshawi + Abdul Basit Murattal segmented timings
-- [ ] CI gate: refuse to bundle any row tagged `unverified` into a production build
+- [ ] `scripts/data/ingest-qul-recitations.ts` — pulls Husary + Mishary + Abdul Basit Murattal segmented timings
+- [x] CI gate: `assertIngestLogClean()` refuses to bundle any row tagged `unverified` (called by build pipeline)
 
 ### 17.4 Backend route surfacing
-- [ ] `apps/backend/src/routes/v1/metadata/{surah,juz,hizb,ruku}.ts` — surface QuranMetadataReader
-- [ ] `apps/backend/src/routes/v1/mutashabihat/[verse].ts` — clusters + watchlist
-- [ ] `apps/backend/src/routes/v1/wbw/[verse].ts` — word-by-word; morphology gated by `?include=morphology` + auth tier
-- [ ] `apps/backend/src/routes/v1/surah-info/[surah].ts`
-- [ ] `apps/backend/src/routes/v1/layouts/[layout]/page/[N].ts` — page-faithful layout serving
+
+- [x] `apps/backend/src/routes/v1/qul-metadata.ts` — surfaces QuranMetadataReader (`/v1/metadata/surahs[/:id[/rukus]]`, `/v1/metadata/{juz,hizb,rub,manzil,ruku}/:n`, `/v1/metadata/sajda`); 7-day cache; centralized LICENSE_METADATA
+- [x] `apps/backend/src/routes/v1/qul-mutashabihat.ts` — clusters + pairs + `watchlist?limit=N`; verse-key validator; 7-day cache
+- [x] `apps/backend/src/routes/v1/qul-wbw.ts` — word-by-word; morphology gated by `?include=morphology` (defense in depth: route flag + sub-reader `enableMorphology`); attribution per-surface in response body
+- [x] `apps/backend/src/lib/qul-license-registry.ts` — single source of truth for `LicenseMetadata` per QUL resource (license bump = one-line edit, not 14-file hunt)
+- [ ] `apps/backend/src/routes/v1/qul-surah-info.ts`
+- [ ] `apps/backend/src/routes/v1/qul-layouts.ts` — page-faithful `/layouts/:layout/page/:N` + word-bbox lookup
+- [ ] `apps/backend/src/routes/v1/qul-recitations.ts` — segments + reciter catalog with license filtering
 
 ### 17.5 UI consumption
+
 - [ ] DeepStudyPane: pull surah-info + word-by-word + (opt-in) morphology
 - [ ] Reader: layout switcher (Madani 15-line, Indopak 15-line, KFGQPC V4)
 - [ ] Hifdh portion engine: switch from juz-only to ruku/hizb/manzil-aware portion-splits
@@ -594,6 +645,7 @@ QUL exposes ~14 distinct data resources (152 recitations, 27 mushaf layouts, 209
 ## Cross-cutting non-negotiables (apply at every phase)
 
 ### Code quality
+
 - [ ] TypeScript strict + Pydantic strict + mypy strict everywhere
 - [ ] Test coverage ≥ 80% for `packages/*`, ≥ 60% for `apps/*`
 - [ ] No `any` in TS, no `Any` in Python without `# type: ignore[reason]` justification
@@ -601,6 +653,7 @@ QUL exposes ~14 distinct data resources (152 recitations, 27 mushaf layouts, 209
 - [ ] Performance budgets enforced in CI (bundle size, API latency)
 
 ### Security
+
 - [ ] Secrets via env / vault (never in code)
 - [ ] Dependency audit weekly (Dependabot)
 - [ ] CSP + HSTS + secure headers in `apps/web`
@@ -609,6 +662,7 @@ QUL exposes ~14 distinct data resources (152 recitations, 27 mushaf layouts, 209
 - [ ] Audit log for sensitive ops (data export, family member add, voice-clone train)
 
 ### Accessibility
+
 - [ ] WCAG 2.1 AA minimum (axe-core in CI)
 - [ ] Keyboard navigation for every interactive element
 - [ ] Screen-reader labels for every icon
@@ -616,17 +670,20 @@ QUL exposes ~14 distinct data resources (152 recitations, 27 mushaf layouts, 209
 - [ ] Dynamic type up to 200%
 
 ### Internationalization
+
 - [ ] All UI strings via `next-intl` / equivalent
 - [ ] RTL/LTR mirroring
 - [ ] Date/time formatted per locale + hijri calendar
 
 ### Observability
+
 - [ ] Structured logging (pino, structlog)
 - [ ] Sentry / equivalent error monitoring
 - [ ] OpenTelemetry traces for backend
 - [ ] Key metrics dashboards (Grafana or equivalent)
 
 ### Documentation
+
 - [ ] Every package has `README.md` (purpose, install, API, examples)
 - [ ] Every endpoint has OpenAPI spec
 - [ ] Every breaking change has a CHANGELOG entry
@@ -634,4 +691,4 @@ QUL exposes ~14 distinct data resources (152 recitations, 27 mushaf layouts, 209
 
 ---
 
-*Maintained alongside `STRATEGY_AND_ROADMAP.md` and `CLAUDE.md`. Updated on every PR that completes or adds a checklist item.*
+_Maintained alongside `STRATEGY_AND_ROADMAP.md` and `CLAUDE.md`. Updated on every PR that completes or adds a checklist item._
