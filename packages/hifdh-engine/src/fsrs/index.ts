@@ -6,7 +6,7 @@
  *
  * Determinism: `now` is always injected — never call `Date.now()` directly.
  */
-import { Card, FSRS, Rating, State, generatorParameters, fsrs } from 'ts-fsrs';
+import { type Card, type FSRS, Rating, State, generatorParameters, fsrs } from 'ts-fsrs';
 
 import { type FsrsGrade } from '../scoring/index.js';
 
@@ -40,7 +40,7 @@ const PARAMS = generatorParameters({
 
 const ENGINE: FSRS = fsrs(PARAMS);
 
-function reviewToCard(review: ReviewStateLike, now: Date): Card {
+function reviewToCard(review: ReviewStateLike): Card {
   return {
     due: new Date(review.due),
     stability: review.stability,
@@ -51,7 +51,6 @@ function reviewToCard(review: ReviewStateLike, now: Date): Card {
     lapses: review.lapses,
     state: review.reps === 0 ? State.New : State.Review,
     last_review: new Date(review.lastReviewed),
-    learning_steps: 0,
   } satisfies Card;
 }
 
@@ -83,7 +82,7 @@ export function initialReviewState(args: FsrsInitArgs): ReviewStateLike {
 }
 
 export function applyGrade({ now, review, grade }: FsrsApplyArgs): ReviewStateLike {
-  const card = reviewToCard(review, now);
+  const card = reviewToCard(review);
   const ratingMap = {
     1: Rating.Again,
     2: Rating.Hard,

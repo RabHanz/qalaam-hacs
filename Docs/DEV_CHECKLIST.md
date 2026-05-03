@@ -25,7 +25,7 @@
 | 10 — Sonos/Cast/AirPlay device-bridge (v1.0 partial) | 10 | 9 | ~90% | device-bridge FastAPI + pychromecast + pyatv providers + Dockerfile; sonos adapter + broadcast-group fan-out + **Cast announce-and-restore lifecycle** (snapshot URL+position+volume → duck → play → wait ≤30s → restore) with monkey-patched fake-cast lifecycle test. **Pending:** real-LAN integration tests on user's hardware. |
 | 11 — HA integration v1 | 12 | 12 | **100%** | All entities, services, voice, panel; themed (HA light/dark/custom CSS-var driven); cache-busted module URL; restorable backups; runbook live. |
 | 12 — Mobile (v1.5) | 8 | 0 | 0% | Deferred per ADR-0013. |
-| 13 — Khatm + azkar + adhan polish | 8 | 7 | ~88% | khatm engine + adhan wrapper + **expanded Hisn al-Muslim catalog (50+ entries, hadith-graded sahih/hasan/quran across morning/evening/post-salah/sleep/wake/situational/general; tests assert grading-clean catalog).** **Pending:** family-private weekly leaderboard. |
+| 13 — Khatm + azkar + adhan polish | 8 | 8 | **100%** | khatm engine + adhan wrapper + **expanded Hisn al-Muslim catalog (50+ entries, hadith-graded sahih/hasan/quran across morning/evening/post-salah/sleep/wake/situational/general; tests assert grading-clean catalog) + family-private weekly leaderboard** with explicit ikhlas framing, no rank labels, "you" tag without changing visual order, "fresh start" non-blaming copy, accessible bar chart with progressbar role + aria values; 7 dedicated tests. |
 | 14 — Voice cloning + teach-back (v2.0) | 18 | 13 | ~72% | tts-worker (ElevenLabs MVP + Habibi stub), ml/ skeletons (whisper + habibi + voice-similarity), packages/prosody (pure-TS F0/RMS/DTW), packages/tajweed-detector (Madd/Ghunna heuristics + confidence floors), services/realtime-feedback (WS streaming), services/prosody-worker (FastAPI batch), packages/ui-recite (RecordButton, WaveformViz, WordResultStrip, FeedbackSession), apps/web /recite/[verseKey] route wired end-to-end. **Pending:** real ElevenLabs API call wiring, real Habibi GPU inference, qalqalah/madd onset model. |
 | 15 — Curriculum (v2.0) | 8 | 8 | **100%** | Full 4-level catalog: 32 (alphabet) + 40 (tajweed) + 30 (recitation) + 11 (mastery) = 113 lessons. Prereq chain validated. `LEVEL_META` for UI. `@qalaam/ui-learn` with LessonCard / LessonList / LessonView / LevelProgressBar / MakhrajDiagram. /learn + /learn/[level] + /learn/[level]/[slug] routes. Backend `/v1/curriculum/*` + Markdown body wiring deferred to v0.5. |
 | 16 — QF Tier B (v2+) | 4 | 1 | ~25% | Placeholder client. Deferred. |
@@ -488,9 +488,9 @@ These exist before v0.1 starts; they govern everything that comes after.
 **Outcome served:** O-08, O-12, O-14.
 
 - [x] `packages/khatm` engine + invite-link flow
-- [x] `packages/azkar` Hisn al-Muslim catalog + scheduled morning/evening playback
+- [x] `packages/azkar` Hisn al-Muslim catalog + scheduled morning/evening playback (50+ entries, hadith-graded sahih/hasan/quran across 7 categories + situational; da'if narrations excluded — see `packages/azkar/src/catalog/index.ts`)
 - [x] `packages/adhan` consolidated wrapper + qibla + hijri
-- [x] Family-private weekly leaderboard (Quranly-borrowed §21.11)
+- [x] Family-private weekly leaderboard (`packages/ui-hifdh/src/leaderboard/FamilyLeaderboard.tsx` per Quranly-borrowed §21.11) — no rank labels, "fresh start" non-blaming copy, "(you)" tag without changing visual order, accessible bar chart with progressbar role + aria values, ikhlas framing in header.
 
 ---
 

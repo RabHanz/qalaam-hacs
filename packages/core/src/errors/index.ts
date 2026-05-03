@@ -24,7 +24,7 @@ export class QalaamError extends Error {
   public readonly code: QalaamErrorCode;
   /** Outcome (per STRATEGY_AND_ROADMAP.md §23.2) impacted, if known. */
   public readonly outcomeImpacted?: string;
-  public readonly cause?: unknown;
+  public override readonly cause?: unknown;
 
   public constructor(
     code: QalaamErrorCode,

@@ -26,7 +26,7 @@ export function ayahRange(start: VerseKey, end: VerseKey): AyahRange {
       `AyahRange: start (${start}) must precede or equal end (${end}).`,
     );
   }
-  return [start, end] as AyahRange;
+  return [start, end] as unknown as AyahRange;
 }
 
 export function startOf(r: AyahRange): VerseKey {
