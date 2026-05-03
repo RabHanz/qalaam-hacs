@@ -1,0 +1,146 @@
+/**
+ * GET /v1/layouts                                  → available layout slugs (those licensed)
+ * GET /v1/layouts/:layout/page-count               → total pages in a layout
+ * GET /v1/layouts/:layout/page/:n                  → full page (lines + words)
+ * GET /v1/layouts/:layout/by-verse/:verseKey       → reverse lookup (page + line)
+ *
+ * Per ADR-0020. License: per-layout (`permissive-with-credit`,
+ * `kfgqpc-terms`, or `digitalkhatt-anane`). Cache: 7 days.
+ *
+ * Layout slugs not present in `LICENSE_METADATA.scriptsBySlug` would cause
+ * the sub-reader to fall back to a permissive default — but we explicitly
+ * pass the QuranMetadata `factual` license here because mushaf-layouts have
+ * no per-layout map yet (followup work; see Docs/research/qul-inventory.md
+ * §3 for the per-layout license breakdown).
+ */
+import { existsSync } from 'node:fs';
+
+import { QalaamError } from '@qalaam/core';
+
+
+
+import { getQul } from '../../lib/data-loader.js';
+import { LICENSE_METADATA } from '../../lib/qul-license-registry.js';
+
+import type { Config } from '../../config.js';
+import type { MushafLayoutSlug } from '@qalaam/data-loader/qul';
+import type { FastifyInstance } from 'fastify';
+
+const SEVEN_DAYS_S = 60 * 60 * 24 * 7;
+const VERSE_KEY_RE = /^[1-9][0-9]?[0-9]?:[1-9][0-9]?[0-9]?$/;
+
+const KNOWN_LAYOUTS: ReadonlySet<MushafLayoutSlug> = new Set<MushafLayoutSlug>([
+  'madani_15',
+  'madani_16',
+  'indopak_9',
+  'indopak_13',
+  'indopak_15',
+  'indopak_16',
+  'kfgqpc_v1',
+  'kfgqpc_v2',
+  'kfgqpc_v4',
+  'qatar_15',
+  'nastaleeq_15',
+  'digitalkhatt_v1',
+  'digitalkhatt_v2',
+  'ligature_svg',
+]);
+
+function assertLayout(slug: string): MushafLayoutSlug {
+  if (!KNOWN_LAYOUTS.has(slug as MushafLayoutSlug)) {
+    throw new QalaamError(
+      'qalaam.mushaf.unknown-layout',
+      `Unknown layout ${slug}. Allowed: ${Array.from(KNOWN_LAYOUTS).join(', ')}.`,
+    );
+  }
+  return slug as MushafLayoutSlug;
+}
+
+// eslint-disable-next-line @typescript-eslint/require-await
+export async function qulLayoutsRoutes(
+  fastify: FastifyInstance,
+  opts: { config: Config },
+): Promise<void> {
+  function reader() {
+    if (!existsSync(opts.config.QUL_SQLITE_PATH)) {
+      throw new QalaamError(
+        'qalaam.data.not-loaded',
+        `QUL SQLite not present at ${opts.config.QUL_SQLITE_PATH}.`,
+      );
+    }
+    return getQul(opts.config.QUL_SQLITE_PATH).mushafLayouts(LICENSE_METADATA.quranMetadata);
+  }
+
+  fastify.get('/v1/layouts', { schema: { tags: ['layouts'] } }, async (_req, reply) => {
+    void reply.header('cache-control', `public, max-age=${SEVEN_DAYS_S.toString()}`);
+    return { data: Array.from(KNOWN_LAYOUTS) };
+  });
+
+  fastify.get<{ Params: { layout: string } }>(
+    '/v1/layouts/:layout/page-count',
+    { schema: { tags: ['layouts'] } },
+    async (req, reply) => {
+      const layout = assertLayout(req.params.layout);
+      const total = reader().pageCount(layout);
+      void reply.header('cache-control', `public, max-age=${SEVEN_DAYS_S.toString()}`);
+      return { data: { layout, pageCount: total } };
+    },
+  );
+
+  fastify.get<{ Params: { layout: string; n: string } }>(
+    '/v1/layouts/:layout/page/:n',
+    { schema: { tags: ['layouts'] } },
+    async (req, reply) => {
+      const layout = assertLayout(req.params.layout);
+      const n = Number.parseInt(req.params.n, 10);
+      if (!Number.isFinite(n) || n < 1 || n > 999) {
+        throw new QalaamError(
+          'qalaam.mushaf.no-coverage',
+          `Page number ${req.params.n} out of plausible range.`,
+        );
+      }
+      const r = reader();
+      const page = r.page(layout, n);
+      if (!page) {
+        throw new QalaamError(
+          'qalaam.mushaf.no-coverage',
+          `Layout ${layout} has no page ${n.toString()}.`,
+        );
+      }
+      // Hydrate per-line words inline so the renderer doesn't fan out N+1 calls.
+      const lines = page.lines.map((line) => ({
+        ...line,
+        words: line.lineType === 'ayah' ? r.wordsOnLine(layout, n, line.lineNumber) : [],
+      }));
+      void reply.header('cache-control', `public, max-age=${SEVEN_DAYS_S.toString()}`);
+      return {
+        data: { layout, pageNumber: page.pageNumber, linesPerPage: page.linesPerPage, lines },
+        attribution: LICENSE_METADATA.quranMetadata.attributionText,
+        license: LICENSE_METADATA.quranMetadata.license,
+      };
+    },
+  );
+
+  fastify.get<{ Params: { layout: string; verseKey: string } }>(
+    '/v1/layouts/:layout/by-verse/:verseKey',
+    { schema: { tags: ['layouts'] } },
+    async (req, reply) => {
+      const layout = assertLayout(req.params.layout);
+      if (!VERSE_KEY_RE.test(req.params.verseKey)) {
+        throw new QalaamError(
+          'qalaam.verse-key.malformed',
+          `Invalid verseKey ${req.params.verseKey}`,
+        );
+      }
+      const where = reader().pageForVerse(layout, req.params.verseKey);
+      if (!where) {
+        throw new QalaamError(
+          'qalaam.mushaf.no-coverage',
+          `Layout ${layout} does not cover ${req.params.verseKey}.`,
+        );
+      }
+      void reply.header('cache-control', `public, max-age=${SEVEN_DAYS_S.toString()}`);
+      return { data: { layout, verseKey: req.params.verseKey, ...where } };
+    },
+  );
+}

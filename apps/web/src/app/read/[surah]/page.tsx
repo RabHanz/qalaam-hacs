@@ -12,6 +12,7 @@ import { Suspense } from 'react';
 
 import { EmptyState } from '../../../components/EmptyState.js';
 import { ErrorState } from '../../../components/ErrorState.js';
+import { LayoutSwitcher } from '../../../components/LayoutSwitcher.js';
 import { LoadingState } from '../../../components/LoadingState.js';
 import { qalaamClient } from '../../../lib/qalaam-client.js';
 
@@ -19,6 +20,18 @@ import type { ReactNode } from 'react';
 
 interface PageProps {
   readonly params: Promise<{ surah: string }>;
+  readonly searchParams: Promise<{ layout?: string }>;
+}
+
+async function fetchLayouts(baseUrl: string): Promise<readonly string[]> {
+  try {
+    const res = await fetch(`${baseUrl}/v1/layouts`, { next: { revalidate: 86400 } });
+    if (!res.ok) return [];
+    const body = (await res.json()) as { data?: string[] };
+    return body.data ?? [];
+  } catch {
+    return [];
+  }
 }
 
 async function SurahBody({ surahNumber }: { readonly surahNumber: number }): Promise<ReactNode> {
@@ -72,8 +85,11 @@ async function SurahBody({ surahNumber }: { readonly surahNumber: number }): Pro
   );
 }
 
-export default async function ReadSurahPage({ params }: PageProps): Promise<ReactNode> {
-  const { surah } = await params;
+export default async function ReadSurahPage({
+  params,
+  searchParams,
+}: PageProps): Promise<ReactNode> {
+  const [{ surah }, { layout: layoutQuery }] = await Promise.all([params, searchParams]);
   const surahNumber = Number.parseInt(surah, 10);
   if (!Number.isFinite(surahNumber) || surahNumber < 1 || surahNumber > 114) {
     return (
@@ -85,11 +101,21 @@ export default async function ReadSurahPage({ params }: PageProps): Promise<Reac
       </div>
     );
   }
+  const baseUrl = process.env.PUBLIC_API_URL ?? 'http://localhost:4100';
+  const availableLayouts = await fetchLayouts(baseUrl);
+  const currentLayout =
+    layoutQuery && availableLayouts.includes(layoutQuery) ? layoutQuery : 'madani_15';
+
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 px-6 py-12">
-      <header className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-semibold">Surah {surahNumber}</h1>
-        <p className="text-sm opacity-70">Backed by Qalaam backend → QUL/fixture</p>
+      <header className="flex flex-col gap-3">
+        <div className="flex items-baseline justify-between">
+          <h1 className="text-2xl font-semibold">Surah {surahNumber}</h1>
+          <p className="text-sm opacity-70">Backed by Qalaam backend → QUL/fixture</p>
+        </div>
+        {availableLayouts.length > 0 ? (
+          <LayoutSwitcher availableLayouts={availableLayouts} currentLayout={currentLayout} />
+        ) : null}
       </header>
       <Suspense fallback={<LoadingState label="Loading surah…" lines={8} />}>
         <SurahBody surahNumber={surahNumber} />

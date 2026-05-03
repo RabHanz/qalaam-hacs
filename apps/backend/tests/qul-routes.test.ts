@@ -78,10 +78,70 @@ describe('GET /v1/wbw/:verseKey — morphology gating', () => {
   });
 
   it('default request (no ?include) does not surface morphology', async () => {
-    // We can't fully exercise this without QUL SQLite, but the request must
-    // get past the validator (and then fail-closed on missing data).
     app = await build(BASE_CONFIG);
     const res = await app.inject({ method: 'GET', url: '/v1/wbw/1:1' });
     expect(res.json().code).toBe('qalaam.data.not-loaded');
+  });
+});
+
+describe('GET /v1/surah-info/:surah — language-aware', () => {
+  it('rejects out-of-range surah', async () => {
+    app = await build(BASE_CONFIG);
+    const res = await app.inject({ method: 'GET', url: '/v1/surah-info/200' });
+    expect(res.json().code).toBe('qalaam.verse-key.surah-out-of-range');
+  });
+
+  it('lists languages even when SQLite missing (returns empty array via fail-closed)', async () => {
+    app = await build(BASE_CONFIG);
+    const res = await app.inject({ method: 'GET', url: '/v1/surah-info/languages' });
+    // Without QUL SQLite, the route still throws data.not-loaded.
+    expect(res.json().code).toBe('qalaam.data.not-loaded');
+  });
+});
+
+describe('GET /v1/layouts — slug whitelisting', () => {
+  it('lists known layouts without touching SQLite', async () => {
+    app = await build(BASE_CONFIG);
+    const res = await app.inject({ method: 'GET', url: '/v1/layouts' });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.data).toContain('madani_15');
+    expect(body.data).toContain('kfgqpc_v4');
+    expect(body.data).toContain('indopak_15');
+  });
+
+  it('rejects unknown layout slug with qalaam.mushaf.unknown-layout', async () => {
+    app = await build(BASE_CONFIG);
+    const res = await app.inject({ method: 'GET', url: '/v1/layouts/bogus_99/page-count' });
+    expect(res.json().code).toBe('qalaam.mushaf.unknown-layout');
+  });
+
+  it('rejects malformed verseKey on by-verse lookup', async () => {
+    app = await build(BASE_CONFIG);
+    const res = await app.inject({
+      method: 'GET',
+      url: '/v1/layouts/madani_15/by-verse/not-a-key',
+    });
+    expect(res.json().code).toBe('qalaam.verse-key.malformed');
+  });
+});
+
+describe('GET /v1/recitations — license-gated reciter access', () => {
+  it('rejects malformed verseKey on segments', async () => {
+    app = await build(BASE_CONFIG);
+    const res = await app.inject({
+      method: 'GET',
+      url: '/v1/recitations/husary/segments/not-a-key',
+    });
+    expect(res.json().code).toBe('qalaam.verse-key.malformed');
+  });
+
+  it('rejects malformed verseKey on word-at', async () => {
+    app = await build(BASE_CONFIG);
+    const res = await app.inject({
+      method: 'GET',
+      url: '/v1/recitations/husary/word-at?verseKey=bad&ms=0',
+    });
+    expect(res.json().code).toBe('qalaam.verse-key.malformed');
   });
 });

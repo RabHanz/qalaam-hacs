@@ -15,6 +15,8 @@ import { Suspense } from 'react';
 import { EmptyState } from '../../../../components/EmptyState.js';
 import { ErrorState } from '../../../../components/ErrorState.js';
 import { LoadingState } from '../../../../components/LoadingState.js';
+import { MutashabihatWatchlistPane } from '../../../../components/MutashabihatWatchlistPane.js';
+import { WordByWordPane } from '../../../../components/WordByWordPane.js';
 import { qalaamClient } from '../../../../lib/qalaam-client.js';
 
 import type { ReactNode } from 'react';
@@ -93,12 +95,20 @@ async function StudyBody({
   });
 
   return (
-    <DeepStudyPane
-      verseKey={verseKey}
-      arabic={arabic}
-      translations={translations}
-      tafsirs={tafsirs}
-    />
+    <div style={{ display: 'grid', gap: '1.5rem' }}>
+      <DeepStudyPane
+        verseKey={verseKey}
+        arabic={arabic}
+        translations={translations}
+        tafsirs={tafsirs}
+      />
+      <Suspense fallback={<LoadingState label="Loading word-by-word…" lines={3} />}>
+        <WordByWordPane verseKey={verseKey} />
+      </Suspense>
+      <Suspense fallback={null}>
+        <MutashabihatWatchlistPane verseKey={verseKey} limit={3} />
+      </Suspense>
+    </div>
   );
 }
 

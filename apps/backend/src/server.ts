@@ -19,8 +19,11 @@ import { curriculumRoutes } from './routes/v1/curriculum.js';
 import { hifdhStateRoutes } from './routes/v1/hifdh-state.js';
 import { hifdhRoutes } from './routes/v1/hifdh.js';
 import { nowPlayingRoutes } from './routes/v1/now-playing.js';
+import { qulLayoutsRoutes } from './routes/v1/qul-layouts.js';
 import { qulMetadataRoutes } from './routes/v1/qul-metadata.js';
 import { qulMutashabihatRoutes } from './routes/v1/qul-mutashabihat.js';
+import { qulRecitationsRoutes } from './routes/v1/qul-recitations.js';
+import { qulSurahInfoRoutes } from './routes/v1/qul-surah-info.js';
 import { qulWbwRoutes } from './routes/v1/qul-wbw.js';
 import { recitationsRoutes } from './routes/v1/recitations.js';
 import { translationsRoutes } from './routes/v1/translations.js';
@@ -74,6 +77,9 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   await app.register(qulMetadataRoutes, { config });
   await app.register(qulMutashabihatRoutes, { config });
   await app.register(qulWbwRoutes, { config });
+  await app.register(qulSurahInfoRoutes, { config });
+  await app.register(qulLayoutsRoutes, { config });
+  await app.register(qulRecitationsRoutes, { config });
 
   return app;
 }

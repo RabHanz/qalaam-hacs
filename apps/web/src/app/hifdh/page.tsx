@@ -20,6 +20,7 @@ import { Suspense } from 'react';
 
 import { EmptyState } from '../../components/EmptyState.js';
 import { LoadingState } from '../../components/LoadingState.js';
+import { MutashabihatWatchlistPane } from '../../components/MutashabihatWatchlistPane.js';
 
 import type { ReactNode } from 'react';
 
@@ -88,6 +89,9 @@ async function HifdhContent({
       return monday.toISOString();
     })();
   const generatedAt = state.generated_at ?? new Date().toISOString();
+  // Pull the first verse_key out of the sabqi range "2:255-2:257" → "2:255"
+  // for the per-user mutashabihat watchlist surface.
+  const sabqiHead = state.current_sabqi?.split(/[\s\-–—]+/)[0]?.trim() ?? '';
 
   return (
     <div style={{ display: 'grid', gap: '1.5rem' }}>
@@ -96,6 +100,8 @@ async function HifdhContent({
         graceDaysRemainingThisMonth={state.grace_days_remaining}
         missedYesterday={state.missed_yesterday ?? false}
       />
+
+      {sabqiHead ? <MutashabihatWatchlistPane verseKey={sabqiHead} limit={3} /> : null}
 
       {hasMembers ? (
         <ParentDashboard
