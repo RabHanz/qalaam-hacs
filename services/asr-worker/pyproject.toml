@@ -16,6 +16,7 @@ dependencies = [
     "qalaam-core",
     # Heavy ML deps (faster-whisper + ctranslate2) intentionally NOT pinned here —
     # they're installed by the Dockerfile so devs can iterate the API without GPU.
+    "python-multipart>=0.0.27",
 ]
 
 [tool.uv.sources]

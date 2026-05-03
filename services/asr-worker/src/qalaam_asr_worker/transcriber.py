@@ -18,6 +18,7 @@ from typing import Any, Final, Protocol
 
 import structlog
 
+from .aligner import AlignOp, align, tokenize
 from .models import AsrResult, TranscribeRequest, WordResult
 
 _LOG: Final = structlog.get_logger(__name__)
@@ -135,20 +136,33 @@ class WhisperTranscriber:
                     transcript_words.append(w.word.strip())
                     timings.append((w.start, w.end))
 
-            expected = request.expected_text_uthmani.split()
+            # Per Phase 9 closure: replace naive exact-match with the
+            # diacritics-insensitive Levenshtein aligner. Tashkeel, alif/ya
+            # variants, tatweel, and quranic-marks are normalized away before
+            # alignment so the user isn't penalized for spelling that doesn't
+            # affect pronunciation.
+            expected_norm = tokenize(request.expected_text_uthmani)
+            actual_norm = tokenize(" ".join(transcript_words))
+            ops = align(expected_norm, actual_norm)
             word_results: list[WordResult] = []
-            for i, ew in enumerate(expected):
-                actual = transcript_words[i] if i < len(transcript_words) else ""
-                start_end = timings[i] if i < len(timings) else (0.0, 0.0)
-                # Naive match: exact-string equality; v1.0 wires phoneme alignment.
-                is_match = actual.strip() == ew.strip()
+            for op in ops:
+                if op.expected_index is None or op.expected_word is None:
+                    # INSERT — extra actual word with no expected counterpart.
+                    # Skip in word_results (the strip UI keys off expected_index).
+                    continue
+                ew_idx = op.expected_index
+                start_end = (
+                    timings[ew_idx] if ew_idx < len(timings) else (0.0, 0.0)
+                )
+                is_match = op.op == AlignOp.MATCH
+                actual_word = op.actual_word or ""
                 word_results.append(
                     WordResult(
-                        word_index=i,
-                        expected_word=ew,
-                        actual_word=actual,
+                        word_index=ew_idx,
+                        expected_word=op.expected_word,
+                        actual_word=actual_word,
                         is_match=is_match,
-                        confidence=0.85 if is_match else 0.45,
+                        confidence=0.85 if is_match else (0.45 if op.op == AlignOp.SUBSTITUTE else 0.0),
                         alignment_start_ms=int(start_end[0] * 1000),
                         alignment_end_ms=int(start_end[1] * 1000),
                     )
