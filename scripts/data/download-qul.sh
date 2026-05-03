@@ -32,15 +32,31 @@ if [[ -f "${QUL_OUT}" ]]; then
 fi
 
 if [[ "${QUL_SHA256}" == "PENDING_FIRST_DOWNLOAD" ]]; then
-    log "QUL_SHA256 not pinned. Doing one-time bootstrap fetch."
-    log "After successful download, run 'sha256sum ${QUL_OUT}' and commit the value to this script."
+    if [[ -z "${QALAAM_BOOTSTRAP_QUL:-}" ]]; then
+        die "QUL_SHA256 not pinned and QALAAM_BOOTSTRAP_QUL is unset.
+Per ADR-0002, the QUL SQLite must be content-pinned before any build uses it
+so a tampered or replaced upstream file cannot enter the data layer silently.
+
+To bootstrap a brand-new pin (one-time, requires human review of the QUL
+changelog at https://qul.tarteel.ai):
+  1. export QUL_VERSION=<version>            # e.g., 2026-01
+  2. export QUL_URL=<actual-release-url>     # from the QUL exports page
+  3. export QALAAM_BOOTSTRAP_QUL=1
+  4. ./scripts/data/download-qul.sh
+  5. ./scripts/data/compute-qul-sha.sh        # prints the SHA256
+  6. Edit this script: set QUL_SHA256=<value> and unset QALAAM_BOOTSTRAP_QUL.
+  7. Commit BOTH the pinned URL and SHA in the same change with the QUL
+     release notes referenced in the commit message."
+    fi
+    log "BOOTSTRAP MODE — QUL_SHA256 not yet pinned."
+    log "After download, run scripts/data/compute-qul-sha.sh and pin the SHA."
     curl --silent --show-error --location --fail \
          --retry 5 --retry-delay 3 \
          --output "${QUL_OUT}" \
          "${QUL_URL}" \
-        || die "Download failed. The QUL_URL placeholder may need updating — check qul.tarteel.ai"
-    log "Computed SHA256: $(sha256sum "${QUL_OUT}" | awk '{print $1}')"
-    log "Update QUL_SHA256 in this script before merging."
+        || die "Download failed. The QUL_URL may need updating — check qul.tarteel.ai"
+    log "Bootstrap fetch complete. Computed SHA256: $(sha256sum "${QUL_OUT}" | awk '{print $1}')"
+    log "Pin this value in QUL_SHA256 above and re-run without QALAAM_BOOTSTRAP_QUL."
 else
     fetch_with_sha256 "${QUL_URL}" "${QUL_SHA256}" "${QUL_OUT}"
 fi

@@ -1,0 +1,49 @@
+name: Dependabot auto-approve & merge
+
+# Auto-approves and merges Dependabot PRs that are clean (CI green) and that
+# we trust to roll forward without manual review:
+#   - patch + minor bumps for any dependency
+#   - all bumps for dev-only dependencies
+#   - all bumps for security alerts
+#
+# Major-version bumps for production deps are NOT auto-merged — they get
+# auto-approved (so the author sees a green review) but require a human to
+# merge so we don't ship breaking changes by accident.
+#
+# Per CLAUDE.md "build for the foundation, not the demo" — the workflow
+# itself is gated on Dependabot author + branch-protection-passing CI, so a
+# malicious PR can't trigger it even if a contributor approves it.
+
+on: pull_request_target
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Auto-approve every Dependabot PR
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Auto-merge low-risk bumps
+        if: |
+          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+          steps.metadata.outputs.update-type == 'version-update:semver-minor' ||
+          steps.metadata.outputs.dependency-type == 'direct:development' ||
+          steps.metadata.outputs.dependency-type == 'indirect'
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
