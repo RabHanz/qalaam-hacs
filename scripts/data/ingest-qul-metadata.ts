@@ -58,6 +58,28 @@ const META: LicenseMetadata = {
 };
 
 function ensureTables(db: DB): void {
+  // Ensure the v0.1 QulReader's prepared-statement targets exist even
+  // when only the v2 sub-readers are populated. Empty rows are fine —
+  // queries return undefined / [] rather than ERROR. Per ADR-0020
+  // additive surface convention.
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS qalaam_v1_verses (
+      verse_key TEXT PRIMARY KEY, surah INTEGER, ayah INTEGER,
+      text_uthmani TEXT, text_indopak TEXT, text_imlaei TEXT, text_qpc_hafs TEXT,
+      juz INTEGER, hizb INTEGER, rub_el_hizb INTEGER, ruku INTEGER, manzil INTEGER,
+      page_madani_15 INTEGER, word_count INTEGER, is_sajdah INTEGER
+    );
+    CREATE TABLE IF NOT EXISTS qalaam_v1_audio_segments (
+      verse_key TEXT, reciter_id TEXT, word_index INTEGER, start_ms INTEGER, end_ms INTEGER
+    );
+    CREATE TABLE IF NOT EXISTS qalaam_v1_mutashabihat (
+      cluster_id TEXT PRIMARY KEY, member_verse_keys TEXT, shared_phrase TEXT
+    );
+    CREATE TABLE IF NOT EXISTS qalaam_v1_mushaf_layouts (
+      layout TEXT, page INTEGER, first_verse_key TEXT, lines_per_page INTEGER
+    );
+  `);
+
   db.exec(`
     CREATE TABLE IF NOT EXISTS qalaam_v1_qul_metadata_surahs (
       surah                INTEGER PRIMARY KEY,

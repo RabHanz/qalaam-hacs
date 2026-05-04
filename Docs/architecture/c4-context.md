@@ -1,6 +1,8 @@
 # Qalaam — C4 Level 1: System Context
 
-> **Diagram sources:** `c4-context.puml` (PlantUML w/ C4-PlantUML stdlib — high-fidelity render via `scripts/docs/render-c4-png.sh`); the Mermaid block below renders natively on GitHub.
+![Qalaam — System Context (C4 Level 1)](./qalaam-c4-context.png)
+
+> **Diagram sources:** `c4-context.puml` (PlantUML w/ C4-PlantUML stdlib — re-render via `scripts/docs/render-c4-png.sh`); the Mermaid block below renders natively on GitHub for terminals/devices that can't display the PNG.
 
 ```mermaid
 %%{init: {'theme': 'neutral'}}%%

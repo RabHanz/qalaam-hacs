@@ -1,6 +1,8 @@
 # Qalaam — C4 Level 2: Containers
 
-> **Diagram sources:** `c4-containers.puml` (high-fidelity render via `scripts/docs/render-c4-png.sh`); the Mermaid block below renders natively on GitHub.
+![Qalaam — Containers (C4 Level 2)](./qalaam-c4-containers.png)
+
+> **Diagram sources:** `c4-containers.puml` (re-render via `scripts/docs/render-c4-png.sh`); the Mermaid block below renders natively on GitHub.
 
 ```mermaid
 %%{init: {'theme': 'neutral'}}%%
