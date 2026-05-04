@@ -57,6 +57,9 @@ interface Props {
   readonly sharedSize?: boolean;
   readonly maxFontPx?: number;
   readonly minFontPx?: number;
+  /** Active-recitation highlight (continuous player). The matching
+   *  word in this verse is painted. */
+  readonly highlight?: { verseKey: string; wordIndex: number } | null;
 }
 
 // (verse-end detection moved into renderLineText)
@@ -101,6 +104,7 @@ export function MushafLines({
   sharedSize = true,
   maxFontPx = 28,
   minFontPx = 13,
+  highlight,
 }: Props): ReactNode {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const lineRefs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -377,7 +381,7 @@ export function MushafLines({
                   direction: 'rtl',
                 }}
               >
-                {renderLineText(line, layoutSlug, tajweedByVerse, verseWordOffsets)}
+                {renderLineText(line, layoutSlug, tajweedByVerse, verseWordOffsets, highlight ?? null)}
               </span>
             </div>
           );
@@ -410,6 +414,7 @@ function renderLineText(
   layoutSlug: string,
   tajweedByVerse: Map<string, readonly TajweedAnnotation[]>,
   verseWordOffsets: Map<string, Map<number, number>>,
+  highlight: { verseKey: string; wordIndex: number } | null,
 ): ReactNode {
   const ARABIC_DIGITS_RE = /^[٠-٩]+$/;
   const INDOPAK_END_RE = /^[ۖ-ۭ]+$/;
@@ -514,12 +519,16 @@ function renderLineText(
       }
     }
 
+    const isHighlighted =
+      highlight !== null &&
+      highlight.verseKey === w.verseKey &&
+      highlight.wordIndex === w.wordIndex;
     out.push(
       <a
         key={w.wordId.toString()}
         href={`/study/${sn}/${an}#w${w.wordIndex.toString()}`}
         title={`${w.verseKey} · word ${(w.wordIndex + 1).toString()}`}
-        className="mushaf-word"
+        className={`mushaf-word${isHighlighted ? ' recite-highlight' : ''}`}
       >
         {wordChildren}
       </a>,

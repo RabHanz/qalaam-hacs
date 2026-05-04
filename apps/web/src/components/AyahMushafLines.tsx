@@ -44,6 +44,9 @@ interface Props {
   readonly apiBase?: string;
   readonly verseKey: string;
   readonly layoutSlug: string;
+  /** Optional active-word highlight. If verseKey matches, the
+   *  matching word in the mushaf rendering is colored. */
+  readonly highlight?: { verseKey: string; wordIndex: number } | null;
 }
 
 interface CacheEntry {
@@ -53,7 +56,7 @@ interface CacheEntry {
 
 const pageCache = new Map<string, CacheEntry>();
 
-export function AyahMushafLines({ verseKey, layoutSlug }: Props): ReactNode {
+export function AyahMushafLines({ verseKey, layoutSlug, highlight }: Props): ReactNode {
   const apiBase = resolveApiBase();
   const [state, setState] = useState<{
     loading: boolean;
@@ -171,7 +174,7 @@ export function AyahMushafLines({ verseKey, layoutSlug }: Props): ReactNode {
           </a>
         ) : null}
       </header>
-      <MushafLines lines={state.lines} layoutSlug={layoutSlug} sharedSize />
+      <MushafLines lines={state.lines} layoutSlug={layoutSlug} sharedSize highlight={highlight ?? null} />
     </article>
   );
 }

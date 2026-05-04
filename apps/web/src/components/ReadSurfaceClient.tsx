@@ -102,6 +102,11 @@ export function ReadSurfaceClient({
   const [singleDirection, setSingleDirection] = useState<'next' | 'prev' | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [highlight, setHighlight] = useState<{ verseKey: string; wordIndex: number } | null>(null);
+
+  // When the continuous player advances verse, also advance the
+  // single-ayah view's index so the highlight is visible in that
+  // mode too — otherwise the user is staring at a static ayah while
+  // the audio is on a different one.
   // Seed the translation map from the SSR prefetch so the first paint shows
   // translations under each verse.
   const [translationMap, setTranslationMap] = useState<Map<string, string>>(() => {
@@ -113,6 +118,17 @@ export function ReadSurfaceClient({
   });
   const [translationLoading, setTranslationLoading] = useState(false);
   const containerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!highlight) return;
+    if (viewMode !== 'single') return;
+    const idx = verses.findIndex((v) => v.verseKey === highlight.verseKey);
+    if (idx >= 0 && idx !== singleIndex) {
+      setSingleDirection(idx > singleIndex ? 'next' : 'prev');
+      setSingleIndex(idx);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlight, viewMode, verses]);
 
   // Hydration-safe sync from URL + localStorage AFTER first render
   useEffect(() => {
@@ -420,6 +436,7 @@ export function ReadSurfaceClient({
             direction={singleDirection}
             style={singleStyle}
             layoutSlug={activeLayoutSlug}
+            highlight={highlight}
           />
         )}
 
@@ -517,6 +534,7 @@ function SingleAyahView({
   direction,
   style,
   layoutSlug,
+  highlight,
 }: {
   verses: readonly VerseLite[];
   index: number;
@@ -531,6 +549,7 @@ function SingleAyahView({
   direction: 'next' | 'prev' | null;
   style: SingleStyle;
   layoutSlug: string;
+  highlight: { verseKey: string; wordIndex: number } | null;
 }): ReactNode {
   const v = verses[index];
   const swipe = useSwipePager({
@@ -591,7 +610,12 @@ function SingleAyahView({
       >
         {style === 'mushaf' ? (
           <div className="space-y-4">
-            <AyahMushafLines apiBase={apiBase} verseKey={v.verseKey} layoutSlug={layoutSlug} />
+            <AyahMushafLines
+              apiBase={apiBase}
+              verseKey={v.verseKey}
+              layoutSlug={layoutSlug}
+              highlight={highlight?.verseKey === v.verseKey ? highlight : null}
+            />
             {translation !== 'none' && translationMap.get(v.verseKey) ? (
               <div className="paper-card p-5 sm:p-7">
                 <p className="smallcaps text-leaf text-[10px] tracking-widest mb-2">
@@ -616,6 +640,9 @@ function SingleAyahView({
             tafsirSlug={tafsirSlug}
             reciterSlug={reciterSlug}
             apiBase={apiBase}
+            highlightWordIndex={
+              highlight?.verseKey === v.verseKey ? highlight.wordIndex : null
+            }
           />
         )}
       </div>

@@ -159,6 +159,21 @@ export function AyahCard({
     playIntentRef.current = false;
   }, [verseKey, reciterSlug]);
 
+  // Pause when another player claims audio focus (continuous reader,
+  // MiniPlayer on /listen, sibling ayah cards).
+  useEffect(() => {
+    function onClaim(e: Event): void {
+      const detail = (e as CustomEvent<{ source: string }>).detail;
+      if (detail.source === `ayah:${verseKey}`) return;
+      const a = audioRef.current;
+      if (a && !a.paused) {
+        a.pause();
+      }
+    }
+    window.addEventListener('qalaam:audio-claim', onClaim);
+    return () => window.removeEventListener('qalaam:audio-claim', onClaim);
+  }, [verseKey]);
+
   // Restore bookmark state
   useEffect(() => {
     try {
@@ -193,6 +208,11 @@ export function AyahCard({
       setPlaying(false);
       return;
     }
+    // Claim audio focus — any continuous player or other ayah card
+    // that's playing will pause when it sees this event.
+    window.dispatchEvent(
+      new CustomEvent('qalaam:audio-claim', { detail: { source: `ayah:${verseKey}` } }),
+    );
     if (audioUrl) {
       // We already have the URL — play right now (synchronous gesture chain)
       const p = a.play();

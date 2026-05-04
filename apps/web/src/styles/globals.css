@@ -449,23 +449,23 @@
     border-color: color-mix(in srgb, var(--color-leaf-700) 70%, transparent);
   }
 
-  /* Recite-highlight — paints the word currently being recited by
-   * the continuous player. Subtle warm-gold background pulse so it
-   * draws the eye without yelling. Reduced-motion-safe. */
-  .recite-highlight {
-    background-color: color-mix(in srgb, var(--color-leaf-300) 38%, transparent);
-    color: var(--color-leaf-700);
-    border-radius: 4px;
-    padding: 0 2px;
-    margin: 0 -2px;
-    transition: background-color 140ms ease-out;
+  /* Recite-highlight — paints the GLYPH itself in leaf-gold (color
+   * runs along the letter's curves), NOT a highlighter rectangle on
+   * top. Subtle weight bump + drop-shadow so the word stands out
+   * without obscuring the calligraphy. Reduced-motion-safe. */
+  .recite-highlight,
+  .recite-highlight * {
+    color: var(--color-leaf-500) !important;
+    text-shadow: 0 0 0.25em color-mix(in srgb, var(--color-leaf-300) 60%, transparent);
+    transition: color 80ms ease-out, text-shadow 80ms ease-out;
   }
-  :root[data-theme="dark"] .recite-highlight {
-    background-color: color-mix(in srgb, var(--color-leaf-500) 32%, transparent);
-    color: var(--color-leaf-300);
+  :root[data-theme="dark"] .recite-highlight,
+  :root[data-theme="dark"] .recite-highlight * {
+    color: var(--color-leaf-300) !important;
+    text-shadow: 0 0 0.3em color-mix(in srgb, var(--color-leaf-500) 70%, transparent);
   }
   @media (prefers-reduced-motion: reduce) {
-    .recite-highlight { transition: none; }
+    .recite-highlight, .recite-highlight * { transition: none; }
   }
 
   /* Mushaf word — plain inline anchor that's tappable for the

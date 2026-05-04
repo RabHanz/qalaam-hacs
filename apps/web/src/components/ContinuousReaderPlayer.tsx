@@ -141,8 +141,66 @@ export function ContinuousReaderPlayer({
       audioBRef.current?.pause();
       return;
     }
+    // Tell any other player on the page to stop — only one continuous
+    // / per-ayah audio source plays at a time.
+    window.dispatchEvent(new CustomEvent('qalaam:audio-claim', { detail: { source: 'continuous' } }));
     setActive(true);
     setVerseIdx(0);
+  }
+
+  // Listen for audio-claim events from other players (per-ayah Listen
+  // chips, MiniPlayer on /listen) — when they take the audio focus,
+  // we pause and clear our highlight.
+  useEffect(() => {
+    function onClaim(e: Event): void {
+      const detail = (e as CustomEvent<{ source: string }>).detail;
+      if (detail.source === 'continuous') return; // it's our own claim
+      if (active) {
+        setActive(false);
+        setPlaying(false);
+        onHighlight(null);
+        audioARef.current?.pause();
+        audioBRef.current?.pause();
+      }
+    }
+    window.addEventListener('qalaam:audio-claim', onClaim);
+    return () => window.removeEventListener('qalaam:audio-claim', onClaim);
+  }, [active, onHighlight]);
+
+  // High-frequency rAF tracker — browser timeupdate fires at ~250ms
+  // resolution which lags behind the audio. We poll currentTime every
+  // animation frame (~16ms) while playing for tighter sync.
+  useEffect(() => {
+    if (!active || !playing) return;
+    let raf = 0;
+    function tick(): void {
+      onTimeUpdate();
+      raf = requestAnimationFrame(tick);
+    }
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, playing, activeBuffer, bundleA, bundleB, verseIdx]);
+
+  function pickActiveSegment(tMs: number, segments: readonly Segment[]): Segment | null {
+    // Lookahead window: trigger highlight slightly BEFORE the segment
+    // start to compensate for browser timeupdate jitter (~250ms native
+    // resolution). 80ms ahead matches the eye's ability to anticipate
+    // the next syllable in normal recitation.
+    const LOOKAHEAD_MS = 80;
+    const t = tMs + LOOKAHEAD_MS;
+    for (let i = 0; i < segments.length; i += 1) {
+      const s = segments[i];
+      if (!s) continue;
+      if (t >= s.startMs && t <= s.endMs) return s;
+    }
+    // Between segments — return the most recent one we passed so the
+    // highlight stays on the previous word instead of vanishing.
+    let last: Segment | null = null;
+    for (const s of segments) {
+      if (s.endMs < t) last = s;
+    }
+    return last;
   }
 
   function onTimeUpdate(): void {
@@ -150,22 +208,9 @@ export function ContinuousReaderPlayer({
     const bundle = activeBundle();
     if (!a || !bundle) return;
     const tMs = a.currentTime * 1000;
-    // Linear scan — segments are typically <50 per verse so no need
-    // for binary search. Find the segment whose [startMs, endMs]
-    // contains tMs.
-    let activeSegIdx = -1;
-    for (let i = 0; i < bundle.segments.length; i += 1) {
-      const s = bundle.segments[i];
-      if (!s) continue;
-      if (tMs >= s.startMs && tMs <= s.endMs) {
-        activeSegIdx = i;
-        break;
-      }
-    }
-    const verseKey = verses[verseIdx]?.verseKey ?? '';
-    if (activeSegIdx === -1) return;
-    const seg = bundle.segments[activeSegIdx];
+    const seg = pickActiveSegment(tMs, bundle.segments);
     if (!seg) return;
+    const verseKey = verses[verseIdx]?.verseKey ?? '';
     if (
       seg.wordIndex === lastWordIdxRef.current &&
       verseKey === lastVerseKeyRef.current
@@ -174,12 +219,24 @@ export function ContinuousReaderPlayer({
     }
     lastWordIdxRef.current = seg.wordIndex;
     lastVerseKeyRef.current = verseKey;
-    // Word indexes from segments are 1-based per QUL convention; our
-    // AyahCard / MushafLines use 0-based. Convert.
     onHighlight({ verseKey, wordIndex: seg.wordIndex - 1 });
   }
 
   function onEnded(): void {
+    // Before advancing or stopping, paint the FINAL word of the verse
+    // so the user sees the verse complete. The bidi-style word index
+    // correlation can miss the last segment when audio cuts off
+    // immediately on its end_ms boundary.
+    const bundle = activeBundle();
+    const verseKey = verses[verseIdx]?.verseKey ?? '';
+    if (bundle && bundle.segments.length > 0) {
+      const last = bundle.segments[bundle.segments.length - 1];
+      if (last && verseKey) {
+        onHighlight({ verseKey, wordIndex: last.wordIndex - 1 });
+        lastWordIdxRef.current = last.wordIndex;
+        lastVerseKeyRef.current = verseKey;
+      }
+    }
     if (verseIdx + 1 < verses.length) {
       // Swap buffers: the next verse is already pre-loaded in the
       // OTHER buffer. Flipping activeBuffer triggers the autoPlay on
@@ -189,7 +246,7 @@ export function ContinuousReaderPlayer({
     } else {
       setActive(false);
       setPlaying(false);
-      onHighlight(null);
+      // Leave the highlight on the final word — don't clear.
     }
   }
 
@@ -237,18 +294,25 @@ export function ContinuousReaderPlayer({
 
   return (
     <>
-      <audio
-        ref={audioARef}
-        src={bundleA?.url ?? undefined}
-        preload="auto"
-        {...attachAudioHandlers('A')}
-      />
-      <audio
-        ref={audioBRef}
-        src={bundleB?.url ?? undefined}
-        preload="auto"
-        {...attachAudioHandlers('B')}
-      />
+      {/* Only render the <audio> element after we have a non-empty
+          URL — passing src="" causes the browser to refetch the page
+          and triggers a Next.js empty-string-src warning. */}
+      {bundleA?.url ? (
+        <audio
+          ref={audioARef}
+          src={bundleA.url}
+          preload="auto"
+          {...attachAudioHandlers('A')}
+        />
+      ) : null}
+      {bundleB?.url ? (
+        <audio
+          ref={audioBRef}
+          src={bundleB.url}
+          preload="auto"
+          {...attachAudioHandlers('B')}
+        />
+      ) : null}
       <div
         className="fixed inset-x-0 bottom-0 z-30 border-t border-hairline bg-paper-100/95 backdrop-blur-md"
         role="region"
