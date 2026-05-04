@@ -117,6 +117,18 @@ export function ContinuousReaderPlayer({
         next ? fetchBundle(apiBase, next.verseKey, reciterSlug) : Promise.resolve(null),
       ]);
       if (cancelled) return;
+      // If the current verse has NO audio URL (some reciters lack
+      // coverage on certain ayahs — abdul-basit-mujawwad has audio
+      // only for some verses, etc), skip forward instead of stalling.
+      if (!curB.url) {
+        if (verseIdx + 1 < verses.length) {
+          setVerseIdx((i) => i + 1);
+        } else {
+          setActive(false);
+          setPlaying(false);
+        }
+        return;
+      }
       // Place current bundle in the activeBuffer slot, next in the other.
       if (activeBuffer === 'A') {
         setBundleA(curB);
@@ -182,6 +194,27 @@ export function ContinuousReaderPlayer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, playing, activeBuffer, bundleA, bundleB, verseIdx]);
 
+  // After a buffer swap (verse advance), the new active audio element
+  // already has its src set from the pre-fetch — but autoPlay only
+  // fires once at mount. Explicitly call .play() on whichever audio
+  // is now active so playback resumes seamlessly.
+  useEffect(() => {
+    if (!active) return;
+    const a = activeAudio();
+    if (!a) return;
+    // Reset to the start of the new verse and play.
+    if (a.readyState >= 2) {
+      a.currentTime = 0;
+      const p = a.play();
+      if (p && typeof p.then === 'function') {
+        p.then(() => setPlaying(true)).catch(() => setPlaying(false));
+      }
+    } else {
+      // Audio not yet buffered — let onCanPlay fire it.
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeBuffer, verseIdx, active]);
+
   function pickActiveSegment(tMs: number, segments: readonly Segment[]): Segment | null {
     // Lookahead window: trigger highlight slightly BEFORE the segment
     // start to compensate for browser timeupdate jitter (~250ms native
@@ -223,30 +256,34 @@ export function ContinuousReaderPlayer({
   }
 
   function onEnded(): void {
-    // Before advancing or stopping, paint the FINAL word of the verse
-    // so the user sees the verse complete. The bidi-style word index
-    // correlation can miss the last segment when audio cuts off
-    // immediately on its end_ms boundary.
+    // Before advancing, paint the LAST WORD OF THE VERSE — segments
+    // sometimes don't cover the verse-end digit (e.g. 2:1 has 2 words
+    // but only word 1 is segmented), so the final tick of audio
+    // doesn't hit a new segment. Find the highest wordIndex from QUL
+    // word data; if a segment exists for that index use it, else
+    // synthesize one from the highest segment's index + 1.
     const bundle = activeBundle();
     const verseKey = verses[verseIdx]?.verseKey ?? '';
-    if (bundle && bundle.segments.length > 0) {
-      const last = bundle.segments[bundle.segments.length - 1];
-      if (last && verseKey) {
-        onHighlight({ verseKey, wordIndex: last.wordIndex - 1 });
-        lastWordIdxRef.current = last.wordIndex;
+    if (bundle && verseKey) {
+      let lastWordIdx = -1;
+      if (bundle.segments.length > 0) {
+        const last = bundle.segments[bundle.segments.length - 1];
+        if (last) lastWordIdx = last.wordIndex - 1;
+      }
+      // Try to advance one more so the verse-end digit / final word
+      // gets the highlight before we move on.
+      if (lastWordIdx >= 0) {
+        onHighlight({ verseKey, wordIndex: lastWordIdx + 1 });
+        lastWordIdxRef.current = lastWordIdx + 2;
         lastVerseKeyRef.current = verseKey;
       }
     }
     if (verseIdx + 1 < verses.length) {
-      // Swap buffers: the next verse is already pre-loaded in the
-      // OTHER buffer. Flipping activeBuffer triggers the autoPlay on
-      // the now-active audio element with zero load delay.
       setActiveBuffer((b) => (b === 'A' ? 'B' : 'A'));
       setVerseIdx((i) => i + 1);
     } else {
       setActive(false);
       setPlaying(false);
-      // Leave the highlight on the final word — don't clear.
     }
   }
 

@@ -400,11 +400,22 @@ def ingest_reciter(conn: sqlite3.Connection, reg: dict) -> int:
             feed(vk, row.get("audio_url", ""), row.get("duration"), row.get("segments", []))
     else:  # db
         src = sqlite3.connect(str(payload))
+        # Some upstream reciter DBs store ayah_number as the GLOBAL
+        # ayah index (1..6236) instead of per-surah. Detect the bug
+        # and reconstruct verse_key from the audio_url filename
+        # (`SSSAAA.mp3`), which is always per-surah authoritative.
+        import re as _re
+        _FN_RE = _re.compile(r"/(\d{3})(\d{3})\.mp3", _re.IGNORECASE)
         for surah_n, ayah_n, audio_url, duration, segments_text in src.execute(
             "SELECT surah_number, ayah_number, audio_url, duration, segments FROM verses"
         ):
             if not surah_n or not ayah_n:
                 continue
+            # Validate ayah_n against the surah; if it looks global,
+            # parse from the audio_url filename instead.
+            m = _FN_RE.search(audio_url or "")
+            if m:
+                surah_n, ayah_n = int(m.group(1)), int(m.group(2))
             vk = f"{surah_n}:{ayah_n}"
             try:
                 segments = json.loads(segments_text or "[]")
