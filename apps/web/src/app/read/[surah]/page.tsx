@@ -160,32 +160,64 @@ export default async function ReadSurahPage({ params }: PageProps): Promise<Reac
     <>
       <SiteNav />
 
-      {/* Editorial running header */}
+      {/* Editorial running header — flanked by quick prev/next surah arrows. */}
       <header className="border-b border-hairline">
-        <div className="mx-auto flex max-w-5xl items-end justify-between gap-4 px-4 sm:px-6 py-6 sm:py-10">
-          <div className="min-w-0">
-            <p className="smallcaps text-leaf text-[11px] tracking-widest">Sūrat</p>
-            <h1 className="font-display mt-1.5 text-2xl sm:text-4xl md:text-5xl font-light tracking-tight text-ink-strong truncate">
-              {surahMeta?.nameEnglish ?? `Surah ${surahNumber.toString()}`}
-            </h1>
-            {surahMeta ? (
-              <p className="mt-1.5 text-[11px] sm:text-sm text-ink-muted">
-                <span className="font-mono tabular-nums">
-                  {surahNumber.toString().padStart(3, '0')}
-                </span>
-                {' · '}
-                {surahMeta.verseCount.toString()} verses · {surahMeta.revelationPlace}
-              </p>
-            ) : null}
+        <div className="mx-auto flex max-w-5xl items-stretch px-4 sm:px-6 py-6 sm:py-10 gap-3">
+          {surahNumber > 1 ? (
+            <a
+              href={`/read/${(surahNumber - 1).toString()}`}
+              aria-label={`Previous surah · ${(surahNumber - 1).toString()}`}
+              className="shrink-0 inline-flex items-center justify-center w-10 sm:w-12 rounded-md border border-hairline text-ink-muted hover:text-leaf hover:bg-paper-100/60"
+              title={`Surah ${(surahNumber - 1).toString()}`}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
+          ) : (
+            <span className="shrink-0 w-10 sm:w-12" />
+          )}
+
+          <div className="flex-1 min-w-0 flex items-end justify-between gap-4">
+            <div className="min-w-0">
+              <p className="smallcaps text-leaf text-[11px] tracking-widest">Sūrat</p>
+              <h1 className="font-display mt-1.5 text-2xl sm:text-4xl md:text-5xl font-light tracking-tight text-ink-strong truncate">
+                {surahMeta?.nameEnglish ?? `Surah ${surahNumber.toString()}`}
+              </h1>
+              {surahMeta ? (
+                <p className="mt-1.5 text-[11px] sm:text-sm text-ink-muted">
+                  <span className="font-mono tabular-nums">
+                    {surahNumber.toString().padStart(3, '0')}
+                  </span>
+                  {' · '}
+                  {surahMeta.verseCount.toString()} verses · {surahMeta.revelationPlace}
+                </p>
+              ) : null}
+            </div>
+            <p
+              dir="rtl"
+              lang="ar"
+              className="font-arabic text-3xl sm:text-5xl md:text-6xl text-ink-strong shrink-0"
+              style={{ lineHeight: 1, unicodeBidi: 'plaintext' }}
+            >
+              {surahMeta?.nameArabic ?? ''}
+            </p>
           </div>
-          <p
-            dir="rtl"
-            lang="ar"
-            className="font-arabic text-3xl sm:text-5xl md:text-6xl text-ink-strong shrink-0"
-            style={{ lineHeight: 1, unicodeBidi: 'plaintext' }}
-          >
-            {surahMeta?.nameArabic ?? ''}
-          </p>
+
+          {surahNumber < 114 ? (
+            <a
+              href={`/read/${(surahNumber + 1).toString()}`}
+              aria-label={`Next surah · ${(surahNumber + 1).toString()}`}
+              className="shrink-0 inline-flex items-center justify-center w-10 sm:w-12 rounded-md border border-hairline text-ink-muted hover:text-leaf hover:bg-paper-100/60"
+              title={`Surah ${(surahNumber + 1).toString()}`}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
+          ) : (
+            <span className="shrink-0 w-10 sm:w-12" />
+          )}
         </div>
       </header>
 
