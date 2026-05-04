@@ -43,6 +43,25 @@ interface Props {
   readonly currentSurah: number;
 }
 
+const STORE_LAST_PLAYED = 'qalaam-last-played-verse';
+
+/**
+ * Read the last-played verse for a given surah from localStorage.
+ * Returns the verseKey or null. Used to resume continuous playback
+ * from where the user last tapped a per-ayah Listen button.
+ */
+function readLastPlayed(surah: number): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(STORE_LAST_PLAYED);
+    if (!raw) return null;
+    const map = JSON.parse(raw) as Record<string, string>;
+    return map[surah.toString()] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 interface AudioBundle {
   url: string;
   segments: readonly Segment[];
@@ -92,6 +111,9 @@ export function ContinuousReaderPlayer({
   }, [initialVerses, currentSurah]);
   const [active, setActive] = useState(false);
   const [verseIdx, setVerseIdx] = useState(0);
+  // Repeat mode: 'none' = surah-by-surah continuous (default),
+  // 'verse' = loop the current verse, 'surah' = loop the current surah.
+  const [repeatMode, setRepeatMode] = useState<'none' | 'verse' | 'surah'>('none');
   // Dual-buffer audio elements for gapless playback. The "current"
   // buffer plays the active verse; the "next" buffer pre-loads the
   // upcoming verse so it's already buffered when we swap.
@@ -102,6 +124,23 @@ export function ContinuousReaderPlayer({
   const [loading, setLoading] = useState(false);
   const audioARef = useRef<HTMLAudioElement | null>(null);
   const audioBRef = useRef<HTMLAudioElement | null>(null);
+
+  // Persist last-played verse as the continuous player advances, so
+  // the next "tap continuous" resumes here. Same key/format as
+  // AyahCard's per-ayah Listen so they share state.
+  useEffect(() => {
+    if (!active) return;
+    const vk = verses[verseIdx]?.verseKey;
+    if (!vk) return;
+    try {
+      const raw = window.localStorage.getItem(STORE_LAST_PLAYED);
+      const map = (raw ? (JSON.parse(raw) as Record<string, string>) : {}) ?? {};
+      map[activeSurah.toString()] = vk;
+      window.localStorage.setItem(STORE_LAST_PLAYED, JSON.stringify(map));
+    } catch {
+      /* ignore */
+    }
+  }, [active, verseIdx, verses, activeSurah]);
   const apiBase = resolveApiBase();
   const lastWordIdxRef = useRef<number>(-1);
   const lastVerseKeyRef = useRef<string>('');
@@ -167,11 +206,17 @@ export function ContinuousReaderPlayer({
       audioBRef.current?.pause();
       return;
     }
-    // Tell any other player on the page to stop — only one continuous
-    // / per-ayah audio source plays at a time.
+    // Resume from the last-played verse if the user has listened to a
+    // specific ayah on this surah; otherwise start from the top.
+    const lastVk = readLastPlayed(activeSurah);
+    let startIdx = 0;
+    if (lastVk) {
+      const found = verses.findIndex((v) => v.verseKey === lastVk);
+      if (found >= 0) startIdx = found;
+    }
     window.dispatchEvent(new CustomEvent('qalaam:audio-claim', { detail: { source: 'continuous' } }));
     setActive(true);
-    setVerseIdx(0);
+    setVerseIdx(startIdx);
   }
 
   // Listen for audio-claim events from other players (per-ayah Listen
@@ -298,6 +343,29 @@ export function ContinuousReaderPlayer({
         lastVerseKeyRef.current = verseKey;
       }
     }
+
+    // Repeat-mode handling.
+    if (repeatMode === 'verse') {
+      // Replay the same verse: rewind + play the active audio element.
+      const a = activeAudio();
+      if (a) {
+        a.currentTime = 0;
+        const p = a.play();
+        if (p && typeof p.then === 'function') {
+          p.then(() => setPlaying(true)).catch(() => setPlaying(false));
+        }
+      }
+      return;
+    }
+    if (repeatMode === 'surah' && verseIdx + 1 >= verses.length) {
+      // End of surah → restart from verse 0 of the same surah.
+      setActiveBuffer((b) => (b === 'A' ? 'B' : 'A'));
+      setBundleA(null);
+      setBundleB(null);
+      setVerseIdx(0);
+      return;
+    }
+
     if (verseIdx + 1 < verses.length) {
       // Same-surah advance: swap buffers (next verse pre-loaded) +
       // bump verseIdx.
@@ -472,6 +540,30 @@ export function ContinuousReaderPlayer({
               </p>
             ) : null}
           </div>
+
+          {/* Repeat-mode cycler — none → verse → surah → none.
+              Default 'none' = continuous surah-by-surah chain. */}
+          <button
+            type="button"
+            onClick={() =>
+              setRepeatMode((m) => (m === 'none' ? 'verse' : m === 'verse' ? 'surah' : 'none'))
+            }
+            aria-label={`Repeat mode: ${repeatMode}`}
+            title={
+              repeatMode === 'none'
+                ? 'No repeat (continues to next surah)'
+                : repeatMode === 'verse'
+                  ? 'Repeat current verse'
+                  : 'Repeat current surah'
+            }
+            className={`shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-full text-[10px] smallcaps tracking-widest border ${
+              repeatMode === 'none'
+                ? 'border-hairline text-ink-muted hover:text-ink'
+                : 'border-leaf bg-leaf/10 text-leaf'
+            }`}
+          >
+            {repeatMode === 'none' ? '↻' : repeatMode === 'verse' ? '①' : '🜸'}
+          </button>
         </div>
       </div>
     </>

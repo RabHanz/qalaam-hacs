@@ -283,6 +283,17 @@ export function AyahCard({
     window.dispatchEvent(
       new CustomEvent('qalaam:audio-claim', { detail: { source: `ayah:${verseKey}` } }),
     );
+    // Remember this as the user's "last played" verse for the
+    // surah, so the continuous player resumes from here next time.
+    try {
+      const surah = verseKey.split(':')[0] ?? '';
+      const raw = window.localStorage.getItem('qalaam-last-played-verse');
+      const map = (raw ? (JSON.parse(raw) as Record<string, string>) : {}) ?? {};
+      map[surah] = verseKey;
+      window.localStorage.setItem('qalaam-last-played-verse', JSON.stringify(map));
+    } catch {
+      /* ignore */
+    }
     if (audioUrl) {
       // We already have the URL — play right now (synchronous gesture chain)
       const p = a.play();

@@ -130,6 +130,23 @@ export function ReadSurfaceClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [highlight, viewMode, verses]);
 
+  // Auto-scroll the active verse into view in continuous mode. The
+  // ayah card uses `id={verseKey}` so we can locate it by selector
+  // and smoothly scroll it to ~30% from the top of the viewport.
+  // Skip during user interaction (we'll re-enable on idle).
+  const lastScrolledVkRef = useRef<string>('');
+  useEffect(() => {
+    if (viewMode !== 'continuous') return;
+    if (!highlight) return;
+    if (highlight.verseKey === lastScrolledVkRef.current) return;
+    lastScrolledVkRef.current = highlight.verseKey;
+    if (typeof window === 'undefined') return;
+    const el = document.getElementById(highlight.verseKey);
+    if (!el) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+  }, [highlight, viewMode]);
+
   // Hydration-safe sync from URL + localStorage AFTER first render
   useEffect(() => {
     try {
