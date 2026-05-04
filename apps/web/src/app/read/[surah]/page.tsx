@@ -121,15 +121,15 @@ async function ReaderBody({
   meta,
   translationSlug,
   reciterSlug,
+  tafsirSlug,
   apiBase,
-  translatorAttribution,
 }: {
   surahNumber: number;
   meta: SurahMeta | null;
   translationSlug: string;
   reciterSlug: string;
+  tafsirSlug: string | null;
   apiBase: string;
-  translatorAttribution: string | null;
 }): Promise<ReactNode> {
   let response;
   try {
@@ -185,8 +185,7 @@ async function ReaderBody({
           verseKey={v.verseKey}
           arabic={v.textUthmani}
           translation={translationMap.get(v.verseKey) ?? null}
-          translationSlug={translationSlug === 'none' ? null : translationSlug}
-          translatorAttribution={translatorAttribution}
+          tafsirSlug={tafsirSlug}
           reciterSlug={reciterSlug}
           apiBase={apiBase}
         />
@@ -224,10 +223,13 @@ export default async function ReadSurahPage({
 
   const translationSlug = sp.t ?? 'pickthall';
   const reciterSlug = sp.r ?? 'sudais';
+  // Tafsir slug — pinned to a single English tafsir for v0.5; will become
+  // user-selectable once more tafsir packs are ingested.
+  const tafsirSlug = 'maududi';
 
-  const translator =
+  const activeTranslation =
     translationSlug !== 'none'
-      ? translations.find((t) => t.slug === translationSlug)?.translator ?? null
+      ? translations.find((t) => t.slug === translationSlug) ?? null
       : null;
 
   return (
@@ -269,6 +271,21 @@ export default async function ReadSurahPage({
         defaultReciter="sudais"
       />
 
+      {/* Translator attribution — ONCE for the whole surah, not per-verse.
+          Wraps cleanly on mobile (the long full title gets its own line). */}
+      {activeTranslation ? (
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 pt-4 sm:pt-6">
+          <p className="text-[11px] sm:text-xs text-ink-muted text-center leading-relaxed">
+            <span className="smallcaps tracking-widest">Translation</span>
+            <span className="block sm:inline sm:mx-2 mt-1 sm:mt-0">
+              <span>{activeTranslation.name}</span>
+              <span className="mx-2 opacity-50">·</span>
+              <span className="italic">{activeTranslation.translator}</span>
+            </span>
+          </p>
+        </div>
+      ) : null}
+
       <main className="mx-auto max-w-3xl px-4 sm:px-6 py-6 sm:py-10">
         <Suspense fallback={<LoadingState label="Loading surah…" lines={8} />}>
           <ReaderBody
@@ -276,8 +293,8 @@ export default async function ReadSurahPage({
             meta={meta}
             translationSlug={translationSlug}
             reciterSlug={reciterSlug}
+            tafsirSlug={tafsirSlug}
             apiBase={apiBase}
-            translatorAttribution={translator}
           />
         </Suspense>
 

@@ -97,13 +97,20 @@ export async function translationsRoutes(fastify: FastifyInstance): Promise<void
       if (text === undefined) {
         throw new QalaamError(
           'qalaam.data.not-loaded',
-          `No tafsir '${request.params.slug}' for verse ${key}. v0.1 ships Al-Fatiha; run 'make data-fetch' for full coverage.`,
+          `No tafsir '${request.params.slug}' for verse ${key}.`,
           { outcomeImpacted: 'O-11' },
         );
       }
+      const meta = listTafsirs().find((t) => t.slug === request.params.slug);
       void reply.header('cache-control', 'public, max-age=604800');
-      void reply.header('x-qalaam-source', 'fixture');
-      return { verseKey: key, slug: request.params.slug, text };
+      return {
+        verseKey: key,
+        slug: request.params.slug,
+        text,
+        language: meta?.language ?? 'en',
+        scholar: meta?.scholar ?? null,
+        attribution: meta?.scholar ?? null,
+      };
     },
   );
 }

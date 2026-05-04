@@ -165,11 +165,65 @@ export function getTranslationVerse(slug: string, key: VerseKey): string | undef
   return loadTranslations().bySlug.get(slug)?.verses[key];
 }
 
+// SQLite-backed tafsir read path
+let cachedTafsirMeta: readonly TafsirMeta[] | undefined;
+
+function listTafsirsFromDb(): readonly TafsirMeta[] {
+  if (cachedTafsirMeta) return cachedTafsirMeta;
+  const db = getDb();
+  if (!db) return [];
+  try {
+    const rows = db
+      .prepare<
+        [],
+        {
+          slug: string;
+          name: string;
+          scholar: string;
+          language: string;
+          license_tag: string;
+          verse_count: number;
+        }
+      >(
+        `SELECT slug, name, scholar, language, license_tag, verse_count
+         FROM qalaam_v1_tafsir_meta ORDER BY language, name`,
+      )
+      .all();
+    cachedTafsirMeta = rows.map((r): TafsirMeta => ({
+      id: `qul-tafsir-${r.slug}`,
+      slug: r.slug,
+      language: r.language,
+      name: r.name,
+      scholar: r.scholar,
+      license: r.license_tag,
+      delivery: 'sqlite',
+    }));
+    return cachedTafsirMeta;
+  } catch {
+    return [];
+  }
+}
+
 export function listTafsirs(): readonly TafsirMeta[] {
+  const fromDb = listTafsirsFromDb();
+  if (fromDb.length > 0) return fromDb;
   return loadTafsirs().meta;
 }
 
 export function getTafsirVerse(slug: string, key: VerseKey): string | undefined {
+  const db = getDb();
+  if (db) {
+    try {
+      const row = db
+        .prepare<[string, string], { text: string }>(
+          'SELECT text FROM qalaam_v1_tafsirs WHERE slug = ? AND verse_key = ?',
+        )
+        .get(slug, key);
+      if (row?.text) return row.text;
+    } catch {
+      /* fall through */
+    }
+  }
   return loadTafsirs().bySlug.get(slug)?.verses[key];
 }
 

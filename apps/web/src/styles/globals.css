@@ -125,11 +125,16 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    /* Prevent any single overflowing child (e.g. a sticky chip-bar that
+       horizontally scrolls) from blowing out the whole page width on
+       narrow viewports. */
+    overflow-x: hidden;
   }
 
   body {
     margin: 0;
     min-height: 100vh;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {

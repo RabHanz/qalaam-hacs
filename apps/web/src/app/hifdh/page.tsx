@@ -132,34 +132,98 @@ async function HifdhContent({
           </div>
         </section>
 
-        {/* Weakest pages + sabqi context */}
-        <section className="paper-card-raised p-8 md:p-10">
-          <h2 className="font-display text-2xl font-light tracking-tight mb-2">Today</h2>
-          <p className="text-base text-ink-muted leading-relaxed">
-            {state.manzil_cycle_position ? (
-              <>
-                You're in <strong className="text-ink">{state.manzil_cycle_position}</strong>.
-                {' '}
-              </>
-            ) : null}
-            {(state.weakest_pages?.length ?? 0) > 0 ? (
-              <>
-                Pages needing review: <span className="font-mono text-ink">{(state.weakest_pages ?? []).join(' · ')}</span>.
-              </>
-            ) : (
-              <>No weak pages flagged yet.</>
-            )}
-          </p>
+        {/* Today: portion + weakest pages + watchlist with tappable links */}
+        <section className="paper-card-raised p-6 sm:p-8 md:p-10">
+          <h2 className="font-display text-xl sm:text-2xl font-light tracking-tight mb-3">Today</h2>
+
+          {state.manzil_cycle_position ? (
+            <p className="text-sm sm:text-base text-ink leading-relaxed">
+              You're in <strong className="text-ink-strong">{state.manzil_cycle_position}</strong>.
+            </p>
+          ) : null}
+
+          {/* Current portion → tappable link to /read */}
+          {state.current_sabqi ? (
+            <div className="mt-4">
+              <p className="smallcaps text-leaf text-[11px] tracking-widest mb-2">Current sabaq</p>
+              <a
+                href={`/read/${(state.current_sabqi.split(':')[0] ?? '2').replace(/[^0-9]/g, '')}#${state.current_sabqi.split(' ')[0] ?? state.current_sabqi}`}
+                className="inline-flex items-center gap-2 rounded-full border border-hairline px-4 py-2 text-sm tabular-nums text-ink hover:border-leaf hover:text-leaf transition-colors"
+              >
+                <span className="font-mono">{state.current_sabqi}</span>
+                <span aria-hidden>→</span>
+              </a>
+            </div>
+          ) : null}
+
+          {(state.weakest_pages?.length ?? 0) > 0 ? (
+            <div className="mt-5">
+              <p className="smallcaps text-leaf text-[11px] tracking-widest mb-2">Pages needing review</p>
+              <ul className="flex flex-wrap gap-2">
+                {(state.weakest_pages ?? []).map((p) => (
+                  <li key={p}>
+                    <span className="inline-flex items-center gap-2 rounded-full border border-hairline px-3 py-1.5 text-xs font-mono tabular-nums text-ink">
+                      {p}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
 
           {(state.mutashabihat_watchlist?.length ?? 0) > 0 ? (
             <>
               <HairlineDivider />
-              <p className="text-sm text-ink-muted">
-                <span className="smallcaps text-leaf text-xs mr-2">Mutashabihat</span>
-                Watch for confusion at: <span className="font-mono text-ink">{(state.mutashabihat_watchlist ?? []).join(' · ')}</span>
-              </p>
+              <p className="smallcaps text-leaf text-[11px] tracking-widest mb-2">Mutashabihat — watch for confusion</p>
+              <ul className="flex flex-wrap gap-2">
+                {(state.mutashabihat_watchlist ?? []).map((vk) => {
+                  const [s, a] = vk.split(':');
+                  return (
+                    <li key={vk}>
+                      <a
+                        href={`/study/${s ?? '2'}/${a ?? '255'}`}
+                        className="inline-flex items-center gap-2 rounded-full border border-hairline px-3 py-1.5 text-xs font-mono tabular-nums text-ink hover:border-leaf hover:text-leaf transition-colors"
+                      >
+                        {vk}
+                        <span aria-hidden>→</span>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
             </>
           ) : null}
+
+          {/* I just heard them recite — one-tap rating row */}
+          <HairlineDivider />
+          <p className="smallcaps text-leaf text-[11px] tracking-widest mb-3">I just heard them recite</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {[
+              { label: 'Smooth', tone: 'leaf' },
+              { label: 'Stumbled', tone: 'amber' },
+              { label: 'Choppy', tone: 'amber' },
+              { label: 'Replay', tone: 'red' },
+            ].map((b) => (
+              <button
+                key={b.label}
+                type="button"
+                disabled
+                title="Wires to /v1/hifdh/rate in v0.5"
+                className={`paper-card px-3 py-2.5 text-[11px] sm:text-xs smallcaps tracking-wider text-ink-muted opacity-60 cursor-not-allowed text-center ${
+                  b.tone === 'leaf'
+                    ? 'border-leaf/30'
+                    : b.tone === 'amber'
+                      ? 'border-amber-500/30'
+                      : 'border-red-500/30'
+                }`}
+              >
+                {b.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] text-ink-muted italic mt-2">
+            Wires to <span className="font-mono">/v1/hifdh/rate</span> when family auth lands (v0.5).
+          </p>
         </section>
 
         {/* Family parent dashboard or single-user prompt */}
@@ -236,23 +300,26 @@ export default function HifdhPage(): ReactNode {
     <>
       <SiteNav />
 
-      {/* Family-private ribbon — explicit, always visible */}
+      {/* Family-private ribbon — explicit, always visible. Mobile collapses to short copy. */}
       <div className="bg-paper-100 border-b border-hairline">
-        <div className="mx-auto max-w-7xl px-6 py-2 text-xs">
-          <span className="smallcaps text-leaf">Family-private</span>
-          <span className="text-ink-muted ml-3">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-2 text-[11px] sm:text-xs">
+          <span className="smallcaps text-leaf tracking-widest">Family-private</span>
+          <span className="text-ink-muted ml-2 sm:ml-3 hidden sm:inline">
             Daily summary only. Never shared, never gamified, never punishing.
+          </span>
+          <span className="text-ink-muted ml-2 sm:hidden">
+            Daily summary only. Never shared.
           </span>
         </div>
       </div>
 
       <header className="border-b border-hairline">
-        <div className="mx-auto max-w-7xl px-6 py-10">
-          <p className="smallcaps text-leaf text-xs">Hifdh · حِفْظ</p>
-          <h1 className="font-display mt-3 text-4xl md:text-5xl font-light tracking-tight">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-10">
+          <p className="smallcaps text-leaf text-[11px] tracking-widest">Hifdh · حِفْظ</p>
+          <h1 className="font-display mt-2 sm:mt-3 text-3xl sm:text-4xl md:text-5xl font-light tracking-tight">
             Today, with intention.
           </h1>
-          <p className="mt-3 max-w-prose text-base text-ink-muted leading-relaxed">
+          <p className="mt-3 max-w-prose text-sm sm:text-base text-ink-muted leading-relaxed">
             Your daily summary, drawn from FSRS-6 spacing + mutashabihat-aware
             review. No real-time alerts. Streaks include grace days.
           </p>

@@ -1,37 +1,39 @@
 'use client';
 
 /**
- * AyahCard — the heart of the new Quranly-style /read flow.
+ * AyahCard — Quranly-style ayah card. Mobile-first.
  *
- * One card per ayah. Layout (mobile-first):
+ * Layout (375px viewport upward):
  *
- *   [ ٤٥٥ ]               (ayah-number tile, top-left)
- *   ⵖⵖⵖⵖ Arabic verse ⵖⵖⵖ        (RTL, Quranic typography, no justify)
- *   English translation underneath  (LTR, smaller, muted-ish but readable)
- *   ─── Action row ───
- *   ▶ Listen   • WBW   • Tafsir   • Bookmark   • Share
+ *   ┌──────────────────────────────────────┐
+ *   │  ٢٥٥  · 2:255                         │
+ *   │                                       │
+ *   │            Arabic verse here          │  (RTL, plaintext bidi, no justify)
+ *   │                                       │
+ *   │  English translation here             │  (LTR, sans, smaller, muted)
+ *   │                                       │
+ *   │  ▶ Listen   ▤ WBW   ⌘ Tafsir   …      │  (chip row, wrap on mobile)
+ *   └──────────────────────────────────────┘
  *
- * Interactions:
- *   - Listen: fires audio for this ayah (uses /v1/audio/by_verse/:vk/:reciter)
- *   - WBW: expands a row of word/gloss tokens below the verse
- *   - Tafsir: expands a tafsir paragraph below (currently disabled until
- *     tafsir DB is ingested — shows a "coming with v0.5 tafsir ingest" hint)
- *   - Bookmark: localStorage for now, syncs in v0.5
- *   - Share: copies a deep-link to clipboard
+ * Translator attribution is rendered ONCE at the top of /read/[surah]
+ * (next to the translation chip-bar), NOT per verse. Per-verse repetition
+ * is visual noise the user explicitly called out.
  *
- * RTL discipline: Arabic always wrapped with dir="rtl" + unicodeBidi:plaintext.
- * NEVER text-align:justify on Arabic verse text — it inserts kashida/spacing
- * artifacts that the user called "forced/horrendous."
+ * Listen button: the audio URL is pre-fetched as soon as the reciter is
+ * known (in an effect), so the click handler stays inside the user-gesture
+ * window — `audio.play()` gets called synchronously, no async race.
+ *
+ * Tafsir chip: live when the backend's qalaam_v1_tafsirs has a row for
+ * this verse + slug; falls back gracefully when not.
  */
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
 interface AyahCardProps {
   readonly verseKey: string;
   readonly arabic: string;
   readonly translation: string | null;
-  readonly translationSlug?: string | null;
-  readonly translatorAttribution?: string | null;
+  readonly tafsirSlug?: string | null;
   readonly reciterSlug: string;
   readonly apiBase: string;
 }
@@ -104,7 +106,7 @@ export function AyahCard({
   verseKey,
   arabic,
   translation,
-  translatorAttribution,
+  tafsirSlug,
   reciterSlug,
   apiBase,
 }: AyahCardProps): ReactNode {
@@ -113,11 +115,44 @@ export function AyahCard({
   const [wbwOpen, setWbwOpen] = useState(false);
   const [wbw, setWbw] = useState<readonly WbwToken[] | null>(null);
   const [wbwLoading, setWbwLoading] = useState(false);
+  const [tafsirOpen, setTafsirOpen] = useState(false);
+  const [tafsir, setTafsir] = useState<{ text: string; lang: string; scholar: string | null; loading: boolean } | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const audioId = useId();
+  const audioReadyRef = useRef(false);
 
-  const [_, ayahStr] = verseKey.split(':') as [string, string];
-  const ayah = Number.parseInt(ayahStr, 10);
+  const ayah = Number.parseInt(verseKey.split(':')[1] ?? '0', 10);
+
+  // Pre-load audio URL whenever the reciter changes — keeps the click
+  // handler inside the user-gesture window so audio.play() doesn't get
+  // blocked by browsers.
+  useEffect(() => {
+    audioReadyRef.current = false;
+    audioRef.current?.pause();
+    audioRef.current = null;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch(
+          `${apiBase}/v1/audio/by_verse/${encodeURIComponent(verseKey)}/${reciterSlug}`,
+        );
+        if (!res.ok || cancelled) return;
+        const body = (await res.json()) as { audioUrl: string };
+        const a = new Audio();
+        a.preload = 'metadata';
+        a.src = body.audioUrl;
+        a.addEventListener('ended', () => setPlaying(false));
+        audioRef.current = a;
+        audioReadyRef.current = true;
+      } catch {
+        /* ignore — Listen will retry on click */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [verseKey, reciterSlug, apiBase]);
 
   // Restore bookmark state
   useEffect(() => {
@@ -145,32 +180,19 @@ export function AyahCard({
     }
   }
 
-  async function togglePlay(): Promise<void> {
+  function togglePlay(): void {
+    const a = audioRef.current;
+    if (!a) return; // not ready yet — fail gracefully
     if (playing) {
-      audioRef.current?.pause();
+      a.pause();
       setPlaying(false);
       return;
     }
-    if (!audioRef.current) {
-      try {
-        const res = await fetch(`${apiBase}/v1/audio/by_verse/${encodeURIComponent(verseKey)}/${reciterSlug}`);
-        if (!res.ok) return;
-        const body = (await res.json()) as { audioUrl: string };
-        const a = new Audio(body.audioUrl);
-        a.addEventListener('ended', () => {
-          setPlaying(false);
-        });
-        audioRef.current = a;
-      } catch {
-        return;
-      }
-    }
-    try {
-      await audioRef.current.play();
-      setPlaying(true);
-    } catch {
-      setPlaying(false);
-    }
+    // Fire .play() synchronously so the click counts as a user gesture
+    a.play().then(
+      () => setPlaying(true),
+      () => setPlaying(false),
+    );
   }
 
   async function toggleWbw(): Promise<void> {
@@ -196,10 +218,41 @@ export function AyahCard({
     }
   }
 
+  async function toggleTafsir(): Promise<void> {
+    if (!tafsirSlug) return;
+    if (tafsirOpen) {
+      setTafsirOpen(false);
+      return;
+    }
+    setTafsirOpen(true);
+    if (tafsir?.text) return;
+    setTafsir({ text: '', lang: 'en', scholar: null, loading: true });
+    try {
+      const res = await fetch(
+        `${apiBase}/v1/tafsirs/${tafsirSlug}/by_verse/${encodeURIComponent(verseKey)}`,
+      );
+      if (!res.ok) {
+        setTafsir({ text: '', lang: 'en', scholar: null, loading: false });
+        return;
+      }
+      const body = (await res.json()) as { text: string; language?: string; scholar?: string | null };
+      setTafsir({
+        text: body.text ?? '',
+        lang: body.language ?? 'en',
+        scholar: body.scholar ?? null,
+        loading: false,
+      });
+    } catch {
+      setTafsir({ text: '', lang: 'en', scholar: null, loading: false });
+    }
+  }
+
   function copyShareLink(): void {
     try {
       const url = `${window.location.origin}/read/${verseKey.split(':')[0] ?? '1'}#${verseKey}`;
       void navigator.clipboard?.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 1800);
     } catch {
       /* ignore */
     }
@@ -208,73 +261,76 @@ export function AyahCard({
   return (
     <article
       id={verseKey}
-      className="paper-card-raised relative px-5 py-7 sm:px-8 sm:py-9 md:px-12 md:py-12 reveal scroll-mt-24"
+      className="paper-card-raised relative overflow-hidden p-4 sm:p-7 md:p-10 reveal scroll-mt-24"
     >
-      {/* Ayah number tile, top-left (top-right in RTL pages) */}
-      <div className="absolute left-4 top-4 sm:left-6 sm:top-6 flex items-center gap-2">
-        <span className="rosette inline-flex items-center justify-center text-leaf font-arabic text-sm tabular-nums">
+      {/* Ayah header row */}
+      <header className="flex items-center justify-between gap-2 mb-4">
+        <span className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-hairline text-leaf font-arabic text-sm tabular-nums shrink-0">
           {arabicNumeral(ayah)}
         </span>
-        <span className="smallcaps text-ink-muted text-xs tracking-widest">
+        <span className="smallcaps text-ink-muted text-[10px] sm:text-xs tracking-widest tabular-nums">
           {verseKey}
         </span>
-      </div>
+      </header>
 
-      {/* Arabic verse — mushaf-faithful (no justify, no kashida stretch) */}
+      {/* Arabic verse — no justify, no kashida; clamp keeps it inside 375px */}
       <p
         dir="rtl"
-        className="font-arabic text-ink-strong text-center leading-[2.0] sm:leading-[2.1] mt-12 sm:mt-14 mb-8"
+        lang="ar"
+        className="font-arabic text-ink-strong text-center leading-[1.95] sm:leading-[2.05] mb-5 sm:mb-7 break-words"
         style={{
-          fontSize: 'clamp(1.6rem, 1.2rem + 1.6vw, 2.4rem)',
+          fontSize: 'clamp(1.35rem, 0.95rem + 1.4vw, 2.1rem)',
           unicodeBidi: 'plaintext',
           fontWeight: 600,
           textAlign: 'center',
-          wordSpacing: '0.05em',
+          maxWidth: '100%',
+          overflowWrap: 'break-word',
         }}
         aria-label={`Verse ${verseKey}`}
       >
         {arabic}
       </p>
 
-      {/* Translation underneath — only if a translation is available + selected */}
+      {/* Translation — distinctly LTR, sans, smaller, muted-ish to read as gloss.
+          Left-aligned (Tailwind text-start) so English prose breaks naturally. */}
       {translation ? (
-        <div className="mt-2 mb-6 max-w-prose mx-auto">
-          <p className="text-base sm:text-lg text-ink leading-relaxed text-center">
-            {translation}
-          </p>
-          {translatorAttribution ? (
-            <p className="smallcaps text-ink-muted text-[11px] mt-3 text-center tracking-widest">
-              — {translatorAttribution}
-            </p>
-          ) : null}
-        </div>
+        <p
+          dir="ltr"
+          lang="en"
+          className="mt-1 mb-6 max-w-prose mx-auto text-[15px] sm:text-base leading-relaxed text-ink/85 text-start"
+          style={{ fontFamily: 'var(--font-body)' }}
+        >
+          {translation}
+        </p>
       ) : null}
 
       {/* WBW expansion */}
       {wbwOpen ? (
-        <div className="mt-4 border-t border-hairline pt-6">
-          <p className="smallcaps text-leaf text-xs mb-4">Word by word</p>
+        <div className="mt-2 mb-2 border-t border-hairline pt-5">
+          <p className="smallcaps text-leaf text-[11px] tracking-widest mb-3">Word by word</p>
           {wbwLoading ? (
             <p className="text-sm text-ink-muted italic">Loading…</p>
           ) : wbw && wbw.length > 0 ? (
             <ol
               dir="rtl"
-              className="flex flex-wrap-reverse gap-3 sm:gap-4 justify-center"
+              className="flex flex-wrap-reverse gap-x-3 gap-y-4 justify-center"
               style={{ unicodeBidi: 'plaintext' }}
             >
               {wbw.map((w) => (
                 <li key={`${w.verseKey}-${w.wordIndex.toString()}`} className="text-center">
                   <p
                     dir="rtl"
-                    className="font-arabic text-2xl sm:text-3xl text-ink-strong"
-                    style={{ unicodeBidi: 'plaintext', fontWeight: 600, lineHeight: 1.4 }}
+                    lang="ar"
+                    className="font-arabic text-xl sm:text-2xl text-ink-strong"
+                    style={{ unicodeBidi: 'plaintext', fontWeight: 600, lineHeight: 1.5 }}
                   >
                     {w.textArabic}
                   </p>
                   {w.translation ? (
                     <p
                       dir="ltr"
-                      className="text-[11px] text-ink-muted mt-1 max-w-[6rem] mx-auto leading-snug"
+                      lang="en"
+                      className="text-[10px] text-ink-muted mt-0.5 max-w-[5.5rem] mx-auto leading-snug"
                     >
                       {w.translation}
                     </p>
@@ -288,67 +344,119 @@ export function AyahCard({
         </div>
       ) : null}
 
-      {/* Action row — chips. Mobile-first, scroll-x on small screens. */}
+      {/* Tafsir expansion */}
+      {tafsirOpen ? (
+        <div className="mt-2 mb-2 border-t border-hairline pt-5">
+          <p className="smallcaps text-leaf text-[11px] tracking-widest mb-3">
+            Tafsir{tafsir?.scholar ? ` · ${tafsir.scholar}` : ''}
+          </p>
+          {tafsir?.loading ? (
+            <p className="text-sm text-ink-muted italic">Loading…</p>
+          ) : tafsir?.text ? (
+            tafsir.lang === 'ar' ? (
+              <p
+                dir="rtl"
+                lang="ar"
+                className="font-arabic text-base sm:text-lg text-ink leading-loose max-w-prose mx-auto"
+                style={{ unicodeBidi: 'plaintext', fontWeight: 500 }}
+              >
+                {tafsir.text}
+              </p>
+            ) : (
+              <p
+                dir="ltr"
+                lang={tafsir.lang || 'en'}
+                className="text-sm sm:text-base text-ink leading-relaxed max-w-prose mx-auto"
+                style={{ fontFamily: 'var(--font-body)' }}
+              >
+                {tafsir.text}
+              </p>
+            )
+          ) : (
+            <p className="text-sm text-ink-muted italic">
+              Tafsir not available for this ayah yet.
+            </p>
+          )}
+        </div>
+      ) : null}
+
+      {/* Action chip row — wraps on mobile, no horizontal scroll */}
       <nav
         aria-label={`Actions for ${verseKey}`}
-        className="mt-2 -mx-2 sm:mx-0 px-2 overflow-x-auto sm:overflow-visible"
+        className="mt-3 flex flex-wrap gap-1.5 sm:gap-2"
       >
-        <div className="flex items-center gap-2 sm:gap-3 min-w-max sm:min-w-0">
-          <button
-            type="button"
-            onClick={() => void togglePlay()}
-            aria-pressed={playing}
-            aria-controls={audioId}
-            className={`inline-flex items-center gap-2 rounded-full border border-hairline px-3.5 py-1.5 text-xs smallcaps tracking-wider transition-colors ${
-              playing ? 'bg-leaf text-paper border-leaf' : 'text-ink hover:bg-paper-100'
-            }`}
-          >
-            <PlayIcon playing={playing} />
-            {playing ? 'Pause' : 'Listen'}
-          </button>
-          <button
-            type="button"
-            onClick={() => void toggleWbw()}
-            aria-pressed={wbwOpen}
-            className={`inline-flex items-center gap-2 rounded-full border border-hairline px-3.5 py-1.5 text-xs smallcaps tracking-wider transition-colors ${
-              wbwOpen ? 'bg-paper-200 text-ink' : 'text-ink hover:bg-paper-100'
-            }`}
-          >
-            <WbwIcon />
-            Word by word
-          </button>
-          <button
-            type="button"
-            disabled
-            title="Tafsir ingest arrives in v0.5"
-            className="inline-flex items-center gap-2 rounded-full border border-hairline px-3.5 py-1.5 text-xs smallcaps tracking-wider text-ink-muted opacity-50 cursor-not-allowed"
-          >
-            <TafsirIcon />
-            Tafsir
-          </button>
-          <button
-            type="button"
-            onClick={toggleBookmark}
-            aria-pressed={bookmarked}
-            className={`inline-flex items-center gap-2 rounded-full border border-hairline px-3.5 py-1.5 text-xs smallcaps tracking-wider transition-colors ${
-              bookmarked ? 'text-leaf border-leaf' : 'text-ink hover:bg-paper-100'
-            }`}
-          >
-            <BookmarkIcon filled={bookmarked} />
-            {bookmarked ? 'Saved' : 'Bookmark'}
-          </button>
-          <button
-            type="button"
-            onClick={copyShareLink}
-            className="inline-flex items-center gap-2 rounded-full border border-hairline px-3.5 py-1.5 text-xs smallcaps tracking-wider text-ink hover:bg-paper-100 transition-colors"
-          >
-            <ShareIcon />
-            Share
-          </button>
-        </div>
+        <ChipButton
+          onClick={togglePlay}
+          active={playing}
+          icon={<PlayIcon playing={playing} />}
+          label={playing ? 'Pause' : 'Listen'}
+          flagAccent={playing}
+        />
+        <ChipButton
+          onClick={() => void toggleWbw()}
+          active={wbwOpen}
+          icon={<WbwIcon />}
+          label="Word"
+        />
+        <ChipButton
+          onClick={() => void toggleTafsir()}
+          active={tafsirOpen}
+          disabled={!tafsirSlug}
+          icon={<TafsirIcon />}
+          label="Tafsir"
+        />
+        <ChipButton
+          onClick={toggleBookmark}
+          active={bookmarked}
+          flagAccent={bookmarked}
+          icon={<BookmarkIcon filled={bookmarked} />}
+          label={bookmarked ? 'Saved' : 'Save'}
+        />
+        <ChipButton
+          onClick={copyShareLink}
+          active={shareCopied}
+          icon={<ShareIcon />}
+          label={shareCopied ? 'Copied' : 'Share'}
+        />
       </nav>
-
-      <audio id={audioId} ref={audioRef} preload="none" />
     </article>
+  );
+}
+
+interface ChipButtonProps {
+  readonly onClick: () => void;
+  readonly active?: boolean;
+  readonly disabled?: boolean;
+  readonly flagAccent?: boolean;
+  readonly icon: ReactNode;
+  readonly label: string;
+}
+
+function ChipButton({
+  onClick,
+  active = false,
+  disabled = false,
+  flagAccent = false,
+  icon,
+  label,
+}: ChipButtonProps): ReactNode {
+  const base =
+    'inline-flex items-center gap-1.5 rounded-full border min-h-[36px] px-3 py-1.5 text-[11px] sm:text-xs smallcaps tracking-wider transition-colors';
+  let cls = `${base} border-hairline text-ink hover:bg-paper-100`;
+  if (disabled) cls = `${base} border-hairline text-ink-muted opacity-50 cursor-not-allowed`;
+  else if (flagAccent && active) cls = `${base} bg-leaf text-paper border-leaf`;
+  else if (active) cls = `${base} bg-paper-200 text-ink border-paper-200`;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      disabled={disabled}
+      className={cls}
+    >
+      {icon}
+      {label}
+    </button>
   );
 }
