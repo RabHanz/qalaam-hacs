@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Qalaam",
+    "slug": "qalaam",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "scheme": "qalaam",
+    "platforms": ["ios", "android"],
+    "ios": {
+      "bundleIdentifier": "app.qalaam.mobile",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Qalaam uses your microphone for on-device recitation feedback. Audio NEVER leaves the device (per ADR-0005).",
+        "UIBackgroundModes": ["audio"]
+      }
+    },
+    "android": {
+      "package": "app.qalaam.mobile",
+      "permissions": ["android.permission.RECORD_AUDIO"]
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

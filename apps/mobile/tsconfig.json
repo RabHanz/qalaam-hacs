@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
+    "jsx": "react-native",
+    "noEmit": true,
+    "incremental": true,
+    "types": ["react", "react-native"],
+    "paths": {
+      "@/*": ["./app/*"]
+    }
+  },
+  "include": ["app/**/*", "lib/**/*"],
+  "exclude": ["node_modules", ".expo"]
+}
