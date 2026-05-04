@@ -134,13 +134,13 @@ export default async function MushafPage({ params }: PageProps): Promise<ReactNo
         </div>
       </header>
 
-      {/* Layout switcher */}
+      {/* Layout switcher + Exit-to-reader */}
       <div className="border-b border-hairline bg-paper-100/85 backdrop-blur-md sticky top-[60px] sm:top-[68px] z-20">
         <div className="mx-auto max-w-5xl px-3 sm:px-6 py-2.5 flex items-center gap-2 overflow-x-auto scrollbar-thin">
           <span className="smallcaps text-leaf text-[10px] tracking-widest shrink-0 w-[64px]">
             Layout
           </span>
-          <div className="flex items-center gap-1.5 min-w-max">
+          <div className="flex items-center gap-1.5 min-w-max flex-1">
             {layouts.map((l) => (
               <Link
                 key={l.slug}
@@ -156,6 +156,32 @@ export default async function MushafPage({ params }: PageProps): Promise<ReactNo
               </Link>
             ))}
           </div>
+          {/* Exit mushaf — jump to /read for the FIRST surah on this
+              page so the user lands somewhere meaningful. */}
+          {(() => {
+            // Find the first ayah verseKey on this page.
+            let firstVk = '1:1';
+            for (const line of data.lines) {
+              const w = line.words[0];
+              if (w?.verseKey) {
+                firstVk = w.verseKey;
+                break;
+              }
+            }
+            const surah = firstVk.split(':')[0] ?? '1';
+            return (
+              <Link
+                href={`/read/${surah}#${firstVk}`}
+                title="Switch to continuous / one-ayah reader"
+                className="shrink-0 ml-2 rounded-full px-3 py-1 text-[11px] sm:text-xs smallcaps tracking-wider border border-leaf/40 text-leaf hover:bg-leaf/10 inline-flex items-center gap-1"
+              >
+                <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+                  <path d="M9 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Exit mushaf
+              </Link>
+            );
+          })()}
         </div>
       </div>
 
