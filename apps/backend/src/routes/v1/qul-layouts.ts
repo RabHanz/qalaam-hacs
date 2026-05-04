@@ -72,12 +72,55 @@ export async function qulLayoutsRoutes(
   }
 
   fastify.get('/v1/layouts', { schema: { tags: ['layouts'] } }, async (_req, reply) => {
-    // Only surface layouts that actually have ingested data — checks each
-    // KNOWN_LAYOUTS slug against the reader's pageCount, drops zeros.
+    // Only surface layouts that actually have ingested data, and dress each
+    // with a human-readable label so the UI can render "Madinah Mushaf · 15 lines"
+    // instead of an internal slug. The slug stays as a stable identifier
+    // for deep-links + URL params.
     const r = reader();
-    const available = Array.from(KNOWN_LAYOUTS).filter((slug) => r.pageCount(slug) > 0);
+    const labels: Record<string, { name: string; subtitle: string; sourceLabel: string }> = {
+      madani_15: {
+        name: 'Madinah Mushaf',
+        subtitle: '15 lines · KFGQPC v2',
+        sourceLabel: 'King Fahd Glorious Quran Printing Complex',
+      },
+      kfgqpc_v1: {
+        name: 'Madinah Mushaf (v1)',
+        subtitle: '15 lines · KFGQPC v1',
+        sourceLabel: 'King Fahd Glorious Quran Printing Complex',
+      },
+      kfgqpc_v4: {
+        name: 'Madinah Mushaf · Tajweed',
+        subtitle: '15 lines · KFGQPC v4 with tajweed colors',
+        sourceLabel: 'King Fahd Glorious Quran Printing Complex',
+      },
+      indopak_15: { name: 'Indo-Pak Mushaf', subtitle: '15 lines · Nastaleeq', sourceLabel: 'Community-built' },
+      indopak_16: { name: 'Indo-Pak Mushaf', subtitle: '16 lines', sourceLabel: 'Community-built' },
+      qatar_15: { name: 'Qatar Mushaf', subtitle: '15 lines', sourceLabel: 'Qatar Religious Affairs' },
+      nastaleeq_15: { name: 'Nastaleeq Mushaf', subtitle: '15 lines', sourceLabel: 'Community-built' },
+      digitalkhatt_v1: { name: 'DigitalKhatt v1', subtitle: 'OpenType-shaped Uthmani', sourceLabel: 'DigitalKhatt' },
+      digitalkhatt_v2: { name: 'DigitalKhatt v2', subtitle: 'OpenType-shaped Uthmani', sourceLabel: 'DigitalKhatt' },
+      ligature_svg: { name: 'Ligature SVG', subtitle: 'Per-glyph SVG mushaf', sourceLabel: 'Community-built' },
+      madani_16: { name: 'Madinah Mushaf · 16 lines', subtitle: '16 lines', sourceLabel: 'KFGQPC' },
+      indopak_9: { name: 'Indo-Pak Mushaf', subtitle: '9 lines (large print)', sourceLabel: 'Community-built' },
+      indopak_13: { name: 'Indo-Pak Mushaf', subtitle: '13 lines', sourceLabel: 'Community-built' },
+    };
+    const available = Array.from(KNOWN_LAYOUTS)
+      .map((slug) => ({ slug, pageCount: r.pageCount(slug) }))
+      .filter((row) => row.pageCount > 0)
+      .map((row) => ({
+        slug: row.slug,
+        pageCount: row.pageCount,
+        name: labels[row.slug]?.name ?? row.slug,
+        subtitle: labels[row.slug]?.subtitle ?? '',
+        sourceLabel: labels[row.slug]?.sourceLabel ?? 'Quranic Universal Library (QUL)',
+      }));
     void reply.header('cache-control', `public, max-age=${SEVEN_DAYS_S.toString()}`);
-    return { data: available };
+    // Keep `data` as a string array for backward-compat clients; new richer
+    // data lives under `layouts`.
+    return {
+      data: available.map((l) => l.slug),
+      layouts: available,
+    };
   });
 
   fastify.get<{ Params: { layout: string } }>(

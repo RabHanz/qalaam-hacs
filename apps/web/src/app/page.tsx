@@ -17,7 +17,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
-import { BookGlyph, CrescentGlyph, HairlineDivider, ThreadGlyph } from '../components/Glyph.js';
+import { BookGlyph, CrescentGlyph, HairlineDivider, LanternGlyph, ThreadGlyph } from '../components/Glyph.js';
 import { SiteNav } from '../components/SiteNav.js';
 
 interface Surah {
@@ -47,35 +47,34 @@ export default async function HomePage(): Promise<ReactNode> {
     <>
       <SiteNav />
 
-      {/* HERO — asymmetric editorial spread */}
+      {/* HERO — asymmetric editorial spread, mobile-first */}
       <section className="border-b border-hairline">
-        <div className="mx-auto grid max-w-6xl gap-12 px-6 py-20 md:grid-cols-12 md:py-28">
-          <div className="md:col-span-7 lg:col-span-7 reveal">
-            <p className="smallcaps text-leaf text-xs mb-6">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 py-12 sm:py-20 md:grid-cols-12 md:py-28 md:gap-12">
+          <div className="md:col-span-7 reveal">
+            <p className="smallcaps text-leaf text-[11px] tracking-widest mb-4 sm:mb-6">
               Editio · Familiae · Domi
             </p>
-            <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-light leading-[1.05] tracking-tight">
+            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light leading-[1.05] tracking-tight">
               A Quran companion
               <br />
               <span className="italic text-leaf">for the whole home.</span>
             </h1>
-            <p className="mt-8 max-w-xl text-lg leading-relaxed text-ink-muted">
+            <p className="mt-6 sm:mt-8 max-w-xl text-base sm:text-lg leading-relaxed text-ink-muted">
               Read, listen, and memorize — across every speaker in your house.
-              Built for families. Respects your prayer times. Family-private,
-              never gamified.
-              <span className="block mt-2 text-base">No ads. No XP. No leaderboards.</span>
+              Built for families. Adhan-aware. Family-private, never gamified.
+              <span className="block mt-2 text-sm sm:text-base">No ads. No XP. No leaderboards.</span>
             </p>
-            <div className="mt-10 flex flex-wrap items-center gap-4">
+            <div className="mt-8 sm:mt-10 flex flex-wrap items-center gap-4">
               <Link
                 href="/read/1"
-                className="group inline-flex items-center gap-2 rounded-sm bg-ink px-7 py-3.5 text-white transition-colors hover:bg-ink-strong"
+                className="group inline-flex items-center gap-2 rounded-sm bg-ink px-6 sm:px-7 py-3 sm:py-3.5 text-white transition-colors hover:bg-ink-strong"
               >
-                <span className="font-medium">Begin with Al-Fātiḥa</span>
+                <span className="font-medium text-sm sm:text-base">Begin with Al-Fātiḥa</span>
                 <span aria-hidden className="text-leaf-soft transition-transform group-hover:translate-x-0.5 rtl-flip">→</span>
               </Link>
               <Link
                 href="/about"
-                className="text-sm smallcaps text-ink-muted hover:text-ink underline-offset-4 hover:underline"
+                className="text-xs sm:text-sm smallcaps text-ink-muted hover:text-ink underline-offset-4 hover:underline"
               >
                 What is Qalaam
               </Link>
@@ -83,77 +82,99 @@ export default async function HomePage(): Promise<ReactNode> {
           </div>
 
           {/* Right column — vertical Bismillah strip with surah preview */}
-          <aside className="md:col-span-5 lg:col-span-5 reveal reveal-2">
-            <div className="paper-card-raised relative overflow-hidden p-8 md:p-10">
-              {/* corner ornament */}
+          <aside className="md:col-span-5 reveal reveal-2">
+            <div className="paper-card-raised relative overflow-hidden p-6 sm:p-8 md:p-10">
               <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-30"
                 style={{ background: 'radial-gradient(circle, var(--color-leaf-300) 0%, transparent 70%)' }}
                 aria-hidden
               />
               <div className="relative">
-                <p className="smallcaps text-leaf text-xs">Sūrat al-Fātiḥa · 1:1</p>
+                <p className="smallcaps text-leaf text-[11px] tracking-widest">Sūrat al-Fātiḥa · 1:1</p>
                 <p
                   dir="rtl"
-                  className="font-arabic mt-6 text-4xl md:text-5xl leading-[2] text-ink-strong"
-                  style={{ unicodeBidi: 'plaintext' }}
+                  className="font-arabic mt-5 sm:mt-6 text-3xl sm:text-4xl md:text-5xl leading-[2] text-ink-strong"
+                  style={{ unicodeBidi: 'plaintext', fontWeight: 600 }}
                 >
                   بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
                 </p>
-                <p className="font-display mt-4 text-base italic text-ink-muted leading-relaxed">
+                <p className="font-display mt-3 sm:mt-4 text-sm sm:text-base italic text-ink-muted leading-relaxed">
                   In the name of God,
                   <br />the Most Gracious, the Most Merciful.
                 </p>
                 <HairlineDivider />
-                <p className="text-sm text-ink-muted">
-                  6,236 verses · 114 surahs · word-by-word in 16 languages · audio in 62 reciters
-                </p>
+                <dl className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <dt className="smallcaps text-ink-muted">Verses</dt>
+                    <dd className="font-display text-lg text-ink-strong tabular-nums">6,236</dd>
+                  </div>
+                  <div>
+                    <dt className="smallcaps text-ink-muted">Reciters</dt>
+                    <dd className="font-display text-lg text-ink-strong tabular-nums">14</dd>
+                  </div>
+                  <div>
+                    <dt className="smallcaps text-ink-muted">Translations</dt>
+                    <dd className="font-display text-lg text-ink-strong tabular-nums">2 · en</dd>
+                  </div>
+                  <div>
+                    <dt className="smallcaps text-ink-muted">Mushafs</dt>
+                    <dd className="font-display text-lg text-ink-strong tabular-nums">3</dd>
+                  </div>
+                </dl>
               </div>
             </div>
           </aside>
         </div>
       </section>
 
-      {/* FEATURE STRIP — three sparse columns */}
+      {/* FOUR-PILLAR FEATURE STRIP — mobile-first 1col → 2col → 4col */}
       <section className="border-b border-hairline">
-        <div className="mx-auto grid max-w-6xl gap-px bg-paper-200/60 px-6 py-0 md:grid-cols-3 md:px-0">
+        <div className="mx-auto grid max-w-6xl gap-px bg-paper-200/60 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <FeatureCell
             icon={BookGlyph}
-            title="Read"
+            title="It reads with you"
             arabic="قِرَاءَة"
-            body="Page-faithful in Madani · Indopak · KFGQPC. Tap any word for word-by-word translation, root, and tajweed cues."
+            body="Ayah-by-ayah cards · 14 reciters · Pickthall + Saheeh translations · word-by-word on tap · bookmarks · share."
             href="/read/1"
             delay={1}
           />
           <FeatureCell
             icon={CrescentGlyph}
-            title="Listen"
+            title="It listens around the house"
             arabic="إِسْتِمَاع"
-            body="Ambient passive playback of your sabaq · sabqi across every speaker in the house. Adhan-aware. Never interrupts prayer."
+            body="Ambient Listen Mode of your current sabaq · adhan-aware · Cast · Sonos · AirPlay · MQTT · Home Assistant native."
             href="/listen"
             delay={2}
           />
           <FeatureCell
             icon={ThreadGlyph}
-            title="Hifdh"
+            title="It helps your family memorize"
             arabic="حِفْظ"
-            body="FSRS-6 spaced repetition. Mutashabihat-aware review. Streaks with grace days, never punishing. Family-private summaries."
+            body="FSRS-6 spacing · sabaq · sabqi · manzil · mutashabihat-aware · grace-day streaks · daily summary, never surveillance."
             href="/hifdh"
             delay={3}
+          />
+          <FeatureCell
+            icon={LanternGlyph}
+            title="It plays with your home"
+            arabic="بَيْت"
+            body="Adhan-aware automations · door-LED indicators · family wall display · sleep / wake routines · Ramadan mode."
+            href="/about"
+            delay={4}
           />
         </div>
       </section>
 
       {/* TABLE OF CONTENTS — surahs list, not card grid */}
       <section className="border-b border-hairline">
-        <div className="mx-auto max-w-6xl px-6 py-20">
-          <div className="grid items-baseline gap-6 md:grid-cols-12 mb-12">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-12 sm:py-20">
+          <div className="grid items-baseline gap-6 md:grid-cols-12 mb-8 sm:mb-12">
             <div className="md:col-span-4">
-              <p className="smallcaps text-leaf text-xs">Index · فِهْرِس</p>
-              <h2 className="font-display mt-3 text-4xl font-light tracking-tight">
+              <p className="smallcaps text-leaf text-[11px] tracking-widest">Index · فِهْرِس</p>
+              <h2 className="font-display mt-3 text-3xl sm:text-4xl font-light tracking-tight">
                 The 114 surahs
               </h2>
             </div>
-            <p className="md:col-span-8 text-base text-ink-muted leading-relaxed">
+            <p className="md:col-span-8 text-sm sm:text-base text-ink-muted leading-relaxed">
               All 6,236 verses ingested from the Quranic Universal Library
               (Tarteel AI). Tap any surah to read in full, or jump to deep
               study for a single verse with translations, tafsir, word-by-word,

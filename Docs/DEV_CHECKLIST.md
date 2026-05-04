@@ -40,6 +40,155 @@
 
 ---
 
+## Vision-vs-Reality Matrix (honest UX gap audit, 2026-05-04 v8)
+
+The phase table above tracks **engineering scaffolding**. This section tracks **user-visible features promised in `Docs/INTRO.md`** — what someone arriving at qalaam.app would actually find. Phase % is high because the foundations exist; UX coverage is much lower.
+
+### Reading
+
+| INTRO promise                                                  | Reality                                                                                | Done |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------- | :--: |
+| Multiple Arabic scripts (Uthmani, Indo-Pak, Imlaei, QPC Hafs)  | Only Uthmani in `/read/[surah]`; layouts table has 3 KFGQPC mushafs but no script picker | ❌ |
+| Madani 15-line page-faithful mushaf                            | Layout DB live (madani_15 + 2 more × 604 pages × 9k lines × 251k words); no `/mushaf/:layout/:page` route yet | 〰️ |
+| Tajweed colored beautifully + legend                            | None                                                                                    | ❌ |
+| Word-by-word translations on tap                                | `/v1/wbw/:vk` returns Arabic word splits (fallback from scripts_words); per-ayah expansion in `AyahCard` works; English glosses missing for ~73k words | 〰️ |
+| Multiple translations side-by-side                              | 2 ingested (Pickthall public-domain, Saheeh International) for full 6,236 verses; AyahCard shows the picked one inline; side-by-side comparison view absent | 〰️ |
+| Multiple tafsirs (Saheeh, Ibn Kathir, Maududi, Muyassar)        | Catalog only. Zero tafsir text rows in DB.                                              | ❌ |
+| Bookmarks, highlights, tags, notes                              | Per-ayah bookmark to localStorage (AyahCard); no notes / tags / highlights              | 〰️ |
+| 3-pane deep-study view                                          | `/study/[surah]/[ayah]` exists but tafsir + asbab al-nuzul panes empty                  | 〰️ |
+| Search across translations + Arabic                             | None                                                                                    | ❌ |
+| Topical search                                                  | None                                                                                    | ❌ |
+| Asbab al-nuzul                                                  | Data in `qalaam_v1_qul_surah_info.asbab_al_nuzul`; not surfaced in UI                   | 〰️ |
+| Shareable ayah cards                                            | `@qalaam/ui-quran/AyahCard` Satori generator built; not wired to a download button       | 〰️ |
+| Reading journal                                                 | None                                                                                    | ❌ |
+
+### Listening
+
+| INTRO promise                                          | Reality                                                                                  | Done |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------- | :--: |
+| 80+ reciters                                           | 14 ingested (Husary, Mishary, Sudais, Maher, Saad, Abu Bakr, Minshawi, abdul-basit M+M, Yasser, Saud Shuraim, Hani Rifai, Khalifa Tunaiji, Husary Mujawwad). Roadmap to 80+ via QUL `/resources/recitation`. | 〰️ |
+| Verse-by-verse highlighting following audio            | Word-level segments in DB; AyahCard plays audio but doesn't highlight following words    | 〰️ |
+| Speed control / repeat-this-verse / sleep timer        | None                                                                                      | ❌ |
+| Background playback / lock-screen controls             | None                                                                                      | ❌ |
+| Offline downloads per-surah / per-juz                   | None                                                                                      | ❌ |
+| Multi-reciter A/B comparison                            | None                                                                                      | ❌ |
+| Shazam-for-Quran                                        | None                                                                                      | ❌ |
+| Cast / Sonos / AirPlay / DLNA / Snapcast / MQTT / BT   | Adapter scaffolds exist (`packages/adapters/*`); no UI in /listen for picking room        | 〰️ |
+| Per-room targeting + multi-room sync                    | `/v1/now-playing/:speakerId` returns demo state; no room picker                          | 〰️ |
+| Listen Mode (ambient loop)                              | Concept page only — no actual loop player                                                 | ❌ |
+| Co-listening across distance                            | None                                                                                      | ❌ |
+
+### Memorization (Hifdh)
+
+| INTRO promise                                                          | Reality                                                                                          | Done |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | :--: |
+| Per-user plans (kids, parents)                                          | None — `/v1/hifdh/portion` returns demo state for `demo-user`; no plan creator UI                | ❌ |
+| Daily session that assembles itself                                     | `@qalaam/hifdh-engine` library does it; no UI                                                    | 〰️ |
+| 80/20 sabaq:sabqi:manzil rule                                            | Engine respects it; no UI                                                                         | 〰️ |
+| Mutashabihat surfacing during review                                    | `/v1/mutashabihat/watchlist/:vk` returns real pairs (18,676 cluster + 3,552 similar-ayah edges); /hifdh page shows top 4; per-ayah surfacing in AyahCard absent | 〰️ |
+| On-device ASR feedback                                                  | `services/asr-worker` real-mode env-gated stub (faster-whisper + Quran-aware aligner); FeedbackSession has placeholder UI; not wired to live `/recite` page | 〰️ |
+| Daily parent dashboard (calm summary, not real-time)                    | `/hifdh` shows seed state; no per-child dashboard                                                | 〰️ |
+| One-tap "I just heard them recite" rating                                | None                                                                                              | ❌ |
+| Per-page mistake heatmap                                                 | None                                                                                              | ❌ |
+| Verse-pause drill                                                        | `/recite/:verseKey` exists; FeedbackSession is a UI stub                                         | 〰️ |
+| Forgiving streaks with grace days                                        | Backend returns grace days; UI shows them                                                        | ✅ |
+| Family halaqah view                                                      | None                                                                                              | ❌ |
+| Voice notes + praise stickers                                            | None                                                                                              | ❌ |
+
+### Smart-home / ambient
+
+| INTRO promise                                                | Reality                                                                              | Done |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------ | :--: |
+| Home Assistant integration (panel + sensors + services)      | Live on shadowserver. Panel rendering, 4 sensors wired to `/v1/hifdh/state` + `/v1/now-playing`. | ✅ |
+| Adhan-aware automations                                       | None                                                                                  | ❌ |
+| Per-room sabaq announcements                                  | None                                                                                  | ❌ |
+| Door-LED indicators                                           | None                                                                                  | ❌ |
+| Family wall display                                           | Web app at `/hifdh` works on a wall tablet; no kiosk-mode polish                      | 〰️ |
+| Sleep / wake routines                                          | None                                                                                  | ❌ |
+| Ramadan-aware UI mode                                          | None                                                                                  | ❌ |
+| Friday Surah Kahf nudge                                        | None                                                                                  | ❌ |
+| Bilingual voice control                                        | None                                                                                  | ❌ |
+
+### Companion features (everything from INTRO §"Companion features")
+
+| INTRO promise                                              | Reality | Done |
+| ---------------------------------------------------------- | ------- | :--: |
+| Adhan / prayer times + 12 calculation methods               | None    | ❌ |
+| Multiple adhan recordings (incl. Fajr variant)               | None    | ❌ |
+| Qibla direction with smart calibration                       | None    | ❌ |
+| Hijri calendar with Umm al-Qura + tabular                    | None    | ❌ |
+| Hisn al-Muslim azkar (50+ entries)                            | Catalog in `packages/curriculum`; no `/azkar` route                                  | 〰️ |
+| Scheduled morning/evening adhkar playback                     | None    | ❌ |
+| Masjid finder                                                  | None    | ❌ |
+| Hijri-Gregorian dates everywhere                               | None    | ❌ |
+
+### Family
+
+| INTRO promise                                  | Reality                                                       | Done |
+| ---------------------------------------------- | ------------------------------------------------------------- | :--: |
+| Family Plan as the default                      | None — auth & accounts not built                               | ❌ |
+| Per-child plans                                 | None                                                           | ❌ |
+| Parent dashboard (daily summary)                 | `/hifdh` reads single demo-user state; no per-child rollup     | 〰️ |
+| Child-consent toggle ≥ age 10                    | None                                                           | ❌ |
+| Family khatm modes                                | Engine in `packages/khatm-engine`; no UI                        | 〰️ |
+| Voice notes between family members                | None                                                           | ❌ |
+| Family-private weekly leaderboard                  | `@qalaam/ui-hifdh/FamilyLeaderboard` component built; not wired to live page | 〰️ |
+| Friend-circle khatms                              | None                                                           | ❌ |
+
+### Learning the language
+
+| INTRO promise                                          | Reality                                          | Done |
+| ------------------------------------------------------ | ------------------------------------------------ | :--: |
+| 113 lessons across 4 levels                              | Catalog complete; lesson bodies are placeholders (Markdown body wiring deferred to v0.5) | 〰️ |
+| Spaced-repetition for vocab + rules                       | None                                              | ❌ |
+| Verse-by-verse i'rab                                       | None                                              | ❌ |
+| Reciter-style teaching                                    | None                                              | ❌ |
+| Children's mode (slower reciter, simplified UI, PIN)        | None                                              | ❌ |
+
+### Voice cloning + teach-back (Phase 14, v2.0)
+
+| INTRO promise                                       | Reality                                                                  | Done |
+| --------------------------------------------------- | ------------------------------------------------------------------------ | :--: |
+| Qalaam-house voice (TTS for app speech)              | tts-worker live with ElevenLabs + perceptual watermark + ADR-0019 quranic-guard | ✅ |
+| Licensed reciter voice cloning                        | Blocked on reciter-licensing outreach (ADR-0007)                          | ❌ |
+| Personal teacher cloning (Pro)                         | Blocked on consent + privacy-vault build                                  | ❌ |
+| Side-by-side recitation comparison                     | `services/prosody-worker` + `packages/prosody` DTW skeleton; no UI       | 〰️ |
+| Tajweed-correctness scoring                             | `packages/tajweed-detector` (Madd/Ghunna + qalqalah onset detector); no UI surface | 〰️ |
+
+### Modes
+
+| INTRO promise                | Reality                                                          | Done |
+| ---------------------------- | ---------------------------------------------------------------- | :--: |
+| SaaS                          | Backend on Fastify; no signup / billing / Stripe                  | 〰️ |
+| Self-hosted (Docker Compose)  | Compose file in repo; not battle-tested                           | 〰️ |
+| Home Assistant native          | Custom_component live on shadowserver                              | ✅ |
+
+---
+
+### What this turn (commit ad-hoc) actually shipped
+
+1. **Translation ingest** — alquran.cloud → 18,708 rows (Pickthall + Saheeh International + Clear Quran; clear-quran was Arabic-mislabeled at source so it's parked). `/v1/translations/pickthall/by_verse/2:255` returns real Pickthall text.
+2. **`AyahCard` + `ReaderControls`** — Quranly-style ayah-by-ayah reader. Per-ayah Listen / WBW / Bookmark / Share chips. Translation chip-bar + reciter chip-bar, sticky, scroll-x on mobile, persisted to localStorage. Mobile-first padding from 16px (375px viewport) to 64px (desktop).
+3. **`/v1/layouts` enriched** — returns slug + name + subtitle + sourceLabel + pageCount. UI can render "Madinah Mushaf · 15 lines (KFGQPC v2)" instead of `madani_15`.
+4. **Translation loader DB-backed** — `apps/backend/src/lib/translation-loader.ts` reads from `qalaam_v1_translations` first, falls back to fixtures only when DB is unavailable. Catalog filters to ingested-only slugs (no misleading "Al-Fatiha-only" entries).
+5. **Homepage 4th pillar** — added "It plays with your home" cell so the four-pillar narrative from INTRO.md is reflected. Hero stat row updated to truth (14 reciters · 2 translations · 3 mushafs).
+6. **HA panel rebuild** — `apps/ha-panel/dist/qalaam-panel.js` 25.8 KB ready locally; deploy queued for next time shadowserver is reachable.
+
+### What's still gap (top of next-turn priority queue)
+
+1. **Tafsir ingest** — Saheeh footnotes + Muyassar Arabic (existing fixtures cover Al-Fatiha only; need full corpus).
+2. **Mushaf-page mode** — `/mushaf/:layout/:page` route consuming `/v1/layouts/:layout/page/:n` (data live).
+3. **Verse-highlight following audio** — wire `/v1/recitations/:reciterId/word-at?ms=…` to AyahCard playback.
+4. **Asbab al-nuzul + summary surfacing** on `/study` and `/read/[surah]` surah header.
+5. **Tajweed coloring** — overlay `quran-tajweed` annotations onto Arabic word spans.
+6. **Search** — translations + Arabic FTS (SQLite FTS5).
+7. **Hifdh per-user plan creator** — Range/Portion/Schedule trichotomy UI.
+8. **Real Listen Mode loop** — sabaq player driving any speaker via the adapter registry.
+9. **Prayer times + qibla + hijri** — adhan + qibla npm packages, `/companion` route.
+10. **Family + auth** — Postgres user model, per-child plans, parent dashboard.
+
+---
+
 ## Phase 0 — Foundation prerequisites
 
 These exist before v0.1 starts; they govern everything that comes after.

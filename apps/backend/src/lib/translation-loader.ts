@@ -1,13 +1,27 @@
 /**
- * Translation + tafsir fixture loader.
+ * Translation + tafsir loader.
  *
- * v0.1: reads bundled JSON fixtures so the backend serves Al-Fatiha translations
- * and tafsirs without QUL. v0.5: swaps to `@qalaam/data-loader/qul` once the
- * SQLite store is downloaded. Per ADR-0002.
+ * Two backends, queried in order:
+ *
+ * 1. **`qalaam_v1_translations` SQLite table** (canonical) — populated by
+ *    `scripts/data/ingest-translations.py`. Holds full 6,236-verse packs
+ *    keyed by `(slug, verse_key)`. Catalog comes from
+ *    `qalaam_v1_translation_meta`.
+ *
+ * 2. **JSON fixtures in `apps/backend/fixtures/`** (legacy fallback) —
+ *    Al-Fatiha-only seed used before the SQLite table existed. Falls back
+ *    here if a slug isn't in the DB or the DB itself is missing.
+ *
+ * Tafsirs still read fixtures only — proper QUL ingest pending in v0.5.
+ *
+ * Per ADR-0002.
  */
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import Database from 'better-sqlite3';
+import type { Database as DB } from 'better-sqlite3';
 
 import { type VerseKey, parseVerseKey } from '@qalaam/core';
 
@@ -70,11 +84,84 @@ function loadTafsirs(): NonNullable<typeof cachedTafsirs> {
   return cachedTafsirs;
 }
 
+// SQLite-backed translation read path (preferred over fixtures when the DB
+// has rows for the slug). The DB path comes from QUL_SQLITE_PATH at first call.
+let cachedDb: DB | undefined;
+let cachedDbMeta: readonly TranslationMeta[] | undefined;
+
+function getDb(): DB | undefined {
+  if (cachedDb) return cachedDb;
+  const path = process.env.QUL_SQLITE_PATH ?? join(process.cwd(), 'data', 'qul.sqlite');
+  if (!existsSync(path)) return undefined;
+  try {
+    cachedDb = new Database(path, { readonly: true, fileMustExist: true });
+    return cachedDb;
+  } catch {
+    return undefined;
+  }
+}
+
+function listFromDb(): readonly TranslationMeta[] {
+  if (cachedDbMeta) return cachedDbMeta;
+  const db = getDb();
+  if (!db) return [];
+  try {
+    const rows = db
+      .prepare<
+        [],
+        {
+          slug: string;
+          name: string;
+          translator: string;
+          language: string;
+          license_tag: string;
+          verse_count: number;
+        }
+      >(
+        `SELECT slug, name, translator, language, license_tag, verse_count
+         FROM qalaam_v1_translation_meta ORDER BY language, name`,
+      )
+      .all();
+    cachedDbMeta = rows.map((r): TranslationMeta => ({
+      id: `qul-${r.slug}`,
+      slug: r.slug,
+      language: r.language,
+      name: r.name,
+      translator: r.translator,
+      license: r.license_tag,
+    }));
+    return cachedDbMeta;
+  } catch {
+    return [];
+  }
+}
+
 export function listTranslations(): readonly TranslationMeta[] {
+  // Only surface translations with full ingested data. The Al-Fatiha-only
+  // fixture catalog is intentionally hidden — picking a fixture-only slug
+  // would render correct for /1/* and 503 for everything else, which is
+  // misleading. v0.5 will re-expand the catalog as more translations are
+  // ingested into qalaam_v1_translations.
+  const fromDb = listFromDb();
+  if (fromDb.length > 0) return fromDb;
+  // Fallback to fixtures only if DB is unavailable (early dev, no SQLite).
   return loadTranslations().meta;
 }
 
 export function getTranslationVerse(slug: string, key: VerseKey): string | undefined {
+  const db = getDb();
+  if (db) {
+    try {
+      const row = db
+        .prepare<[string, string], { text: string }>(
+          'SELECT text FROM qalaam_v1_translations WHERE slug = ? AND verse_key = ?',
+        )
+        .get(slug, key);
+      if (row?.text) return row.text;
+    } catch {
+      // fall through to fixture
+    }
+  }
   return loadTranslations().bySlug.get(slug)?.verses[key];
 }
 
