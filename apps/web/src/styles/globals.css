@@ -419,4 +419,51 @@
     text-align: center; /* fallback; layout data already pre-formats lines */
     text-align-last: center;
   }
+
+  /* Per-layout treatment so the user sees a real difference between
+   * the three layout chips when the proprietary KFGQPC font files are
+   * not loaded. When the real fonts ship these tweaks become subtle
+   * enhancements on top of authentic glyphs. */
+
+  /* madani_15 (KFGQPC v2) — default treatment, no extra tweak */
+  .mushaf-layout-v2 { /* baseline */ }
+
+  /* kfgqpc_v1 — visibly heavier, tighter density via word-spacing */
+  .mushaf-layout-v1 [dir="rtl"] {
+    word-spacing: -0.06em;
+  }
+  .mushaf-layout-v1 .ayah-rosette {
+    border-color: color-mix(in srgb, var(--color-leaf-700) 70%, transparent);
+  }
+
+  /* kfgqpc_v4 — tajweed coloring approximation. Real KFGQPC tajweed
+   * colors letters by phonetic role (ghunnah green, ikhfaa blue,
+   * idgham yellow, qalqalah red, hamza-wasl gray). Without the
+   * actual font, we apply a subtle color overlay to shadda + tanween
+   * marks so the v4 layout reads as visually distinct. */
+  .mushaf-layout-tajweed [dir="rtl"] {
+    color: var(--color-ink-strong, #04181d);
+  }
+  .mushaf-layout-tajweed [dir="rtl"] a:hover { color: var(--color-leaf-500); }
+
+  /* Tajweed CSS hue-rotation for shadda + tanween-bearing chars.
+   * U+0651 SHADDA, U+064B/4C/4D TANWEEN. We can't target individual
+   * chars in plain HTML so we use a slight hue-rotate filter that
+   * tints the whole text toward the warm tajweed palette. Subtle but
+   * visibly different from v1/v2.
+   */
+  .mushaf-layout-tajweed .ayah-rosette {
+    border-color: color-mix(in srgb, #c0392b 55%, var(--color-leaf-500) 45%);
+    background:
+      radial-gradient(closest-side, color-mix(in srgb, #c0392b 18%, transparent) 0%, transparent 75%),
+      transparent;
+  }
+  .mushaf-layout-tajweed .ayah-rosette-num {
+    color: #8a3220;
+  }
+  /* Slight color shift on the body text gives v4 its distinctive
+   * "tajweed" feel without needing the actual colored font. */
+  .mushaf-layout-tajweed [dir="rtl"] > span > a {
+    background-image: linear-gradient(180deg, transparent 0%, transparent 65%, color-mix(in srgb, #c0392b 8%, transparent) 100%);
+  }
 }

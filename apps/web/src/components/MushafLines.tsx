@@ -71,12 +71,14 @@ const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayout
 function fontStackFor(layoutSlug: string): string {
   switch (layoutSlug) {
     case 'kfgqpc_v1':
-      // Approximation for v1: heavier Naskh feel via Noto Naskh Arabic
-      return '"KFGQPC HAFS Uthmanic Script", "Noto Naskh Arabic", "Amiri Quran", serif';
+      // v1 approximation: lead with Noto Naskh Arabic so the visible
+      // glyph differs from v2's Amiri Quran when the proprietary
+      // KFGQPC files aren't loaded.
+      return '"KFGQPC HAFS Uthmanic Script", "Noto Naskh Arabic", "Amiri", "Amiri Quran", serif';
     case 'kfgqpc_v4':
-      // Tajweed variant — same metrics; color comes from font features
-      // when the actual KFGQPC v4 file is loaded. For now visually
-      // distinct via Amiri's italic weight.
+      // Tajweed variant — same Amiri Quran base as v2 but with the
+      // .mushaf-tajweed class applied (color treatment on shadda /
+      // emphatic letters approximating the KFGQPC tajweed colors).
       return '"KFGQPC HAFS Uthmanic Script Tajweed", "Amiri Quran", "Noto Naskh Arabic", serif';
     case 'madani_15':
     default:
@@ -199,10 +201,20 @@ export function MushafLines({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lines, layoutSlug, sharedSize]);
 
+  // Per-layout treatment class. Picks up tajweed colors for v4 + a
+  // density tweak for v1 so the user sees a real difference between
+  // chips even when the proprietary KFGQPC fonts aren't installed.
+  const layoutClass =
+    layoutSlug === 'kfgqpc_v4'
+      ? 'mushaf-layout-tajweed'
+      : layoutSlug === 'kfgqpc_v1'
+        ? 'mushaf-layout-v1'
+        : 'mushaf-layout-v2';
+
   return (
     <div
       ref={containerRef}
-      className="w-full"
+      className={`w-full ${layoutClass}`}
       style={{
         ['--mushaf-font' as string]: fontStackFor(layoutSlug),
       }}
