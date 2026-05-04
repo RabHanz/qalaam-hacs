@@ -93,11 +93,19 @@ export function AyahMushafLines({ verseKey, layoutSlug }: Props): ReactNode {
         if (!linesRes.ok) throw new Error(`page fetch failed (${linesRes.status.toString()})`);
         const linesBody = (await linesRes.json()) as { data: { lines: LayoutLine[] } };
 
-        // Step 3: cache + filter to lines containing this verse.
+        // Step 3: cache + filter to lines AND words matching this verse.
+        // A mushaf line can span multiple verses (e.g. last word of 2:2
+        // + first words of 2:3 share the same printed line). For
+        // single-ayah view we only want the words of the requested
+        // verse — slicing the words array preserves correct ordering
+        // (word_id is already mushaf-global asc from the backend).
         pageCache.set(cacheKey, { pageNumber, lines: linesBody.data.lines });
-        const filtered = linesBody.data.lines.filter((l) =>
-          l.words.some((w) => w.verseKey === verseKey),
-        );
+        const filtered: LayoutLine[] = linesBody.data.lines
+          .filter((l) => l.words.some((w) => w.verseKey === verseKey))
+          .map((l) => ({
+            ...l,
+            words: l.words.filter((w) => w.verseKey === verseKey),
+          }));
 
         if (!cancelled) {
           setState({ loading: false, error: null, lines: filtered, pageNumber });

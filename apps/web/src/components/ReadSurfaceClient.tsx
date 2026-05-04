@@ -47,6 +47,7 @@ interface ReciterItem {
 
 interface LayoutItem {
   readonly slug: string;
+  readonly urlSlug?: string;
   readonly name: string;
   readonly subtitle?: string;
 }
@@ -347,7 +348,7 @@ export function ReadSurfaceClient({
                 return (
                   <a
                     key={l.slug}
-                    href={`/mushaf/${l.slug}/page-for/${encodeURIComponent(firstVk)}`}
+                    href={`/mushaf/${l.urlSlug ?? l.slug}/page-for/${encodeURIComponent(firstVk)}`}
                     title={l.subtitle ?? ''}
                     className="shrink-0 rounded-full px-3 py-1 text-[11px] sm:text-xs smallcaps tracking-wider transition-colors border border-hairline text-ink hover:bg-paper-200/60 hover:border-leaf/40 hover:text-leaf"
                   >

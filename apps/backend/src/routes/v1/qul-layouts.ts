@@ -46,14 +46,31 @@ const KNOWN_LAYOUTS: ReadonlySet<MushafLayoutSlug> = new Set<MushafLayoutSlug>([
   'ligature_svg',
 ]);
 
+// Public URL aliases. Users see /mushaf/madinah/2 instead of
+// /mushaf/madani_15/2 — internal storage slugs (madani_15, kfgqpc_v1,
+// kfgqpc_v4) stay stable; the alias map translates pretty URLs.
+const URL_ALIAS_TO_INTERNAL: Record<string, MushafLayoutSlug> = {
+  madinah: 'madani_15',
+  indopak: 'kfgqpc_v1',
+  tajweed: 'kfgqpc_v4',
+};
+const INTERNAL_TO_URL_ALIAS: Record<string, string> = {
+  madani_15: 'madinah',
+  kfgqpc_v1: 'indopak',
+  kfgqpc_v4: 'tajweed',
+};
+
 function assertLayout(slug: string): MushafLayoutSlug {
-  if (!KNOWN_LAYOUTS.has(slug as MushafLayoutSlug)) {
+  // Accept the public alias OR the internal slug.
+  const aliased = URL_ALIAS_TO_INTERNAL[slug];
+  const resolved = aliased ?? (slug as MushafLayoutSlug);
+  if (!KNOWN_LAYOUTS.has(resolved)) {
     throw new QalaamError(
       'qalaam.mushaf.unknown-layout',
-      `Unknown layout ${slug}. Allowed: ${Array.from(KNOWN_LAYOUTS).join(', ')}.`,
+      `Unknown layout ${slug}. Allowed: ${Object.keys(URL_ALIAS_TO_INTERNAL).concat(Array.from(KNOWN_LAYOUTS)).join(', ')}.`,
     );
   }
-  return slug as MushafLayoutSlug;
+  return resolved;
 }
 
 // eslint-disable-next-line @typescript-eslint/require-await
@@ -114,6 +131,9 @@ export async function qulLayoutsRoutes(
       .filter((row) => row.pageCount > 0)
       .map((row) => ({
         slug: row.slug,
+        // Pretty URL slug — what users see in the address bar.
+        // Falls back to the internal slug if no alias is registered.
+        urlSlug: INTERNAL_TO_URL_ALIAS[row.slug] ?? row.slug,
         pageCount: row.pageCount,
         name: labels[row.slug]?.name ?? row.slug,
         subtitle: labels[row.slug]?.subtitle ?? '',

@@ -432,6 +432,9 @@ function renderLineText(
       // rosette glyph renders even when the layout font (Nastaliq /
       // Naskh) has no rosette. Wrapped as a clickable anchor for jump-
       // to-verse on tap.
+      // Render the rosette in its own bidi-isolated inline-block so
+      // the Nastaliq parent font can't bleed into the UthmanicHafs
+      // override and the rosette stays a single unit in the line.
       out.push(
         <a
           key={`${w.wordId.toString()}-end`}
@@ -439,7 +442,11 @@ function renderLineText(
           title={`Ayah ${w.verseKey} — ends here`}
           aria-label={`End of ayah ${w.verseKey}`}
           className="ayah-end hover:text-leaf"
-          style={{ fontFamily: '"UthmanicHafs", "Amiri Quran", serif' }}
+          style={{
+            fontFamily: '"UthmanicHafs", "Amiri Quran", serif',
+            display: 'inline-block',
+            unicodeBidi: 'isolate',
+          }}
         >
           {ayahDigit(w.verseKey)}
         </a>,
@@ -448,6 +455,16 @@ function renderLineText(
       continue;
     }
 
+    // Wrap each word in a plain INLINE anchor (NOT inline-block, NOT
+    // bdi/isolate) so it stays in the parent's bidi context — no
+    // reordering — while remaining tappable for word-by-word study.
+    // Anchor goes to /study/:surah/:ayah/word-:idx.
+    const sn = w.verseKey.split(':')[0] ?? '1';
+    const an = w.verseKey.split(':')[1] ?? '1';
+    const wordChildren: ReactNode[] = [];
+
+    // Apply tajweed coloring within this word for v4 layout
+    let segs: { text: string; rule?: TajweedAnnotation['rule'] }[] = [{ text: w.text }];
     if (layoutSlug === 'kfgqpc_v4') {
       const verseAnn = tajweedByVerse.get(w.verseKey) ?? [];
       const wordStart = verseWordOffsets.get(w.verseKey)?.get(w.wordIndex) ?? 0;
@@ -462,26 +479,51 @@ function renderLineText(
         });
       }
       if (localAnn.length > 0) {
-        const segs = applyTajweed(w.text, localAnn);
-        for (let si = 0; si < segs.length; si += 1) {
-          const s = segs[si];
-          if (!s) continue;
-          if (s.rule) {
-            out.push(
-              <span key={`${w.wordId.toString()}-s${si.toString()}`} className={`tajweed-${s.rule}`}>{s.text}</span>,
-            );
-          } else {
-            out.push(s.text);
-          }
-        }
-        if (sep) out.push(' ');
-        continue;
+        segs = applyTajweed(w.text, localAnn) as typeof segs;
       }
     }
 
-    // Plain word — emitted as a raw string so it joins the bidi run
-    // with adjacent words (no per-word inline-block).
-    out.push(w.text);
+    // Within each segment, also split out small-high silent marks
+    // (U+06DF, U+06D6–U+06D8) so they render as discreet superscripts.
+    const SILENT_MARK_RE = /([ۖ-ۘ۟])/;
+    for (let si = 0; si < segs.length; si += 1) {
+      const s = segs[si];
+      if (!s) continue;
+      const parts = s.text.split(SILENT_MARK_RE);
+      for (let pi = 0; pi < parts.length; pi += 1) {
+        const p = parts[pi];
+        if (!p) continue;
+        if (SILENT_MARK_RE.test(p)) {
+          wordChildren.push(
+            <span
+              key={`${w.wordId.toString()}-s${si.toString()}m${pi.toString()}`}
+              className={`silent-mark${s.rule ? ` tajweed-${s.rule}` : ''}`}
+            >
+              {p}
+            </span>,
+          );
+        } else if (s.rule) {
+          wordChildren.push(
+            <span key={`${w.wordId.toString()}-s${si.toString()}p${pi.toString()}`} className={`tajweed-${s.rule}`}>
+              {p}
+            </span>,
+          );
+        } else {
+          wordChildren.push(p);
+        }
+      }
+    }
+
+    out.push(
+      <a
+        key={w.wordId.toString()}
+        href={`/study/${sn}/${an}#w${w.wordIndex.toString()}`}
+        title={`${w.verseKey} · word ${(w.wordIndex + 1).toString()}`}
+        className="mushaf-word"
+      >
+        {wordChildren}
+      </a>,
+    );
     if (sep) out.push(' ');
   }
   return <>{out}</>;

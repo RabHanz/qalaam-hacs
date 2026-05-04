@@ -449,6 +449,46 @@
     border-color: color-mix(in srgb, var(--color-leaf-700) 70%, transparent);
   }
 
+  /* Mushaf word — plain inline anchor that's tappable for the
+   * word-by-word study panel. Inline (not inline-block) so it stays
+   * in the parent's bidi context and doesn't reorder the line. */
+  .mushaf-word {
+    color: inherit;
+    text-decoration: none;
+    transition: color 160ms ease-out, background-color 160ms ease-out;
+    border-radius: 4px;
+    padding: 0 1px;
+  }
+  .mushaf-word:hover {
+    color: var(--color-leaf-700);
+    background-color: color-mix(in srgb, var(--color-leaf-300) 12%, transparent);
+  }
+  :root[data-theme="dark"] .mushaf-word:hover {
+    color: var(--color-leaf-300);
+  }
+
+  /* Small high "silent" marks — U+06DF Arabic Small High Rounded Zero
+   * (silent letter), U+06D6–U+06D8 small high marks. UthmanicHafs draws
+   * these as full-size mid-line glyphs that look like spurious rosettes.
+   * Quranly/Tarteel render them as discreet superscript dots. We restore
+   * that look via runtime char-replacement: words wrap matching chars in
+   * <span class="silent-mark"> and we shrink + neutralise color here.
+   * Use a Naskh font that draws the codepoint as a tiny circle, override
+   * UthmanicHafs which substitutes a full-size rosette. */
+  .silent-mark {
+    font-family: 'Noto Naskh Arabic', 'Amiri', serif;
+    font-size: 0.32em;
+    vertical-align: 0.95em;
+    color: var(--color-ink-muted, #6b6b6b);
+    font-weight: 400;
+    line-height: 0;
+    margin: 0 0.05em;
+  }
+  /* Inside the v4 tajweed layout the rule may also tag the silent
+   * mark — keep it neutral regardless of rule color. */
+  .mushaf-layout-tajweed .silent-mark,
+  .mushaf-layout-tajweed .tajweed-silent { color: #909090; }
+
   /* Tajweed palette — annotation-driven (cpfair/quran-tajweed MIT).
    * 18 rules from the source dataset, mapped to the Quran.com /
    * Tanzeel color convention. Each .tajweed-<rule> class paints a

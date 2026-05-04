@@ -46,6 +46,8 @@ interface LayoutPage {
 
 interface LayoutInfo {
   readonly slug: string;
+  /** Pretty URL slug (madinah, indopak, tajweed). May fall back to slug. */
+  readonly urlSlug?: string;
   readonly name: string;
   readonly subtitle?: string;
   readonly pageCount?: number;
@@ -141,7 +143,7 @@ export default async function MushafPage({ params }: PageProps): Promise<ReactNo
             {layouts.map((l) => (
               <Link
                 key={l.slug}
-                href={`/mushaf/${l.slug}/${pageNumber.toString()}`}
+                href={`/mushaf/${l.urlSlug ?? l.slug}/${pageNumber.toString()}`}
                 className={`shrink-0 rounded-full px-3 py-1 text-[11px] sm:text-xs smallcaps tracking-wider transition-colors border ${
                   l.slug === layout
                     ? 'bg-leaf text-paper border-leaf'

@@ -49,6 +49,7 @@ interface ReciterItem {
 
 interface LayoutItem {
   readonly slug: string;
+  readonly urlSlug?: string;
   readonly name: string;
   readonly subtitle?: string;
 }
