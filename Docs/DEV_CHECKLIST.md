@@ -617,10 +617,8 @@ QUL exposes ~14 distinct data resources (152 recitations, 27 mushaf layouts, 209
 
 - [x] `scripts/data/ingest-qul-base.ts` — generic ingest framework: license assertion, SHA computation, ingest-log row, `assertIngestLogClean(dbPath)` CI gate helper
 - [x] `scripts/data/ingest-qul-metadata.ts` — reference implementation: pulls QUL resource IDs 63-70 → `qalaam_v1_qul_metadata_*` tables
-- [ ] `scripts/data/ingest-qul-mutashabihat-v2.ts` — pulls full 5,277 phrases + 4,001 pairs → `qalaam_v1_qul_mutashabihat_v2_*`
-- [ ] `scripts/data/ingest-qul-wbw.ts` — pulls 16 word-by-word translation packs (English first; Urdu + Indonesian follow)
-- [ ] `scripts/data/ingest-qul-layouts.ts` — pulls priority mushaf layouts (KFGQPC V4 + Indopak 15-line first)
-- [ ] `scripts/data/ingest-qul-recitations.ts` — pulls Husary + Mishary + Abdul Basit Murattal segmented timings
+- [x] `scripts/data/ingest-qul-extras.py` — single-pass, license-aware Python ingest. **Live counts in `data/qul.sqlite`:** 814 mutashabihat clusters + 17,862 pair edges (license: permissive-with-credit), 3,552 similar-ayah pair edges (permissive-with-credit), **14 reciters × 6,236 verses = 87,304 audio rows + 1,090,596 word-level segment rows** (per-reciter), 3 mushaf layouts × 9,046 lines = 27,138 layout rows (kfgqpc-terms). Reciter ids match the registry (`husary`, `mishary-alafasy`, `sudais`, `maher-muaiqly`, `minshawi`, `abu-bakr-shatri`, `saad-al-ghamdi`, `husary-mujawwad`, `abdul-basit-murattal`, `abdul-basit-mujawwad`, `yasser-aldosari`, `saud-shuraim`, `hani-rifai`, `khalifa-al-tunaiji`).
+- [x] `scripts/data/scrape-qul.sh` — extended to 36 resources (mutashabihat, similar-ayah, 14 reciters, 9 mushaf layouts, 8 metadata, 3 scripts). 2 resources skipped at upstream (mushaf-layout/2 has no download link of either format; mutashabihat/73 sqlite-only — handled).
 - [x] CI gate: `assertIngestLogClean()` refuses to bundle any row tagged `unverified` (called by build pipeline)
 
 ### 17.4 Backend route surfacing
@@ -628,17 +626,19 @@ QUL exposes ~14 distinct data resources (152 recitations, 27 mushaf layouts, 209
 - [x] `apps/backend/src/routes/v1/qul-metadata.ts` — surfaces QuranMetadataReader (`/v1/metadata/surahs[/:id[/rukus]]`, `/v1/metadata/{juz,hizb,rub,manzil,ruku}/:n`, `/v1/metadata/sajda`); 7-day cache; centralized LICENSE_METADATA
 - [x] `apps/backend/src/routes/v1/qul-mutashabihat.ts` — clusters + pairs + `watchlist?limit=N`; verse-key validator; 7-day cache
 - [x] `apps/backend/src/routes/v1/qul-wbw.ts` — word-by-word; morphology gated by `?include=morphology` (defense in depth: route flag + sub-reader `enableMorphology`); attribution per-surface in response body
-- [x] `apps/backend/src/lib/qul-license-registry.ts` — single source of truth for `LicenseMetadata` per QUL resource (license bump = one-line edit, not 14-file hunt)
+- [x] `apps/backend/src/lib/qul-license-registry.ts` — single source of truth for `LicenseMetadata` per QUL resource. **All 14 ingested reciters now registered** with QUL source IDs (110-119, 102-104, 107-108, 113-115, 117-118).
 - [ ] `apps/backend/src/routes/v1/qul-surah-info.ts`
-- [ ] `apps/backend/src/routes/v1/qul-layouts.ts` — page-faithful `/layouts/:layout/page/:N` + word-bbox lookup
-- [ ] `apps/backend/src/routes/v1/qul-recitations.ts` — segments + reciter catalog with license filtering
+- [ ] `apps/backend/src/routes/v1/qul-layouts.ts` — page-faithful `/layouts/:layout/page/:N` + word-bbox lookup (data ready in `qalaam_v1_qul_layouts_lines` for layouts `qpc-v2-15-lines`, `qpc-v1-15-lines`, `qpc-v4-tajweed-15`)
+- [x] `apps/backend/src/routes/v1/qul-recitations.ts` — `/v1/recitations/segmented`, `/v1/recitations/:reciterId/segments/:verseKey`, `/v1/recitations/:reciterId/word-at`. Returns all 14 licensed reciters. Verified 2026-05-04.
+- [x] `apps/backend/src/routes/v1/recitations.ts` — rewritten from 3-row hard-coded SEED to a query against `qalaam_v1_qul_recitations_reciters` joined with the license registry (`/v1/recitations` + `/v1/reciters` alias for HA). `/v1/audio/by_verse/:verseKey/:reciter` now resolves through `qalaam_v1_qul_recitations_audio` rather than synthesizing everyayah URLs. Verified live: `/v1/recitations` returns 14 reciters; `/v1/audio/by_verse/1:1/sudais` → `https://audio.qurancdn.com/Sudais/mp3/001001.mp3`.
 
 ### 17.5 UI consumption
 
 - [ ] DeepStudyPane: pull surah-info + word-by-word + (opt-in) morphology
-- [ ] Reader: layout switcher (Madani 15-line, Indopak 15-line, KFGQPC V4)
+- [ ] Reader: layout switcher (Madani 15-line, Indopak 15-line, KFGQPC V4) — backend data live; UI to switch
 - [ ] Hifdh portion engine: switch from juz-only to ruku/hizb/manzil-aware portion-splits
 - [ ] Mutashabihat-watchlist surface in `RatingTrigger` + `ParentDashboard`
+- [x] `/listen` page consumes `/v1/reciters` — renders 14 reciters as an editorial catalog (verified 2026-05-04 via `curl http://localhost:3111/listen`).
 
 ---
 

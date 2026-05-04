@@ -1,57 +1,95 @@
 /**
  * GET /v1/recitations → list of reciters Qalaam supports.
- * GET /v1/audio/by_verse/:verseKey/:reciter → resolved audio URL + word segments.
+ * GET /v1/reciters    → alias for the HA coordinator.
+ * GET /v1/audio/by_verse/:verseKey/:reciter → resolved per-ayah audio URL.
  *
- * v0.1: returns a small canonical seed (Mishary, Husary, Abdul Basit). The
- * v0.5 wiring fetches from QUL `chapter_reciters` + audio_segments, with QF
- * API fallback for reciter+ayah pairs QUL hasn't covered.
+ * Source: `qalaam_v1_qul_recitations_reciters` joined with the in-process
+ * license registry. Reciters absent from the registry are filtered out
+ * (fail-closed per ADR-0020). Per-ayah audio URLs come from
+ * `qalaam_v1_qul_recitations_audio` (populated by the QUL recitation ingest).
  */
+import { existsSync } from 'node:fs';
+
 import { QalaamError, parseVerseKey } from '@qalaam/core';
+import Database from 'better-sqlite3';
+
+import { LICENSE_METADATA } from '../../lib/qul-license-registry.js';
+
+import type { Config } from '../../config.js';
+import type { Database as DB } from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
 
-interface ReciterRow {
-  readonly id: string;
+interface ReciterPayload {
+  readonly id: string; // canonical slug — keeps stability when QUL renumbers
   readonly slug: string;
-  readonly name: { en: string; ar: string };
-  readonly style: 'murattal' | 'mujawwad';
-  readonly riwayah: 'hafs' | 'warsh';
-  readonly everyayahKey: string;
+  readonly name: { readonly en: string; readonly ar: string };
+  readonly style: 'murattal' | 'mujawwad' | 'muallim';
+  readonly riwayah: string;
+  readonly segmentCoverage: number;
+  readonly attribution: string;
+  readonly license: string;
 }
 
-const SEED_RECITERS: readonly ReciterRow[] = [
-  {
-    id: '00000000-0000-4000-8000-000000000001',
-    slug: 'mishary-alafasy',
-    name: { en: 'Mishary Rashid Alafasy', ar: 'مشاري بن راشد العفاسي' },
-    style: 'murattal',
-    riwayah: 'hafs',
-    everyayahKey: 'Alafasy_128kbps',
-  },
-  {
-    id: '00000000-0000-4000-8000-000000000002',
-    slug: 'mahmoud-khalil-husary',
-    name: { en: 'Mahmoud Khalil Al-Husary', ar: 'محمود خليل الحصري' },
-    style: 'murattal',
-    riwayah: 'hafs',
-    everyayahKey: 'Husary_128kbps',
-  },
-  {
-    id: '00000000-0000-4000-8000-000000000003',
-    slug: 'abdul-basit-abd-as-samad',
-    name: { en: 'Abdul Basit Abd as-Samad', ar: 'عبد الباسط عبد الصمد' },
-    style: 'murattal',
-    riwayah: 'hafs',
-    everyayahKey: 'Abdul_Basit_Murattal_64kbps',
-  },
-];
+let cachedDb: DB | undefined;
+function openReadOnly(path: string): DB {
+  if (!existsSync(path)) {
+    throw new QalaamError(
+      'qalaam.data.not-loaded',
+      `QUL SQLite not present at ${path}. Run \`make data-fetch\` then \`python3 scripts/data/ingest-qul-extras.py\`.`,
+    );
+  }
+  cachedDb ??= new Database(path, { readonly: true, fileMustExist: true });
+  return cachedDb;
+}
 
-export async function recitationsRoutes(fastify: FastifyInstance): Promise<void> {
+export async function recitationsRoutes(
+  fastify: FastifyInstance,
+  opts: { config: Config },
+): Promise<void> {
+  function listReciters(): readonly ReciterPayload[] {
+    const db = openReadOnly(opts.config.QUL_SQLITE_PATH);
+    const rows = db
+      .prepare<
+        [],
+        {
+          reciter_id: string;
+          name_arabic: string;
+          name_english: string;
+          style: 'murattal' | 'mujawwad' | 'muallim';
+          riwayah: string;
+          segment_coverage: number;
+        }
+      >(
+        `SELECT reciter_id, name_arabic, name_english, style, riwayah, segment_coverage
+         FROM qalaam_v1_qul_recitations_reciters
+         ORDER BY name_english ASC`,
+      )
+      .all();
+
+    return rows.flatMap((r): readonly ReciterPayload[] => {
+      const lic = LICENSE_METADATA.recitersByReciterId.get(r.reciter_id);
+      if (!lic) return []; // fail-closed: reciter present in DB but not licensed
+      return [
+        {
+          id: r.reciter_id,
+          slug: r.reciter_id,
+          name: { en: r.name_english, ar: r.name_arabic },
+          style: r.style,
+          riwayah: r.riwayah,
+          segmentCoverage: r.segment_coverage,
+          attribution: lic.attributionText,
+          license: lic.license,
+        },
+      ];
+    });
+  }
+
   const handler = async (
     _request: unknown,
     reply: { header: (k: string, v: string) => unknown },
-  ): Promise<{ reciters: readonly ReciterRow[]; api_version: string }> => {
-    void reply.header('cache-control', 'public, max-age=86400');
-    return { reciters: SEED_RECITERS, api_version: '0.0.1' };
+  ): Promise<{ reciters: readonly ReciterPayload[]; api_version: string }> => {
+    void reply.header('cache-control', 'public, max-age=3600');
+    return { reciters: listReciters(), api_version: '0.0.2' };
   };
 
   fastify.get(
@@ -59,16 +97,9 @@ export async function recitationsRoutes(fastify: FastifyInstance): Promise<void>
     { schema: { description: 'List supported reciters.', tags: ['recitations'] } },
     handler,
   );
-
-  // HA coordinator alias.
   fastify.get(
     '/v1/reciters',
-    {
-      schema: {
-        description: 'Alias of /v1/recitations for the HA coordinator.',
-        tags: ['recitations'],
-      },
-    },
+    { schema: { description: 'Alias of /v1/recitations.', tags: ['recitations'] } },
     handler,
   );
 
@@ -77,7 +108,7 @@ export async function recitationsRoutes(fastify: FastifyInstance): Promise<void>
     {
       schema: {
         description:
-          'Per-ayah audio URL for a reciter — resolves to everyayah.com or audio.qurancdn.com.',
+          'Per-ayah audio URL for a reciter — pulled from qalaam_v1_qul_recitations_audio.',
         tags: ['recitations'],
         params: {
           type: 'object',
@@ -90,26 +121,39 @@ export async function recitationsRoutes(fastify: FastifyInstance): Promise<void>
       },
     },
     async (request, reply) => {
-      const key = parseVerseKey(request.params.verseKey);
-      const reciter = SEED_RECITERS.find((r) => r.slug === request.params.reciter);
-      if (!reciter) {
+      const verseKey = parseVerseKey(request.params.verseKey);
+      const lic = LICENSE_METADATA.recitersByReciterId.get(request.params.reciter);
+      if (!lic) {
         throw new QalaamError(
-          'qalaam.data.not-loaded',
-          `Unknown reciter slug: ${request.params.reciter}. Try 'mishary-alafasy'.`,
+          'qalaam.adapter.capability-unsupported',
+          `Reciter ${request.params.reciter} is not licensed; audio refused. See ADR-0020.`,
           { outcomeImpacted: 'O-06' },
         );
       }
-      // everyayah.com URL pattern: <reciter_key>/<surah:003><ayah:003>.mp3
-      const [surah, ayah] = key.split(':') as [string, string];
-      const padded = `${surah.padStart(3, '0')}${ayah.padStart(3, '0')}`;
-      const audioUrl = `https://everyayah.com/data/${reciter.everyayahKey}/${padded}.mp3`;
+      const db = openReadOnly(opts.config.QUL_SQLITE_PATH);
+      const row = db
+        .prepare<[string, string], { audio_url: string; duration_ms: number | null }>(
+          `SELECT audio_url, duration_ms
+           FROM qalaam_v1_qul_recitations_audio
+           WHERE reciter_id = ? AND verse_key = ?`,
+        )
+        .get(request.params.reciter, verseKey);
+
+      if (!row) {
+        throw new QalaamError(
+          'qalaam.data.not-loaded',
+          `No audio row for ${request.params.reciter}/${verseKey}.`,
+        );
+      }
       void reply.header('cache-control', 'public, max-age=2592000'); // 30 days — audio is immutable
       return {
-        verseKey: key,
-        reciterSlug: reciter.slug,
-        audioUrl,
-        wordSegments: [],
-        source: 'everyayah',
+        verseKey,
+        reciterSlug: request.params.reciter,
+        audioUrl: row.audio_url,
+        durationMs: row.duration_ms,
+        attribution: lic.attributionText,
+        license: lic.license,
+        source: 'qul',
       };
     },
   );

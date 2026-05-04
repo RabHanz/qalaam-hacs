@@ -56,32 +56,57 @@ if ! grep -q remember_user_token "${COOKIE_JAR}"; then
 fi
 echo "    OK — logged in"
 
-# Resource list — slug + numeric id + filename hint. Each row produces one
-# downloaded file at data/qul-source/raw/<slug>-<id>.<ext>.zip plus a
-# sidecar JSON with sha256 + source URL the user reviews before ingest.
+# Resource list — slug + numeric id + format + filename hint.
+# IDs verified via authenticated walk of qul.tarteel.ai/resources/* index
+# pages on 2026-05-04 (see Docs/research/qul-inventory.md).
 RESOURCES=(
-    # quran-metadata bundle (one entry covers all 8 sub-tables)
-    "quran-metadata 63 sqlite quran-metadata-63.sqlite.zip"
-    # Mushaf layouts — Madani 15-line + KFGQPC V4 + Indopak 15-line
-    "mushaf-layout 1 sqlite mushaf-layout-madani-15.sqlite.zip"
-    "mushaf-layout 19 sqlite mushaf-layout-kfgqpc-v4.sqlite.zip"
-    "mushaf-layout 22 sqlite mushaf-layout-indopak-15.sqlite.zip"
-    # Quran scripts: Uthmani simple + KFGQPC Hafs + KFGQPC V4 tajweed + Indopak Nastaleeq
-    "quran-script 56 json quran-script-uthmani-simple.json.zip"
-    "quran-script 47 json quran-script-kfgqpc-v4-tajweed.json.zip"
-    "quran-script 59 json quran-script-indopak-nastaleeq.json.zip"
-    # Mutashabihat (the v2 confusion engine source)
-    "mutashabihat 1 json mutashabihat.json.zip"
-    # Similar ayahs
-    "similar-ayah 1 json similar-ayah.json.zip"
-    # Word-by-word translation packs (English first)
-    "translation 84 json wbw-en.json.zip"
-    # Surah info — English
-    "surah-info 3 json surah-info-en.json.zip"
-    # Recitations — Husary + Mishary + Abdul Basit Murattal (segmented)
-    "recitation 5 json recitation-husary.json.zip"
-    "recitation 9 json recitation-mishary.json.zip"
-    "recitation 11 json recitation-abdul-basit-murattal.json.zip"
+    # — mutashabihat (sqlite is the only format) — single resource —
+    "mutashabihat 73 sqlite mutashabihat-v2.sqlite.zip"
+    # — similar-ayah —
+    "similar-ayah 74 json similar-ayah.json.zip"
+
+    # — Recitations (ayah-by-ayah, segmented, Murattal/Hafs) —
+    "recitation 110 json recitation-husary.json.zip"
+    "recitation 118 json recitation-mishary-alafasy.json.zip"
+    "recitation 115 json recitation-abdul-basit-murattal.json.zip"
+    "recitation 108 json recitation-minshawi.json.zip"
+    "recitation 102 json recitation-sudais.json.zip"
+    "recitation 113 json recitation-maher-muaiqly.json.zip"
+    "recitation 117 json recitation-abu-bakr-shatri.json.zip"
+    "recitation 119 json recitation-saad-al-ghamdi.json.zip"
+    "recitation 103 json recitation-yasser-aldosari.json.zip"
+    "recitation 107 json recitation-saud-shuraim.json.zip"
+    "recitation 104 json recitation-hani-rifai.json.zip"
+    "recitation 109 json recitation-khalifa-al-tunaiji.json.zip"
+    "recitation 111 json recitation-husary-mujawwad.json.zip"
+    "recitation 114 json recitation-abdul-basit-mujawwad.json.zip"
+
+    # — Mushaf layouts (sqlite — pages + words) —
+    "mushaf-layout 2  json   mushaf-layout-2.json.zip"
+    "mushaf-layout 4  sqlite mushaf-layout-4.sqlite.zip"
+    "mushaf-layout 7  sqlite mushaf-layout-7.sqlite.zip"
+    "mushaf-layout 8  sqlite mushaf-layout-8.sqlite.zip"
+    "mushaf-layout 10 sqlite mushaf-layout-10.sqlite.zip"
+    "mushaf-layout 11 sqlite mushaf-layout-11.sqlite.zip"
+    "mushaf-layout 12 sqlite mushaf-layout-12.sqlite.zip"
+    "mushaf-layout 15 sqlite mushaf-layout-15.sqlite.zip"
+    "mushaf-layout 19 sqlite mushaf-layout-19.sqlite.zip"
+    "mushaf-layout 21 sqlite mushaf-layout-21.sqlite.zip"
+
+    # — Quran metadata (8 tables, all useful for portion engine) —
+    "quran-metadata 63 sqlite quran-metadata-rub.sqlite.zip"
+    "quran-metadata 64 sqlite quran-metadata-sajda.sqlite.zip"
+    "quran-metadata 65 sqlite quran-metadata-ayah.sqlite.zip"
+    "quran-metadata 66 sqlite quran-metadata-juz.sqlite.zip"
+    "quran-metadata 67 sqlite quran-metadata-hizb.sqlite.zip"
+    "quran-metadata 68 sqlite quran-metadata-manzil.sqlite.zip"
+    "quran-metadata 69 sqlite quran-metadata-ruku.sqlite.zip"
+    "quran-metadata 70 sqlite quran-metadata-surah.sqlite.zip"
+
+    # — Quran scripts (priority three for v0.5 reader) —
+    "quran-script 56 json   quran-script-uthmani.json.zip"
+    "quran-script 47 json   quran-script-v4-tajweed.json.zip"
+    "quran-script 59 json   quran-script-indopak-nastaleeq.json.zip"
 )
 
 echo "[2/3] Walking ${#RESOURCES[@]} resources"

@@ -83,36 +83,150 @@ export const LICENSE_METADATA = {
     ],
   ]),
 
-  /** Per-reciter LicenseMetadata map; add a row when a new reciter ships. */
+  /**
+   * Per-reciter LicenseMetadata map; add a row when a new reciter ships.
+   * Slugs match `qalaam_v1_qul_recitations_reciters.reciter_id`. Each entry
+   * records the upstream QUL resource so a license bump is a one-line edit.
+   */
   recitersByReciterId: new Map<string, LicenseMetadata>([
     [
       'husary',
       {
-        sourceId: 'everyayah-husary',
-        sourceUrl: 'https://everyayah.com/data/Husary_128kbps/',
+        sourceId: 'qul-recitation-110',
+        sourceUrl: 'https://qul.tarteel.ai/resources/recitation/110',
         license: 'per-reciter',
         attributionRequired: true,
-        attributionText: 'Mahmoud Khalil Al-Husary (via EveryAyah, sourced through QUL)',
+        attributionText: 'Mahmoud Khalil Al-Husary (Murattal/Hafs) — via QUL by Tarteel AI',
+      },
+    ],
+    [
+      'husary-mujawwad',
+      {
+        sourceId: 'qul-recitation-111',
+        sourceUrl: 'https://qul.tarteel.ai/resources/recitation/111',
+        license: 'per-reciter',
+        attributionRequired: true,
+        attributionText: 'Mahmoud Khalil Al-Husary (Mujawwad/Hafs) — via QUL by Tarteel AI',
       },
     ],
     [
       'mishary-alafasy',
       {
-        sourceId: 'everyayah-alafasy',
-        sourceUrl: 'https://everyayah.com/data/Alafasy_128kbps/',
+        sourceId: 'qul-recitation-118',
+        sourceUrl: 'https://qul.tarteel.ai/resources/recitation/118',
         license: 'per-reciter',
         attributionRequired: true,
-        attributionText: 'Mishary Rashid Alafasy (via EveryAyah, sourced through QUL)',
+        attributionText: 'Mishary Rashid Al-Afasy (Murattal/Hafs) — via QUL by Tarteel AI',
       },
     ],
     [
-      'abdul-basit-abd-as-samad',
+      'sudais',
       {
-        sourceId: 'everyayah-abdul-basit',
-        sourceUrl: 'https://everyayah.com/data/Abdul_Basit_Murattal_64kbps/',
+        sourceId: 'qul-recitation-102',
+        sourceUrl: 'https://qul.tarteel.ai/resources/recitation/102',
         license: 'per-reciter',
         attributionRequired: true,
-        attributionText: 'Abdul Basit Abd as-Samad — Murattal (via EveryAyah, sourced through QUL)',
+        attributionText: 'Abdul Rahman Al-Sudais (Murattal/Hafs) — via QUL by Tarteel AI',
+      },
+    ],
+    [
+      'maher-muaiqly',
+      {
+        sourceId: 'qul-recitation-113',
+        sourceUrl: 'https://qul.tarteel.ai/resources/recitation/113',
+        license: 'per-reciter',
+        attributionRequired: true,
+        attributionText: 'Maher Al-Muaiqly (Murattal/Hafs) — via QUL by Tarteel AI',
+      },
+    ],
+    [
+      'minshawi',
+      {
+        sourceId: 'qul-recitation-108',
+        sourceUrl: 'https://qul.tarteel.ai/resources/recitation/108',
+        license: 'per-reciter',
+        attributionRequired: true,
+        attributionText: 'Muhammad Siddiq Al-Minshawi (Murattal/Hafs) — via QUL by Tarteel AI',
+      },
+    ],
+    [
+      'abu-bakr-shatri',
+      {
+        sourceId: 'qul-recitation-117',
+        sourceUrl: 'https://qul.tarteel.ai/resources/recitation/117',
+        license: 'per-reciter',
+        attributionRequired: true,
+        attributionText: 'Abu Bakr Al-Shatri (Murattal/Hafs) — via QUL by Tarteel AI',
+      },
+    ],
+    [
+      'saad-al-ghamdi',
+      {
+        sourceId: 'qul-recitation-119',
+        sourceUrl: 'https://qul.tarteel.ai/resources/recitation/119',
+        license: 'per-reciter',
+        attributionRequired: true,
+        attributionText: 'Saad Al-Ghamdi (Murattal/Hafs) — via QUL by Tarteel AI',
+      },
+    ],
+    [
+      'abdul-basit-murattal',
+      {
+        sourceId: 'qul-recitation-115',
+        sourceUrl: 'https://qul.tarteel.ai/resources/recitation/115',
+        license: 'per-reciter',
+        attributionRequired: true,
+        attributionText: 'Abdul Basit Abd as-Samad (Murattal/Hafs) — via QUL by Tarteel AI',
+      },
+    ],
+    [
+      'abdul-basit-mujawwad',
+      {
+        sourceId: 'qul-recitation-114',
+        sourceUrl: 'https://qul.tarteel.ai/resources/recitation/114',
+        license: 'per-reciter',
+        attributionRequired: true,
+        attributionText: 'Abdul Basit Abd as-Samad (Mujawwad/Hafs) — via QUL by Tarteel AI',
+      },
+    ],
+    [
+      'yasser-aldosari',
+      {
+        sourceId: 'qul-recitation-103',
+        sourceUrl: 'https://qul.tarteel.ai/resources/recitation/103',
+        license: 'per-reciter',
+        attributionRequired: true,
+        attributionText: 'Yasser Al-Dosari (Murattal/Hafs) — via QUL by Tarteel AI',
+      },
+    ],
+    [
+      'saud-shuraim',
+      {
+        sourceId: 'qul-recitation-107',
+        sourceUrl: 'https://qul.tarteel.ai/resources/recitation/107',
+        license: 'per-reciter',
+        attributionRequired: true,
+        attributionText: 'Saud Al-Shuraim (Murattal/Hafs) — via QUL by Tarteel AI',
+      },
+    ],
+    [
+      'hani-rifai',
+      {
+        sourceId: 'qul-recitation-104',
+        sourceUrl: 'https://qul.tarteel.ai/resources/recitation/104',
+        license: 'per-reciter',
+        attributionRequired: true,
+        attributionText: 'Hani Al-Rifai (Murattal/Hafs) — via QUL by Tarteel AI',
+      },
+    ],
+    [
+      'khalifa-al-tunaiji',
+      {
+        sourceId: 'qul-recitation-109',
+        sourceUrl: 'https://qul.tarteel.ai/resources/recitation/109',
+        license: 'per-reciter',
+        attributionRequired: true,
+        attributionText: 'Khalifa Al-Tunaiji (Murattal/Hafs) — via QUL by Tarteel AI',
       },
     ],
   ]),

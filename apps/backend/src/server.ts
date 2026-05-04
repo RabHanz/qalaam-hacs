@@ -68,7 +68,7 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   await app.register(healthRoutes);
   await app.register(versesRoutes, { config });
   await app.register(chaptersRoutes, { config });
-  await app.register(recitationsRoutes);
+  await app.register(recitationsRoutes, { config });
   await app.register(hifdhRoutes);
   await app.register(hifdhStateRoutes);
   await app.register(nowPlayingRoutes);
