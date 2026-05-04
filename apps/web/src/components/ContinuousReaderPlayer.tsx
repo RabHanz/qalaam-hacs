@@ -396,10 +396,9 @@ export function ContinuousReaderPlayer({
       setActiveBuffer((b) => (b === 'A' ? 'B' : 'A'));
       setVerseIdx((i) => i + 1);
     } else if (activeSurah < 114) {
-      // End of surah → navigate to the next surah's /read page so the
-      // visible reader page actually changes. Persist a continue=1
-      // query param + last-played verse 1:1 so the new page resumes
-      // continuous playback from the top automatically.
+      // End of surah → navigate appropriately. If we're on a /mushaf
+      // page, advance to the next mushaf page (which contains the
+      // next surah's verses); otherwise navigate to /read/N+1.
       try {
         const next = activeSurah + 1;
         const lp = (() => {
@@ -416,9 +415,17 @@ export function ContinuousReaderPlayer({
       } catch {
         /* ignore */
       }
-      // Hard navigate — the new page will mount the player fresh and
-      // auto-resume because of the continue flag above.
-      window.location.href = `/read/${(activeSurah + 1).toString()}?continue=1`;
+      const path = window.location.pathname;
+      const mushafMatch = path.match(/^\/mushaf\/([^/]+)\//);
+      if (mushafMatch) {
+        // On /mushaf — go to the page-for the next surah's first verse
+        // in the SAME layout. Server will redirect to the right page.
+        const layout = mushafMatch[1] ?? 'madinah';
+        const nextVk = `${(activeSurah + 1).toString()}:1`;
+        window.location.href = `/mushaf/${layout}/page-for/${encodeURIComponent(nextVk)}?continue=1`;
+      } else {
+        window.location.href = `/read/${(activeSurah + 1).toString()}?continue=1`;
+      }
     } else {
       setActive(false);
       setPlaying(false);

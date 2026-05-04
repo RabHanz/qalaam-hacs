@@ -31,6 +31,19 @@ import { HairlineDivider } from './Glyph.js';
 export interface VerseLite {
   readonly verseKey: string;
   readonly textUthmani: string;
+  readonly textIndopak?: string | null;
+  readonly textImlaei?: string | null;
+}
+
+/**
+ * Pick the best Arabic text for the active layout. Falls back to
+ * Uthmani when the script-specific field isn't present.
+ */
+function textForLayout(v: VerseLite, layoutSlug: string): string {
+  if (layoutSlug === 'kfgqpc_v1' || layoutSlug === 'indopak') {
+    return v.textIndopak ?? v.textUthmani;
+  }
+  return v.textUthmani;
 }
 
 interface TranslationItem {
@@ -426,13 +439,14 @@ export function ReadSurfaceClient({
         {viewMode === 'continuous' ? (
           verses.map((v) => (
             <AyahCard
-              key={v.verseKey}
+              key={`${v.verseKey}-${activeLayoutSlug}`}
               verseKey={v.verseKey}
-              arabic={v.textUthmani}
+              arabic={textForLayout(v, activeLayoutSlug)}
               translation={translation === 'none' ? null : translationMap.get(v.verseKey) ?? null}
               tafsirSlug={tafsirSlug}
               reciterSlug={reciter}
               apiBase={apiBase}
+              layoutSlug={activeLayoutSlug}
               highlightWordIndex={
                 highlight?.verseKey === v.verseKey ? highlight.wordIndex : null
               }
@@ -653,11 +667,12 @@ function SingleAyahView({
         ) : (
           <AyahCard
             verseKey={v.verseKey}
-            arabic={v.textUthmani}
+            arabic={textForLayout(v, layoutSlug)}
             translation={translation === 'none' ? null : translationMap.get(v.verseKey) ?? null}
             tafsirSlug={tafsirSlug}
             reciterSlug={reciterSlug}
             apiBase={apiBase}
+            layoutSlug={layoutSlug}
             highlightWordIndex={
               highlight?.verseKey === v.verseKey ? highlight.wordIndex : null
             }

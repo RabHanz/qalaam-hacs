@@ -115,6 +115,10 @@ export default async function ReadSurahPage({ params }: PageProps): Promise<Reac
   const verses: readonly VerseLite[] = response.verses.map((v) => ({
     verseKey: v.verseKey,
     textUthmani: v.textUthmani,
+    // Pull all script variants the backend ships. Continuous reader
+    // mode picks the right one based on active layout.
+    textIndopak: (v as unknown as { textIndopak?: string | null }).textIndopak ?? null,
+    textImlaei: (v as unknown as { textImlaei?: string | null }).textImlaei ?? null,
   }));
 
   // Metadata fetches use a short cache window so name/translator/layout

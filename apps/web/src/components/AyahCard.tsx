@@ -44,6 +44,9 @@ interface AyahCardProps {
    *  player. When non-null, the matching word in this card is painted
    *  with the highlight color. */
   readonly highlightWordIndex?: number | null;
+  /** Active layout slug — drives the script + font for the verse
+   *  rendering so /read continuous mode honors the layout chip. */
+  readonly layoutSlug?: string;
 }
 
 function arabicNumeral(n: number): string {
@@ -126,7 +129,12 @@ export function AyahCard({
   tafsirSlug,
   reciterSlug,
   highlightWordIndex,
+  layoutSlug,
 }: AyahCardProps): ReactNode {
+  const fontFamily =
+    layoutSlug === 'kfgqpc_v1' || layoutSlug === 'indopak'
+      ? '"Noto Nastaliq Urdu", "Scheherazade New", "Noto Naskh Arabic", serif'
+      : '"UthmanicHafs", "Amiri Quran", "Noto Naskh Arabic", serif';
   const apiBase = resolveApiBase();
   const [playing, setPlaying] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
@@ -431,8 +439,9 @@ export function AyahCard({
       <p
         dir="rtl"
         lang="ar"
-        className="font-arabic text-ink-strong text-center leading-[1.95] sm:leading-[2.05] mb-5 sm:mb-7 break-words"
+        className="text-ink-strong text-center leading-[1.95] sm:leading-[2.05] mb-5 sm:mb-7 break-words"
         style={{
+          fontFamily,
           fontSize: 'clamp(1.35rem, 0.95rem + 1.4vw, 2.1rem)',
           unicodeBidi: 'plaintext',
           fontWeight: 600,
@@ -443,20 +452,38 @@ export function AyahCard({
         aria-label={`Verse ${verseKey}`}
       >
         {(() => {
-          // Use self-driven highlight (this ayah's own Listen button)
-          // OR the prop-driven one (global continuous player) —
-          // whichever is non-null.
+          // Split into words; render each as a span (so the active one
+          // can pick up recite-highlight). The TRAILING word is the
+          // verse-end digit (e.g. "١") — render it as a proper rosette
+          // anchor in UthmanicHafs (matches the mushaf rendering).
           const idx = selfHighlightIdx ?? highlightWordIndex ?? null;
-          if (idx === null || idx === undefined) return arabic;
-          return arabic.split(/\s+/).map((word, i, arr) => (
-            <span
-              key={i}
-              className={i === idx ? 'recite-highlight' : undefined}
-            >
-              {word}
-              {i < arr.length - 1 ? ' ' : ''}
-            </span>
-          ));
+          const words = arabic.split(/\s+/);
+          const ARABIC_DIGITS_RE = /^[٠-٩]+$/;
+          return words.map((word, i, arr) => {
+            const isLast = i === arr.length - 1;
+            const isDigit = ARABIC_DIGITS_RE.test(word);
+            const highlighted = idx !== null && i === idx;
+            const className = highlighted ? 'recite-highlight' : undefined;
+            if (isLast && isDigit) {
+              return (
+                <span
+                  key={i}
+                  className={`ayah-end ${className ?? ''}`}
+                  style={{ fontFamily: '"UthmanicHafs", "Amiri Quran", serif' }}
+                  title={`Ayah ${verseKey} — ends here`}
+                  aria-label={`End of ayah ${verseKey}`}
+                >
+                  {word}
+                </span>
+              );
+            }
+            return (
+              <span key={i} className={className}>
+                {word}
+                {!isLast ? ' ' : ''}
+              </span>
+            );
+          });
         })()}
       </p>
 

@@ -449,10 +449,12 @@ function renderLineText(
           aria-label={`End of ayah ${w.verseKey}`}
           className="ayah-end hover:text-leaf"
           style={{
-            fontFamily: '"UthmanicHafs", "Amiri Quran", serif',
-            display: 'inline-block',
-            unicodeBidi: 'isolate',
-          }}
+            fontFamily: '"UthmanicHafs", "Amiri Quran", "Noto Naskh Arabic", serif',
+            // Plain inline (not inline-block) keeps the bidi flow
+            // intact. !important via inline overrides the parent
+            // Nastaliq stack so the rosette glyph from UthmanicHafs
+            // can resolve.
+          } as React.CSSProperties}
         >
           {ayahDigit(w.verseKey)}
         </a>,
