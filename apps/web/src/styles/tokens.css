@@ -1,68 +1,47 @@
 /*
- * Qalaam design tokens. Per CLAUDE.md §11.3: design tokens, not ad-hoc values.
+ * Legacy compatibility tokens.
  *
- * Palette per strategy §21.14:
- *   - Default to Tarteel-grade calm: cream / teal / gold.
- *   - Quranly-style expressiveness comes through the Kids Mode toggle, not the default.
+ * The canonical Tailwind v4 `@theme` block now lives in `globals.css`
+ * (see `--color-paper-*`, `--color-ink-*`, `--color-leaf-*`, `--font-display`,
+ * `--font-sans`, `--font-arabic`).
  *
- * Typography per strategy §11.4:
- *   - Latin: Inter (humanist sans).
- *   - Arabic: KFGQPC HAFS Uthmanic Script V2 primary, IndoPak alternative.
+ * This file keeps the older `--color-cream-*` / `--color-teal-*` /
+ * `--color-gold-*` / `--color-surface-*` / `--font-arabic-uthmani` /
+ * `--radius-*` / `--motion-*` aliases alive so packages that emit inline
+ * styles against those names (`@qalaam/ui`, `@qalaam/ui-quran`,
+ * `@qalaam/ui-hifdh`) keep rendering correctly during the migration.
  *
- * The Tarteel mistake-color vocabulary (red/green/yellow/brown) is preserved
- * verbatim per §21.5 / §21.11.2.
+ * Variables are declared on `:root` (not `@theme`) so they don't generate
+ * Tailwind utility classes — they're only consumed by inline `style={...}`.
  */
-@theme {
-  /* — Brand: Tarteel-grade restraint, warmer for family use — */
+:root {
+  /* paper-50/100/200 → cream-50/100/200 */
   --color-cream-50: #fbf9f4;
   --color-cream-100: #f7f4ee;
   --color-cream-200: #ece6d8;
+
+  /* ink-* → teal-* */
   --color-teal-50: #e8f1f3;
   --color-teal-500: #1b4d5a;
   --color-teal-700: #103840;
+
+  /* leaf-* → gold-* */
   --color-gold-300: #d6a657;
   --color-gold-500: #b6862c;
 
-  /* — Functional: Tarteel-borrowed mistake colors — */
-  --color-mistake-error: #c0392b;     /* red */
-  --color-mistake-correct: #2e7d4f;   /* green */
-  --color-mistake-tashkeel: #c8a536;  /* yellow */
-  --color-mistake-peeked: #8a6d3b;    /* brown */
-
-  /* — Surfaces — */
-  --color-surface-base: var(--color-cream-100);
+  --color-surface-base: var(--color-cream-50);
   --color-surface-raised: #ffffff;
   --color-surface-overlay: rgba(16, 56, 64, 0.04);
 
-  /* — Type scale — */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  /* legacy font aliases consumed by inline-style packages */
   --font-arabic-uthmani: 'KFGQPC HAFS Uthmanic Script V2', 'Amiri Quran', serif;
   --font-arabic-indopak: 'IndoPak', 'Scheherazade New', serif;
 
-  --text-display: 2.25rem;
-  --text-heading: 1.5rem;
-  --text-body: 1rem;
-  --text-caption: 0.875rem;
-  --text-arabic-base: 2rem;
-  --text-arabic-large: 2.75rem;
-
-  /* — Spacing scale (4-pt base) — */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
-
-  /* — Radius — */
   --radius-sm: 0.5rem;
   --radius-md: 1rem;
   --radius-lg: 1.5rem;
   --radius-pill: 9999px;
 
-  /* — Motion: reduced-motion-aware (CLAUDE.md §11.3) — */
   --motion-fast: 120ms;
   --motion-normal: 220ms;
   --motion-slow: 380ms;
@@ -70,7 +49,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  @theme {
+  :root {
     --color-surface-base: #0e1416;
     --color-surface-raised: #131c1f;
     --color-surface-overlay: rgba(255, 255, 255, 0.04);
@@ -79,7 +58,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  @theme {
+  :root {
     --motion-fast: 0ms;
     --motion-normal: 0ms;
     --motion-slow: 0ms;

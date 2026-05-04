@@ -1,12 +1,130 @@
+/*
+ * Qalaam web — global styles.
+ *
+ * Design language: "Editorial scripture." Warm paper + ink + leaf-gold,
+ * with a coherent dark-mode treatment that flips palette at the
+ * SEMANTIC level (c-bg / c-surface / c-text), not just the html bg.
+ *
+ *   - Display: Fraunces (variable serif, optical sizing). Replaces the
+ *     generic Inter/Roboto every Quran app ships.
+ *   - Body: IBM Plex Sans (humanist, restrained, premium).
+ *   - Arabic: KFGQPC HAFS Uthmanic Script V2 → Amiri Quran fallback.
+ *
+ * Per CLAUDE.md §11.3 design non-negotiables: AA contrast, reduced-motion-
+ * aware, skeleton (not spinner), gold focus ring, RTL-aware, dark/light.
+ */
+
 @import 'tailwindcss';
 @import './tokens.css';
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Amiri:wght@400;700&family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap');
+
+@theme {
+  /* — Brand palette (raw values, never used directly in JSX) — */
+  --color-paper-50: #fbf9f4;
+  --color-paper-100: #f3eee2;
+  --color-paper-200: #e8dfc8;
+  --color-paper-300: #d6c9a8;
+
+  --color-ink-50: #e8f1f3;
+  --color-ink-300: #4d7e8a;
+  --color-ink-500: #1b4d5a;
+  --color-ink-700: #103840;
+  --color-ink-900: #04181d;
+
+  --color-leaf-300: #e2b46a;
+  --color-leaf-500: #c69426;
+  --color-leaf-700: #8a6614;
+
+  /* mistake-color vocabulary verbatim (Tarteel borrow) */
+  --color-mistake-error: #c0392b;
+  --color-mistake-correct: #2e7d4f;
+  --color-mistake-tashkeel: #c8a536;
+  --color-mistake-peeked: #8a6d3b;
+
+  /* fonts (Tailwind v4 generates font-display / font-sans / font-arabic) */
+  --font-display: 'Fraunces', 'Times New Roman', Georgia, serif;
+  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  /*
+   * Arabic font stack: prefer KFGQPC HAFS Uthmanic Script V2 (paid, may
+   * be installed locally via the QUL fonts pack) → Amiri Quran (Google
+   * Fonts, full Quranic glyph support, 1 weight only) → Noto Naskh
+   * Arabic (Google Fonts, 4 weights, robust fallback) → system serif.
+   */
+  --font-arabic: 'KFGQPC HAFS Uthmanic Script V2', 'Amiri Quran', 'Noto Naskh Arabic', 'Scheherazade New', 'Amiri', serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+/*
+ * SEMANTIC tokens — every utility class below reads from these so the
+ * whole language flips in dark mode without per-component overrides.
+ *
+ * Light mode:    paper page, ink-700 text, gold accent.
+ * Dark mode:     ink-900 page, paper-50 text, brighter gold.
+ */
+:root {
+  --c-bg: #fbf9f4;            /* page */
+  --c-bg-soft: #f3eee2;       /* slight inset / nav */
+  --c-bg-deep: #e8dfc8;       /* hairlines */
+  --c-surface: #ffffff;       /* raised cards */
+  --c-text: #103840;          /* body text */
+  --c-text-strong: #04181d;   /* primary headings, Arabic */
+  --c-text-muted: #4d7e8a;    /* captions, meta */
+  --c-accent: #c69426;        /* gold */
+  --c-accent-soft: #e2b46a;   /* gold tints */
+  --c-rule: rgba(16, 56, 64, 0.14);
+  --c-rule-strong: rgba(16, 56, 64, 0.22);
+  --c-shadow: rgba(4, 24, 29, 0.07);
+  --c-shadow-strong: rgba(4, 24, 29, 0.14);
+}
+
+/*
+ * Dark-mode tokens. Default is LIGHT. Dark mode is opt-in via either:
+ *
+ *   1. The user toggling to "Dark" in the navbar (sets <html data-theme="dark">),
+ *   2. OR they pick "System" in the toggle AND the OS reports
+ *      prefers-color-scheme: dark.
+ *
+ * If the user picks "Light" or "System" with light OS, light tokens win.
+ *
+ * Light mode keeps the warm-paper aesthetic. Dark mode swings to deep
+ * teal-black with brighter gold; Arabic (text-strong) goes pure white
+ * for AA contrast at large font sizes (Quranic verses).
+ */
+:root[data-theme='dark'] {
+  --c-bg: #0d1417;
+  --c-bg-soft: #131c20;
+  --c-bg-deep: #1a262b;
+  --c-surface: #1a262b;
+  --c-text: #e6ebec;
+  --c-text-strong: #ffffff;
+  --c-text-muted: #92a8ae;
+  --c-accent: #e8c478;
+  --c-accent-soft: #d6a657;
+  --c-rule: rgba(255, 255, 255, 0.10);
+  --c-rule-strong: rgba(255, 255, 255, 0.20);
+  --c-shadow: rgba(0, 0, 0, 0.36);
+  --c-shadow-strong: rgba(0, 0, 0, 0.55);
+}
+
+/*
+ * "System" choice (no data-theme attribute) falls through to light by
+ * default. We DO NOT auto-honor `prefers-color-scheme: dark` for
+ * unknown-theme users — keeping the editorial-paper aesthetic as the
+ * brand-consistent default.
+ *
+ * Users who explicitly want dark always have the toggle one click away.
+ */
 
 @layer base {
   html {
     font-family: var(--font-sans);
-    background: var(--color-surface-base);
-    color: var(--color-teal-700);
+    background: var(--c-bg);
+    color: var(--c-text);
+    font-feature-settings: 'kern', 'liga', 'calt';
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   body {
@@ -14,35 +132,190 @@
     min-height: 100vh;
   }
 
-  /* RTL-aware mixed-language line wrapping per CLAUDE.md design non-negotiable. */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    color: var(--c-text-strong);
+  }
+
   .arabic {
-    font-family: var(--font-arabic-uthmani);
+    font-family: var(--font-arabic);
     direction: rtl;
     unicode-bidi: plaintext;
     line-height: 1.9;
+    font-weight: 500;
   }
 
-  /* Skeleton loader per CLAUDE.md §11.3: skeletons, not spinners. */
+  /*
+   * Default font-weight for the Arabic stack. Amiri Quran ships at
+   * weight 400 only — without bumping, the thin strokes wash out
+   * against cream backgrounds. We use 500 globally and 600 on the
+   * largest verse settings (handled inline). Noto Naskh has 400-700.
+   */
+  .font-arabic { font-weight: 500; }
+
+  ::selection {
+    background: color-mix(in srgb, var(--c-accent) 28%, transparent);
+    color: var(--c-text-strong);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--c-accent);
+    outline-offset: 3px;
+    border-radius: 3px;
+  }
+
+  .smallcaps {
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.10em;
+    font-weight: 500;
+  }
+
+  .dropcap::first-letter {
+    font-family: var(--font-display);
+    font-size: 4em;
+    line-height: 0.85;
+    float: left;
+    margin: 0.05em 0.1em 0 0;
+    color: var(--c-accent);
+    font-weight: 500;
+  }
+
   .skeleton {
-    background: linear-gradient(
+    background: var(--c-bg-deep);
+    background-image: linear-gradient(
       90deg,
-      var(--color-surface-overlay) 0%,
-      var(--color-cream-200) 50%,
-      var(--color-surface-overlay) 100%
+      transparent 0%,
+      color-mix(in srgb, var(--c-surface) 80%, transparent) 50%,
+      transparent 100%
     );
     background-size: 200% 100%;
-    animation: shimmer 1.5s infinite linear;
-    border-radius: var(--radius-sm);
+    animation: paper-fade 2.4s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
+    border-radius: 2px;
   }
-
-  @keyframes shimmer {
+  @keyframes paper-fade {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
   }
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton { animation: none; }
+  }
 
-  /* Focus ring (keyboard nav non-negotiable per CLAUDE.md). */
-  :focus-visible {
-    outline: 2px solid var(--color-gold-500);
-    outline-offset: 2px;
+  .rule-hairline { border-top: 1px solid var(--c-rule); }
+  .rule-medium { border-top: 1px solid var(--c-rule-strong); }
+
+  .pull-quote {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.5rem;
+    line-height: 1.4;
+    color: var(--c-text);
+  }
+
+  /*
+   * Page texture — soft radial color washes that add WARMTH without
+   * distracting noise. Tinted gold + ink, very subtle.
+   */
+  .paper-texture {
+    background-color: var(--c-bg);
+    background-image:
+      radial-gradient(at 18% 8%, color-mix(in srgb, var(--c-accent-soft) 9%, transparent) 0%, transparent 50%),
+      radial-gradient(at 82% 92%, color-mix(in srgb, var(--c-accent) 6%, transparent) 0%, transparent 55%);
+  }
+
+  /* Cards */
+  .paper-card {
+    background: var(--c-bg-soft);
+    border: 1px solid var(--c-rule);
+    border-radius: 4px;
+  }
+  .paper-card-raised {
+    background: var(--c-surface);
+    border: 1px solid var(--c-rule);
+    border-radius: 6px;
+    box-shadow: 0 1px 2px var(--c-shadow);
+  }
+  .paper-card-elevated {
+    background: var(--c-surface);
+    border: 1px solid var(--c-rule);
+    border-radius: 8px;
+    box-shadow: 0 12px 32px -16px var(--c-shadow-strong),
+                0 1px 2px var(--c-shadow);
+  }
+
+  .rosette {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5em;
+    height: 1.5em;
+    color: var(--c-accent);
+    margin: 0 0.3em;
+    vertical-align: middle;
+  }
+}
+
+@layer utilities {
+  .font-display { font-family: var(--font-display); }
+  .font-sans { font-family: var(--font-sans); }
+  .font-arabic { font-family: var(--font-arabic); }
+
+  /* Semantic color utilities — flip in dark mode automatically. */
+  .text-ink { color: var(--c-text); }
+  .text-ink-strong { color: var(--c-text-strong); }
+  .text-ink-muted { color: var(--c-text-muted); }
+  .text-leaf { color: var(--c-accent); }
+  .text-leaf-soft { color: var(--c-accent-soft); }
+
+  .bg-paper { background: var(--c-bg); }
+  .bg-paper-100 { background: var(--c-bg-soft); }
+  .bg-paper-200 { background: var(--c-bg-deep); }
+  .bg-surface { background: var(--c-surface); }
+  .bg-ink { background: var(--c-text-strong); }
+  .bg-leaf { background: var(--c-accent); }
+
+  .border-hairline { border-color: var(--c-rule); }
+  .border-rule { border-color: var(--c-rule-strong); }
+  .border-leaf { border-color: var(--c-accent); }
+
+  /* RTL-mirror */
+  [dir='rtl'] .rtl-flip { transform: scaleX(-1); }
+
+  /* Editorial grid */
+  .grid-editorial { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+  @media (min-width: 1024px) {
+    .grid-editorial-3 { grid-template-columns: 1.1fr 1fr 1.4fr; }
+  }
+
+  /* Staggered entrance */
+  .reveal {
+    opacity: 0;
+    transform: translateY(8px);
+    animation: reveal-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+  .reveal-1 { animation-delay: 60ms; }
+  .reveal-2 { animation-delay: 120ms; }
+  .reveal-3 { animation-delay: 180ms; }
+  .reveal-4 { animation-delay: 240ms; }
+  .reveal-5 { animation-delay: 300ms; }
+  @keyframes reveal-in {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal, .reveal-1, .reveal-2, .reveal-3, .reveal-4, .reveal-5 {
+      animation: none; opacity: 1; transform: none;
+    }
+  }
+
+  .hover-rise {
+    transition: transform 220ms cubic-bezier(0.2, 0, 0, 1), box-shadow 220ms;
+  }
+  .hover-rise:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px -14px var(--c-shadow-strong);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hover-rise:hover { transform: none; box-shadow: none; }
   }
 }

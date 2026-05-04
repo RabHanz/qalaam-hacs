@@ -1,14 +1,13 @@
 /**
  * Per-word translation pane for the deep-study reader.
  *
- * Reads /v1/wbw/:verseKey?lang=en (default) and renders each word with its
- * Arabic + English gloss. Optional `?include=morphology` is gated server-side
- * — when present, the pane shows root + lemma + POS as a third line per word.
+ * Reads /v1/wbw/:verseKey?lang=en (default). Renders each word as a
+ * little stacked card: Arabic on top (display size, RTL), English gloss
+ * below in IBM Plex Sans. Lays out as a flex-wrap RTL row so reading
+ * order matches the verse.
  *
- * Per ADR-0020 + Phase 17 §17.5: this is the bundle-safe surface (translation
- * is permissive-with-credit). Morphology is opt-in through a small toggle the
- * caller controls; the toggle isn't shown unless the runtime context permits
- * surfacing copyleft-derived data.
+ * Per ADR-0020 + Phase 17 §17.5: bundle-safe surface (translation is
+ * permissive-with-credit). Morphology opt-in, gated server-side.
  */
 import type { ReactNode } from 'react';
 
@@ -63,21 +62,22 @@ async function fetchWbw(
 export interface WordByWordPaneProps {
   readonly verseKey: string;
   readonly baseUrl?: string;
-  /**
-   * Include morphology (gpl-derivative). Default false. The caller must
-   * affirm the runtime permits surfacing copyleft data.
-   */
+  /** Include morphology (gpl-derivative). Default false. */
   readonly includeMorphology?: boolean;
 }
 
 export async function WordByWordPane({
   verseKey,
-  baseUrl = process.env.PUBLIC_API_URL ?? 'http://localhost:4100',
+  baseUrl = process.env.PUBLIC_API_URL ?? 'http://localhost:4111',
   includeMorphology = false,
 }: WordByWordPaneProps): Promise<ReactNode> {
   const payload = await fetchWbw(baseUrl, verseKey, { includeMorphology });
   if (!payload || payload.data.words.length === 0) {
-    return null;
+    return (
+      <p className="text-sm text-ink-muted italic">
+        Word-by-word not available for this verse yet.
+      </p>
+    );
   }
 
   const morphologyByIndex = new Map<number, Morphology>();
@@ -88,78 +88,30 @@ export async function WordByWordPane({
   }
 
   return (
-    <section
-      aria-label={`Word-by-word for ${verseKey}`}
-      style={{
-        background: 'var(--color-surface-raised, #fff)',
-        borderRadius: '1rem',
-        padding: '1rem 1.25rem',
-        boxShadow: '0 1px 2px rgba(16,56,64,0.06)',
-      }}
-    >
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'baseline',
-          justifyContent: 'space-between',
-          marginBottom: '0.75rem',
-        }}
-      >
-        <h3 style={{ margin: 0, fontSize: '1rem' }}>Word by word</h3>
-        <span style={{ fontSize: '0.75rem', opacity: 0.6 }}>{payload.attribution.translation}</span>
-      </header>
+    <div>
       <div
         dir="rtl"
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '0.75rem 1rem',
-          alignItems: 'flex-start',
-        }}
+        className="flex flex-wrap items-start gap-x-6 gap-y-5"
+        style={{ unicodeBidi: 'plaintext' }}
       >
         {payload.data.words.map((w) => {
           const morph = morphologyByIndex.get(w.wordIndex);
           return (
             <div
               key={`${w.verseKey}-${w.wordIndex.toString()}`}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                minWidth: '5.5rem',
-                maxWidth: '11rem',
-              }}
+              className="group flex min-w-[5.5rem] max-w-[12rem] flex-col items-center gap-1"
             >
               <span
-                style={{
-                  fontFamily: 'var(--font-arabic, serif)',
-                  fontSize: '1.5rem',
-                  lineHeight: 1.1,
-                }}
+                className="font-arabic text-2xl text-ink-strong group-hover:text-leaf transition-colors"
+                style={{ lineHeight: 1.1 }}
               >
                 {w.textArabic}
               </span>
-              <span
-                dir="ltr"
-                style={{
-                  marginTop: '0.25rem',
-                  fontSize: '0.8125rem',
-                  textAlign: 'center',
-                  opacity: 0.85,
-                }}
-              >
+              <span dir="ltr" className="text-xs text-center text-ink-muted leading-snug">
                 {w.translation}
               </span>
               {morph ? (
-                <span
-                  dir="ltr"
-                  style={{
-                    marginTop: '0.2rem',
-                    fontSize: '0.75rem',
-                    opacity: 0.6,
-                    textAlign: 'center',
-                  }}
-                >
+                <span dir="ltr" className="font-mono text-[10px] text-leaf/70 text-center smallcaps">
                   {[morph.root, morph.pos].filter(Boolean).join(' · ')}
                 </span>
               ) : null}
@@ -167,11 +119,13 @@ export async function WordByWordPane({
           );
         })}
       </div>
-      {includeMorphology && payload.attribution.morphology ? (
-        <footer style={{ marginTop: '0.75rem', fontSize: '0.7rem', opacity: 0.55 }}>
-          Morphology: {payload.attribution.morphology}
-        </footer>
-      ) : null}
-    </section>
+
+      <p className="mt-6 text-[10px] smallcaps text-ink-muted">
+        {payload.attribution.translation}
+        {includeMorphology && payload.attribution.morphology
+          ? ` · Morphology: ${payload.attribution.morphology}`
+          : ''}
+      </p>
+    </div>
   );
 }

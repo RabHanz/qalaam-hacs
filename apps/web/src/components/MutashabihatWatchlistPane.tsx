@@ -1,9 +1,10 @@
 /**
- * Mutashabihat watchlist surface.
+ * Mutashabihat watchlist — marginalia for the deep-study reader.
  *
- * Reads /v1/mutashabihat/watchlist/:verseKey?limit=N and surfaces the top
- * most-confused-with ayahs as a small "watch out for…" pane. This is the
- * v2 confusion-resolution differentiator (Tarteel + Quranly don't ship it).
+ * Reads /v1/mutashabihat/watchlist/:verseKey?limit=N. Renders as a side-
+ * margin "watch out for" panel with deep-link previews, like a critical
+ * edition's apparatus. Differentiator vs. Tarteel/Quranly which neither
+ * ship full mutashabihat watch.
  *
  * Per ADR-0020 + Phase 17 §17.5.
  */
@@ -46,62 +47,59 @@ export interface MutashabihatWatchlistPaneProps {
 
 export async function MutashabihatWatchlistPane({
   verseKey,
-  baseUrl = process.env.PUBLIC_API_URL ?? 'http://localhost:4100',
-  limit = 3,
+  baseUrl = process.env.PUBLIC_API_URL ?? 'http://localhost:4111',
+  limit = 4,
 }: MutashabihatWatchlistPaneProps): Promise<ReactNode> {
   const payload = await fetchWatchlist(baseUrl, verseKey, limit);
-  if (!payload || payload.data.length === 0) return null;
+
+  if (!payload || payload.data.length === 0) {
+    return (
+      <aside className="paper-card p-5">
+        <p className="smallcaps text-leaf text-xs">Mutashabihat</p>
+        <p className="mt-2 text-sm italic text-ink-muted leading-relaxed">
+          No similar passages flagged for {verseKey} yet.
+        </p>
+      </aside>
+    );
+  }
 
   return (
     <aside
-      aria-label={`Watch out for verses similar to ${verseKey}`}
-      style={{
-        background: 'var(--color-surface-raised, #fff)',
-        borderRadius: '0.875rem',
-        padding: '0.875rem 1rem',
-        boxShadow: '0 1px 2px rgba(16,56,64,0.06)',
-        borderInlineStart: '3px solid var(--color-gold-500, #b6862c)',
-      }}
+      aria-label={`Mutashabihat watchlist for ${verseKey}`}
+      className="paper-card-raised p-5 border-l-4 border-l-[var(--color-leaf-500)]"
     >
-      <header style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-        <h4 style={{ margin: 0, fontSize: '0.875rem' }}>Watch out for</h4>
-        <span style={{ fontSize: '0.75rem', opacity: 0.6 }}>
+      <div className="flex items-baseline justify-between mb-3">
+        <p className="smallcaps text-leaf text-xs">Watch out for</p>
+        <span className="text-[10px] smallcaps text-ink-muted">
           {payload.data.length.toString()} similar
         </span>
-      </header>
-      <ul
-        style={{
-          listStyle: 'none',
-          margin: '0.5rem 0 0',
-          padding: 0,
-          display: 'grid',
-          gap: '0.4rem',
-        }}
-      >
+      </div>
+      <ul className="grid gap-2 list-none p-0 m-0">
         {payload.data.map((p) => {
           const other = p.leftVerseKey === verseKey ? p.rightVerseKey : p.leftVerseKey;
           return (
-            <li
-              key={`${p.leftVerseKey}-${p.rightVerseKey}`}
-              style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}
-            >
+            <li key={`${p.leftVerseKey}-${p.rightVerseKey}`}>
               <a
                 href={`/study/${other.replace(':', '/')}`}
-                style={{ color: 'inherit', textDecoration: 'none', fontWeight: 500 }}
+                className="group block py-2 border-b border-hairline last:border-b-0"
               >
-                {other}
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="font-mono text-base tabular-nums text-ink group-hover:text-leaf transition-colors">
+                    {other}
+                  </span>
+                  <span className="text-[11px] smallcaps text-ink-muted">
+                    {(p.score * 100).toFixed(0)}% match
+                  </span>
+                </div>
+                {p.note ? (
+                  <p className="mt-1 text-xs text-ink-muted leading-snug">{p.note}</p>
+                ) : null}
               </a>
-              <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>
-                {(p.score * 100).toFixed(0)}% similar
-                {p.note ? ` · ${p.note}` : ''}
-              </span>
             </li>
           );
         })}
       </ul>
-      <footer style={{ marginTop: '0.5rem', fontSize: '0.7rem', opacity: 0.55 }}>
-        {payload.attribution}
-      </footer>
+      <p className="mt-3 text-[10px] smallcaps text-ink-muted">{payload.attribution}</p>
     </aside>
   );
 }
