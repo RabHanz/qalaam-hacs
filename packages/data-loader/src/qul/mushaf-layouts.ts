@@ -120,10 +120,15 @@ export function buildMushafLayoutsReader(db: DB, meta: LicenseMetadata): MushafL
        ORDER BY line_number ASC`,
     ),
     wordsOnLine: db.prepare<[string, number, number], RawWord>(
+      // Order by word_id (global mushaf-order, 1..N over the whole
+      // Quran) — NOT by word_index. word_index is per-verse, so a line
+      // that spans two verses (e.g. last word of 2:2 + first words of
+      // 2:3) would sort 2:3's index-0 word before 2:2's index-6 word,
+      // causing visual word reordering and apparent verse mixing.
       `SELECT word_id, word_index, verse_key, text
        FROM qalaam_v1_qul_layouts_words
        WHERE layout = ? AND page_number = ? AND line_number = ?
-       ORDER BY word_index ASC`,
+       ORDER BY word_id ASC`,
     ),
     pageForVerse: db.prepare<[string, string], { page_number: number; line_number: number }>(
       `SELECT page_number, line_number

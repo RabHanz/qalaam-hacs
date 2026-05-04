@@ -59,17 +59,7 @@ interface Props {
   readonly minFontPx?: number;
 }
 
-// Verse-end marker detection.
-// • Uthmani: bare Arabic-Indic digit ('٢')
-// • IndoPak Nastaleeq: combining-mark cluster ('۟', '۟ۙ', etc) using
-//   chars from U+06D6–U+06ED (small high marks) without any base
-//   Arabic letter.
-const ARABIC_DIGITS_RE = /^[٠-٩]+$/;
-const INDOPAK_END_RE = /^[ۖ-ۭ]+$/;
-function isAyahEndMarker(text: string): boolean {
-  const t = text.trim();
-  return ARABIC_DIGITS_RE.test(t) || INDOPAK_END_RE.test(t);
-}
+// (verse-end detection moved into renderLineText)
 
 const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
@@ -94,12 +84,10 @@ const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayout
 function fontStackFor(layoutSlug: string): string {
   switch (layoutSlug) {
     case 'kfgqpc_v1':
-      // IndoPak Nastaleeq orthography uses different combining marks
-      // (U+0670 alif khanjari, U+06DF small high rounded zero) that
-      // UthmanicHafs's OpenType subst tables interpret as rosette
-      // glyphs — producing spurious inline khatmas. Use a general-
-      // purpose Naskh that doesn't ligate IndoPak diacritics.
-      return '"Noto Naskh Arabic", "Amiri", "Amiri Quran", serif';
+      // IndoPak Nastaleeq → Noto Nastaliq Urdu (the authentic Nastaleeq
+      // calligraphic style used in Sub-Continental mushafs). Falls back
+      // to Scheherazade New / Noto Naskh Arabic if Nastaliq fails.
+      return '"Noto Nastaliq Urdu", "Scheherazade New", "Noto Naskh Arabic", "Amiri", serif';
     case 'kfgqpc_v4':
     case 'madani_15':
     default:
@@ -361,8 +349,19 @@ export function MushafLines({
               dir="rtl"
               lang="ar"
               className="w-full text-center"
-              style={{ unicodeBidi: 'plaintext', overflow: 'hidden' }}
+              style={{ overflow: 'hidden' }}
             >
+              {/* QUL's vetted rendering approach: ONE concatenated
+                  text run per line. Wrapping each word in its own
+                  inline element broke RTL bidi (the digit is class AN,
+                  fragmenting the line into LTR + RTL runs that the
+                  algorithm reordered). With one text node, the
+                  browser's standard bidi handles word + digit ordering
+                  correctly for Arabic. Verse-end digits are derived
+                  from verseKey so IndoPak's combining-mark cluster
+                  doesn't reach the renderer. Tajweed layer is a
+                  separate <span> overlay drawn on top of segments
+                  matching the cpfair/quran-tajweed annotations. */}
               <span
                 ref={(el) => {
                   lineRefs.current[idx] = el;
@@ -375,89 +374,10 @@ export function MushafLines({
                   fontWeight: 600,
                   whiteSpace: 'nowrap',
                   letterSpacing: '0',
+                  direction: 'rtl',
                 }}
               >
-                {line.words.map((w, i) => {
-                  const sep = i < line.words.length - 1 ? ' ' : '';
-                  if (isAyahEndMarker(w.text)) {
-                    // Always render the verse-end marker by deriving
-                    // the digit from `verseKey`. Trusting the source
-                    // word breaks for IndoPak (whose end-marker is the
-                    // tail-cluster '۟ۙ' — a non-printable char in
-                    // Naskh fonts) and ensures every layout shows the
-                    // proper Arabic-Indic verse number. UthmanicHafs's
-                    // OpenType substitution renders the digit as a
-                    // rosette automatically; Noto Naskh shows it
-                    // inline as a numeral.
-                    const ayahNum = w.verseKey.split(':')[1] ?? '';
-                    const arabicDigits = ayahNum
-                      .split('')
-                      .map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d)
-                      .join('');
-                    // Verse-end marker always rendered with UthmanicHafs
-                    // — its OpenType subst draws an authentic rosette
-                    // around the digit. Other layout fonts (Noto Naskh
-                    // for IndoPak) lack rosette glyphs, so without this
-                    // override the marker shows as a missing-glyph box.
-                    return (
-                      <span key={`${line.lineNumber.toString()}-${w.wordId.toString()}`}>
-                        <a
-                          href={`/study/${w.verseKey.split(':')[0] ?? '1'}/${w.verseKey.split(':')[1] ?? '1'}`}
-                          title={`Ayah ${w.verseKey} — ends here`}
-                          aria-label={`End of ayah ${w.verseKey}`}
-                          className="ayah-end hover:text-leaf"
-                          style={{ fontFamily: '"UthmanicHafs", "Amiri Quran", serif' }}
-                        >
-                          {arabicDigits}
-                        </a>
-                        {sep}
-                      </span>
-                    );
-                  }
-                  // For the tajweed layout, slice the ayah-level
-                  // annotations for this word and render colored spans.
-                  // Annotations come from /v1/tajweed/:verseKey
-                  // (cpfair/quran-tajweed MIT). Word's start offset in
-                  // the ayah text comes from verseWordOffsets.
-                  let wordContent: ReactNode = w.text;
-                  if (layoutSlug === 'kfgqpc_v4') {
-                    const verseAnn = tajweedByVerse.get(w.verseKey) ?? [];
-                    const wordStart =
-                      verseWordOffsets.get(w.verseKey)?.get(w.wordIndex) ?? 0;
-                    const wordEnd = wordStart + w.text.length;
-                    const localAnn: TajweedAnnotation[] = [];
-                    for (const a of verseAnn) {
-                      if (a.end <= wordStart || a.start >= wordEnd) continue;
-                      localAnn.push({
-                        start: Math.max(0, a.start - wordStart),
-                        end: Math.min(w.text.length, a.end - wordStart),
-                        rule: a.rule,
-                      });
-                    }
-                    if (localAnn.length > 0) {
-                      const segs = applyTajweed(w.text, localAnn);
-                      wordContent = segs.map((s, si) =>
-                        s.rule ? (
-                          <span key={si} className={`tajweed-${s.rule}`}>{s.text}</span>
-                        ) : (
-                          <span key={si}>{s.text}</span>
-                        ),
-                      );
-                    }
-                  }
-                  return (
-                    <span key={`${line.lineNumber.toString()}-${w.wordId.toString()}`}>
-                      <a
-                        href={`/study/${w.verseKey.split(':')[0] ?? '1'}/${w.verseKey.split(':')[1] ?? '1'}`}
-                        className="hover:text-leaf"
-                        title={w.verseKey}
-                      >
-                        {wordContent}
-                      </a>
-                      {sep}
-                    </span>
-                  );
-                })}
+                {renderLineText(line, layoutSlug, tajweedByVerse, verseWordOffsets)}
               </span>
             </div>
           );
@@ -469,4 +389,100 @@ export function MushafLines({
 
 function arabicDigitN(n: number): string {
   return n.toString().split('').map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d).join('');
+}
+
+/**
+ * Render a mushaf line as a single text run with optional tajweed
+ * coloring. Words are joined into ONE string so the browser's bidi
+ * algorithm treats them as a continuous Arabic paragraph (no per-word
+ * inline-block fragmentation that would let digits split the run).
+ *
+ * Verse-end markers are replaced with the verse's Arabic-Indic digit
+ * (derived from verseKey, not the source text — IndoPak's combining-
+ * mark verse-end clusters are non-printable in Naskh fonts).
+ *
+ * For the v4 (Tajweed) layout, each word that overlaps a tajweed
+ * annotation is split into colored <span> segments before the words
+ * are joined.
+ */
+function renderLineText(
+  line: LayoutLine,
+  layoutSlug: string,
+  tajweedByVerse: Map<string, readonly TajweedAnnotation[]>,
+  verseWordOffsets: Map<string, Map<number, number>>,
+): ReactNode {
+  const ARABIC_DIGITS_RE = /^[٠-٩]+$/;
+  const INDOPAK_END_RE = /^[ۖ-ۭ]+$/;
+  function isEnd(t: string): boolean {
+    const x = t.trim();
+    return ARABIC_DIGITS_RE.test(x) || INDOPAK_END_RE.test(x);
+  }
+  function ayahDigit(verseKey: string): string {
+    const a = verseKey.split(':')[1] ?? '';
+    return a.split('').map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d).join('');
+  }
+
+  const out: ReactNode[] = [];
+  for (let i = 0; i < line.words.length; i += 1) {
+    const w = line.words[i];
+    if (!w) continue;
+    const sep = i < line.words.length - 1 ? ' ' : '';
+    if (isEnd(w.text)) {
+      // Render verse-end as a separate <span> with UthmanicHafs so the
+      // rosette glyph renders even when the layout font (Nastaliq /
+      // Naskh) has no rosette. Wrapped as a clickable anchor for jump-
+      // to-verse on tap.
+      out.push(
+        <a
+          key={`${w.wordId.toString()}-end`}
+          href={`/study/${w.verseKey.split(':')[0] ?? '1'}/${w.verseKey.split(':')[1] ?? '1'}`}
+          title={`Ayah ${w.verseKey} — ends here`}
+          aria-label={`End of ayah ${w.verseKey}`}
+          className="ayah-end hover:text-leaf"
+          style={{ fontFamily: '"UthmanicHafs", "Amiri Quran", serif' }}
+        >
+          {ayahDigit(w.verseKey)}
+        </a>,
+      );
+      if (sep) out.push(' ');
+      continue;
+    }
+
+    if (layoutSlug === 'kfgqpc_v4') {
+      const verseAnn = tajweedByVerse.get(w.verseKey) ?? [];
+      const wordStart = verseWordOffsets.get(w.verseKey)?.get(w.wordIndex) ?? 0;
+      const wordEnd = wordStart + w.text.length;
+      const localAnn: TajweedAnnotation[] = [];
+      for (const a of verseAnn) {
+        if (a.end <= wordStart || a.start >= wordEnd) continue;
+        localAnn.push({
+          start: Math.max(0, a.start - wordStart),
+          end: Math.min(w.text.length, a.end - wordStart),
+          rule: a.rule,
+        });
+      }
+      if (localAnn.length > 0) {
+        const segs = applyTajweed(w.text, localAnn);
+        for (let si = 0; si < segs.length; si += 1) {
+          const s = segs[si];
+          if (!s) continue;
+          if (s.rule) {
+            out.push(
+              <span key={`${w.wordId.toString()}-s${si.toString()}`} className={`tajweed-${s.rule}`}>{s.text}</span>,
+            );
+          } else {
+            out.push(s.text);
+          }
+        }
+        if (sep) out.push(' ');
+        continue;
+      }
+    }
+
+    // Plain word — emitted as a raw string so it joins the bidi run
+    // with adjacent words (no per-word inline-block).
+    out.push(w.text);
+    if (sep) out.push(' ');
+  }
+  return <>{out}</>;
 }
