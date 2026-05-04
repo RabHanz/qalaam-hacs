@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * RatingTrigger — one-tap (fluency × accuracy) rating.
  *
@@ -6,16 +8,12 @@
  *
  * Per CLAUDE.md §11.3: keyboard-navigable with explicit aria labels.
  */
+import { type Accuracy, type Fluency, type FsrsGrade, deriveFsrsGrade } from '@qalaam/hifdh-engine';
 import { Card, Heading, Text } from '@qalaam/ui';
 import { useState } from 'react';
+
 import type { ReactNode } from 'react';
 
-import {
-  type Accuracy,
-  type Fluency,
-  type FsrsGrade,
-  deriveFsrsGrade,
-} from '@qalaam/hifdh-engine';
 
 const FLUENCY_LABELS: Record<Fluency, string> = {
   0: 'Halted',
@@ -51,13 +49,17 @@ export function RatingTrigger({ portionLabel, onSubmit }: RatingTriggerProps): R
 
       <fieldset style={{ border: 'none', padding: 0, margin: '1.25rem 0 0' }}>
         <legend style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Fluency</legend>
-        <div role="radiogroup" aria-label="Fluency" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <div
+          role="radiogroup"
+          aria-label="Fluency"
+          style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}
+        >
           {([0, 1, 2, 3] as const).map((f) => (
             <Pill
               key={`f-${f.toString()}`}
               label={FLUENCY_LABELS[f]}
               selected={fluency === f}
-              onSelect={() => setFluency(f)}
+              onSelect={() => { setFluency(f); }}
             />
           ))}
         </div>
@@ -65,13 +67,17 @@ export function RatingTrigger({ portionLabel, onSubmit }: RatingTriggerProps): R
 
       <fieldset style={{ border: 'none', padding: 0, margin: '1.25rem 0 0' }}>
         <legend style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Accuracy</legend>
-        <div role="radiogroup" aria-label="Accuracy" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <div
+          role="radiogroup"
+          aria-label="Accuracy"
+          style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}
+        >
           {([0, 1, 2, 3] as const).map((a) => (
             <Pill
               key={`a-${a.toString()}`}
               label={ACCURACY_LABELS[a]}
               selected={accuracy === a}
-              onSelect={() => setAccuracy(a)}
+              onSelect={() => { setAccuracy(a); }}
             />
           ))}
         </div>

@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Hooks shared across primitives.
  *
@@ -10,7 +12,7 @@ function subscribeMedia(query: string) {
     if (typeof window === 'undefined') return () => undefined;
     const mql = window.matchMedia(query);
     mql.addEventListener('change', callback);
-    return () => mql.removeEventListener('change', callback);
+    return () => { mql.removeEventListener('change', callback); };
   };
 }
 
@@ -48,7 +50,8 @@ export function useDirection(): 'ltr' | 'rtl' {
 }
 
 /** Cleanup helper — runs the supplied effect once, on mount. */
-export function useEffectOnce(effect: () => void | (() => void)): void {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+type EffectFn = () => undefined | (() => void);
+export function useEffectOnce(effect: EffectFn): void {
+   
   useEffect(effect, []);
 }

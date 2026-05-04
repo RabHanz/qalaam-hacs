@@ -4,21 +4,22 @@
  * Per Tarteel UX research §21.4: Qalaam ships per-word tap-to-show glossary
  * (which neither Tarteel nor Quranly does cleanly).
  */
-import type { CSSProperties, ReactNode } from 'react';
+import { TAJWEED_COLORS } from '../tajweed/colors.js';
 
 import type { TajweedRule } from '@qalaam/data-loader';
+import type { CSSProperties, ReactNode } from 'react';
 
-import { TAJWEED_COLORS } from '../tajweed/colors.js';
+
 
 export interface WordTokenProps {
   readonly arabic: string;
   /** WBW gloss in the user's chosen language. Shown on tap. */
-  readonly gloss?: string;
-  readonly transliteration?: string;
+  readonly gloss?: string | undefined;
+  readonly transliteration?: string | undefined;
   /** Per-character tajweed annotations (subset of word's range). */
-  readonly tajweedRule?: TajweedRule;
+  readonly tajweedRule?: TajweedRule | undefined;
   readonly isCurrent?: boolean;
-  readonly onTap?: () => void;
+  readonly onTap?: (() => void) | undefined;
 }
 
 export function WordToken({

@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * WaveformViz — compact bar visualizer.
  *
@@ -6,10 +8,11 @@
  *
  * Reduced-motion users see a static, single-bar fill instead.
  */
+import { useReducedMotion } from '@qalaam/ui';
 import { useEffect, useRef } from 'react';
+
 import type { ReactNode } from 'react';
 
-import { useReducedMotion } from '@qalaam/ui';
 
 export interface WaveformVizProps {
   readonly active: boolean;
@@ -53,7 +56,7 @@ export function WaveformViz({ active, level, bars = 24 }: WaveformVizProps): Rea
     >
       {Array.from({ length: bars }).map((_, i) => (
         <span
-          // eslint-disable-next-line react/no-array-index-key
+           
           key={i}
           aria-hidden="true"
           style={{

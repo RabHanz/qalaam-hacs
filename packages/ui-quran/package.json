@@ -9,9 +9,15 @@
   "types": "./dist/index.d.ts",
   "sideEffects": false,
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "lint": "eslint src tests",
@@ -20,6 +26,7 @@
   },
   "dependencies": {
     "@qalaam/core": "workspace:*",
+    "@qalaam/data-loader": "workspace:*",
     "@qalaam/ui": "workspace:*"
   },
   "peerDependencies": {

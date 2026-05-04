@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Sheet — bottom-sheet on mobile, dialog on desktop.
  * Implements focus-trap + escape-to-close + reduced-motion-aware enter/exit.
@@ -5,10 +7,12 @@
  * Built on the native <dialog> element for correct accessibility.
  */
 import { useEffect, useRef } from 'react';
-import type { ReactNode } from 'react';
+
 
 import { useReducedMotion } from '../hooks/index.js';
 import { radius, space } from '../tokens/index.js';
+
+import type { ReactNode } from 'react';
 
 export interface SheetProps {
   readonly open: boolean;
@@ -32,7 +36,7 @@ export function Sheet({ open, onOpenChange, title, children, footer }: SheetProp
   return (
     <dialog
       ref={ref}
-      onClose={() => onOpenChange(false)}
+      onClose={() => { onOpenChange(false); }}
       onClick={(e) => {
         // Close on backdrop click only.
         const target = e.target as HTMLElement;

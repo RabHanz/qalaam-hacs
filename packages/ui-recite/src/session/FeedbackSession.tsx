@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * FeedbackSession — composed component wrapping the WebSocket lifecycle.
  *
@@ -11,15 +13,17 @@
  */
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
 
-import type { VerseKey } from '@qalaam/core';
 import { Card, Heading, Text } from '@qalaam/ui';
+import { useEffect, useRef, useState } from 'react';
 
 import { RecordButton, type RecordingState } from '../record/RecordButton.js';
 import { WaveformViz } from '../viz/WaveformViz.js';
+
 import { WordResultStrip, type Word, type WordOutcome } from './WordResultStrip.js';
+
+import type { VerseKey } from '@qalaam/core';
+import type { ReactNode } from 'react';
 
 export interface FeedbackSessionProps {
   readonly verseKey: VerseKey;
@@ -61,14 +65,14 @@ export function FeedbackSession({
     return () => {
       stopAll();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   function stopAll(): void {
     if (recorderRef.current && recorderRef.current.state !== 'inactive') {
       recorderRef.current.stop();
     }
-    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current?.getTracks().forEach((t) => { t.stop(); });
     wsRef.current?.close();
     wsRef.current = null;
     recorderRef.current = null;
@@ -84,7 +88,12 @@ export function FeedbackSession({
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true },
+        audio: {
+          sampleRate: 16000,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+        },
       });
     } catch {
       setState('idle');
@@ -104,6 +113,7 @@ export function FeedbackSession({
     const tick = (): void => {
       analyser.getFloatTimeDomainData(data);
       let sum = 0;
+      // eslint-disable-next-line @typescript-eslint/prefer-for-of
       for (let i = 0; i < data.length; i += 1) sum += (data[i] ?? 0) * (data[i] ?? 0);
       setLevel(Math.min(1, Math.sqrt(sum / data.length) * 4));
       raf = requestAnimationFrame(tick);
@@ -113,8 +123,8 @@ export function FeedbackSession({
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
     await new Promise<void>((res, rej) => {
-      ws.onopen = () => res();
-      ws.onerror = () => rej(new Error('ws-failed'));
+      ws.onopen = () => { res(); };
+      ws.onerror = () => { rej(new Error('ws-failed')); };
     }).catch(() => {
       cancelAnimationFrame(raf);
       stopAll();
@@ -135,7 +145,9 @@ export function FeedbackSession({
       if (frame.type === 'word-result' && typeof frame.word_index === 'number') {
         const idx = frame.word_index;
         setWords((prev) =>
-          prev.map((w, i) => (i === idx ? { ...w, outcome: frame.is_match ? 'match' : 'error' } : w)),
+          prev.map((w, i) =>
+            i === idx ? { ...w, outcome: frame.is_match ? 'match' : 'error' } : w,
+          ),
         );
       } else if (frame.type === 'complete') {
         const m = frame.summary?.matched_count ?? 0;
