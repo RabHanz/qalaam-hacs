@@ -15,13 +15,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
+import { resolveApiBase } from '../lib/api-base.js';
+
 interface ReciterItem {
   readonly slug: string;
   readonly name: { en: string; ar: string };
 }
 
 interface MiniPlayerProps {
-  readonly apiBase: string;
+  /** Optional, ignored — always uses the same-origin /api proxy. */
+  readonly apiBase?: string;
   readonly reciters: readonly ReciterItem[];
   readonly reciterSlug: string;
   readonly verseKey: string;
@@ -40,12 +43,12 @@ function format(seconds: number): string {
 }
 
 export function MiniPlayer({
-  apiBase,
   reciters,
   reciterSlug,
   verseKey,
   onVerseKeyChange,
 }: MiniPlayerProps): ReactNode {
+  const apiBase = resolveApiBase();
   const [playing, setPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [position, setPosition] = useState(0);

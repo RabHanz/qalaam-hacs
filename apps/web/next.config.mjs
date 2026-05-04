@@ -29,6 +29,16 @@ const nextConfig = {
     '@qalaam/ui-learn',
     '@qalaam/curriculum',
   ],
+  // Proxy /api/v1/* → backend so client-side fetches stay same-origin
+  // (sidesteps CORS without weakening the backend's allowed-origin
+  // policy). Server-side fetches still hit the backend directly via
+  // PUBLIC_API_URL since they don't go through the browser.
+  async rewrites() {
+    const apiTarget = process.env.PUBLIC_API_URL ?? 'http://localhost:4111';
+    return [
+      { source: '/api/:path*', destination: `${apiTarget}/:path*` },
+    ];
+  },
   // Per CLAUDE.md §11.2 design non-negotiable: explicit headers.
   async headers() {
     return [

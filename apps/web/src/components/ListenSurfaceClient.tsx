@@ -33,7 +33,8 @@ interface ReciterItem {
 }
 
 interface Props {
-  readonly apiBase: string;
+  /** Optional, ignored — MiniPlayer uses the same-origin /api proxy. */
+  readonly apiBase?: string;
   readonly reciters: readonly ReciterItem[];
   readonly surahs: readonly SurahMeta[];
 }
@@ -45,7 +46,7 @@ function arabicNumeral(n: number): string {
   return n.toString().split('').map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d).join('');
 }
 
-export function ListenSurfaceClient({ apiBase, reciters, surahs }: Props): ReactNode {
+export function ListenSurfaceClient({ reciters, surahs }: Props): ReactNode {
   // Deterministic defaults — must match what SSR renders.
   const [activeReciter, setActiveReciter] = useState<string>('sudais');
   const [activeVerseKey, setActiveVerseKey] = useState<string>('1:1');
@@ -270,7 +271,6 @@ export function ListenSurfaceClient({ apiBase, reciters, surahs }: Props): React
       </section>
 
       <MiniPlayer
-        apiBase={apiBase}
         reciters={reciters}
         reciterSlug={activeReciter}
         verseKey={activeVerseKey}

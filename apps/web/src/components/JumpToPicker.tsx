@@ -25,6 +25,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
+import { resolveApiBase } from '../lib/api-base.js';
+
 interface SurahMeta {
   readonly surah: number;
   readonly nameArabic: string;
@@ -39,14 +41,16 @@ type Mode = 'reader' | 'mushaf' | 'listen';
 interface Props {
   readonly mode: Mode;
   readonly layoutSlug?: string;
+  /** Optional, ignored — always uses the same-origin /api proxy. */
   readonly apiBase?: string;
 }
 
 export function JumpToPicker({
   mode,
   layoutSlug = 'madani_15',
-  apiBase = '/api',
 }: Props): ReactNode {
+  // Always same-origin via /api proxy — keeps fetches CORS-free.
+  const apiBase = resolveApiBase();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [surahs, setSurahs] = useState<readonly SurahMeta[]>([]);
@@ -62,8 +66,7 @@ export function JumpToPicker({
     let cancelled = false;
     void (async () => {
       try {
-        const base = apiBase === '/api' ? guessApiBase() : apiBase;
-        const res = await fetch(`${base}/v1/metadata/surahs`);
+        const res = await fetch(`${apiBase}/v1/metadata/surahs`);
         if (!res.ok) return;
         const body = (await res.json()) as { data: SurahMeta[] };
         if (!cancelled) setSurahs(body.data);
@@ -300,16 +303,3 @@ export function JumpToPicker({
   );
 }
 
-/**
- * Best-effort guess of the API base URL when the caller didn't pass one.
- * Server components should pass it explicitly via props; this fallback
- * is only used for client-only mounts (e.g. /listen).
- */
-function guessApiBase(): string {
-  if (typeof window === 'undefined') return 'http://localhost:4111';
-  const fromEnv = (window as unknown as { __QALAAM_API__?: string }).__QALAAM_API__;
-  if (fromEnv) return fromEnv;
-  // Default to the colocated API route prefix; if the deployment hits a
-  // remote backend, the parent should pass apiBase explicitly.
-  return 'http://localhost:4111';
-}

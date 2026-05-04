@@ -22,6 +22,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
+import { resolveApiBase } from '../lib/api-base.js';
 import { AyahCard } from './AyahCard.js';
 import { AyahMushafLines } from './AyahMushafLines.js';
 import { HairlineDivider } from './Glyph.js';
@@ -51,7 +52,8 @@ interface LayoutItem {
 }
 
 interface Props {
-  readonly apiBase: string;
+  /** Optional, ignored — always resolves to same-origin /api on client. */
+  readonly apiBase?: string;
   readonly verses: readonly VerseLite[];
   readonly translations: readonly TranslationItem[];
   readonly reciters: readonly ReciterItem[];
@@ -76,7 +78,6 @@ function arabicNumeral(n: number): string {
 }
 
 export function ReadSurfaceClient({
-  apiBase,
   verses,
   translations,
   reciters,
@@ -86,6 +87,7 @@ export function ReadSurfaceClient({
   defaultReciter,
   prefetchedTranslation,
 }: Props): ReactNode {
+  const apiBase = resolveApiBase();
   // Initialize with defaults — guaranteed to match SSR. Refined in useEffect.
   const [translation, setTranslation] = useState<string>(defaultTranslation);
   const [reciter, setReciter] = useState<string>(defaultReciter);

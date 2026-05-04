@@ -29,13 +29,17 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
+import { resolveApiBase } from '../lib/api-base.js';
+
 interface AyahCardProps {
   readonly verseKey: string;
   readonly arabic: string;
   readonly translation: string | null;
   readonly tafsirSlug?: string | null;
   readonly reciterSlug: string;
-  readonly apiBase: string;
+  /** Optional, ignored — always resolves to the same-origin /api proxy on
+   *  the client. Kept so existing parents compile unchanged. */
+  readonly apiBase?: string;
 }
 
 function arabicNumeral(n: number): string {
@@ -117,8 +121,8 @@ export function AyahCard({
   translation,
   tafsirSlug,
   reciterSlug,
-  apiBase,
 }: AyahCardProps): ReactNode {
+  const apiBase = resolveApiBase();
   const [playing, setPlaying] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [wbwOpen, setWbwOpen] = useState(false);

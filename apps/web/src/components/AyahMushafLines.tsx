@@ -18,6 +18,7 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 
+import { resolveApiBase } from '../lib/api-base.js';
 import { MushafLines } from './MushafLines.js';
 
 interface LayoutWord {
@@ -38,7 +39,9 @@ interface LayoutLine {
 }
 
 interface Props {
-  readonly apiBase: string;
+  /** Optional — ignored at runtime; we always resolve to the same-origin
+   *  proxy. Kept so existing call-sites compile without churn. */
+  readonly apiBase?: string;
   readonly verseKey: string;
   readonly layoutSlug: string;
 }
@@ -50,7 +53,8 @@ interface CacheEntry {
 
 const pageCache = new Map<string, CacheEntry>();
 
-export function AyahMushafLines({ apiBase, verseKey, layoutSlug }: Props): ReactNode {
+export function AyahMushafLines({ verseKey, layoutSlug }: Props): ReactNode {
+  const apiBase = resolveApiBase();
   const [state, setState] = useState<{
     loading: boolean;
     error: string | null;
