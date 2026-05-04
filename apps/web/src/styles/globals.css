@@ -449,20 +449,31 @@
     border-color: color-mix(in srgb, var(--color-leaf-700) 70%, transparent);
   }
 
-  /* Recite-highlight — paints the GLYPH itself in leaf-gold (color
-   * runs along the letter's curves), NOT a highlighter rectangle on
-   * top. Subtle weight bump + drop-shadow so the word stands out
-   * without obscuring the calligraphy. Reduced-motion-safe. */
+  /* Recite-highlight — paints the GLYPH ITSELF in leaf-gold along
+   * the letter's curves. NO background-color, NO border, NO box —
+   * just the calligraphy in warm gold with a soft halo. Cascades
+   * into ALL nested children (tajweed-* spans, silent-marks,
+   * mushaf-word anchors) so the entire active word is gold even
+   * if it's split into 5+ inner spans. */
   .recite-highlight,
-  .recite-highlight * {
+  .recite-highlight *,
+  .recite-highlight a,
+  a.recite-highlight,
+  a.recite-highlight * {
     color: var(--color-leaf-500) !important;
-    text-shadow: 0 0 0.25em color-mix(in srgb, var(--color-leaf-300) 60%, transparent);
+    background-color: transparent !important;
+    text-shadow: 0 0 0.35em color-mix(in srgb, var(--color-leaf-300) 70%, transparent),
+                 0 0 0.15em color-mix(in srgb, var(--color-leaf-500) 50%, transparent);
     transition: color 80ms ease-out, text-shadow 80ms ease-out;
   }
   :root[data-theme="dark"] .recite-highlight,
-  :root[data-theme="dark"] .recite-highlight * {
+  :root[data-theme="dark"] .recite-highlight *,
+  :root[data-theme="dark"] a.recite-highlight,
+  :root[data-theme="dark"] a.recite-highlight * {
     color: var(--color-leaf-300) !important;
-    text-shadow: 0 0 0.3em color-mix(in srgb, var(--color-leaf-500) 70%, transparent);
+    background-color: transparent !important;
+    text-shadow: 0 0 0.4em color-mix(in srgb, var(--color-leaf-500) 75%, transparent),
+                 0 0 0.18em color-mix(in srgb, var(--color-leaf-300) 60%, transparent);
   }
   @media (prefers-reduced-motion: reduce) {
     .recite-highlight, .recite-highlight * { transition: none; }
