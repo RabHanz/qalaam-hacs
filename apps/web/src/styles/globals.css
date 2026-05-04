@@ -19,6 +19,19 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Amiri:wght@400;700&family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap');
 
+/* UthmanicHafs — official KFGQPC Hafs Uthmanic Script Unicode font from
+ * Quran Foundation. Proper OpenType substitution renders Arabic-Indic
+ * digits + U+06DD as authentic verse-end rosette glyphs. This is what
+ * Quran.com and Tarteel use for Unicode-text mushaf rendering.
+ * Reference: https://api-docs.quran.foundation/docs/tutorials/fonts/font-rendering/
+ */
+@font-face {
+  font-family: 'UthmanicHafs';
+  src: url('https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.woff2') format('woff2');
+  font-display: swap;
+  font-weight: 400;
+}
+
 @theme {
   /* — Brand palette (raw values, never used directly in JSX) — */
   --color-paper-50: #fbf9f4;

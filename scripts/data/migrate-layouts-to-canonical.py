@@ -38,6 +38,30 @@ ALIAS: dict[str, str] = {
     "qpc-v4-tajweed-15": "kfgqpc_v4",
 }
 
+# Each layout uses a DIFFERENT script for its glyph text so switching
+# layouts on the frontend produces a visibly different rendering. Without
+# this, all three layouts pull from `uthmani_simple` and look identical.
+#
+#   madani_15  → uthmani         (full Uthmani with diacritics — KFGQPC v2)
+#   kfgqpc_v1  → uthmani_simple  (simplified Uthmani — KFGQPC v1 has older
+#                                 ortho without some diacritics)
+#   kfgqpc_v4  → qpc_v4_tajweed  (Private-Use-Area glyph codes — only
+#                                 renders authentically with the v4 font;
+#                                 falls back gracefully with UthmanicHafs)
+SCRIPT_FOR: dict[str, str] = {
+    # madani_15 — full Uthmani with all diacritics (KFGQPC v2 baseline).
+    "madani_15":  "uthmani",
+    # kfgqpc_v1 — simplified Uthmani (older v1 ortho omits some marks);
+    # subtly differs from v2 in diacritics on most pages.
+    "kfgqpc_v1":  "uthmani_simple",
+    # kfgqpc_v4 — uses readable Uthmani text + CSS tajweed-color overlay
+    # (.mushaf-layout-tajweed) for the visual differentiation. The PUA
+    # glyph codes from qpc_v4_tajweed exist in scripts_words but require
+    # the proprietary v4 font to render — without it they show as tofu
+    # boxes. We can swap once that font is licensed and self-hosted.
+    "kfgqpc_v4":  "uthmani",
+}
+
 
 def main() -> int:
     if not QUL_DB.exists():
@@ -82,27 +106,48 @@ def main() -> int:
         """
     )
 
-    print("[2] Building global word-id index from scripts_words (uthmani_simple)")
+    print("[2] Building per-script global word-id indexes")
+    # Build a separate global word-id index per script so each layout's
+    # word IDs map to its OWN script's text. Word IDs are 1-based,
+    # ordered by (surah, ayah, word_index).
+    needed_scripts = set(SCRIPT_FOR.values())
+    conn.executescript("DROP TABLE IF EXISTS _qalaam_global_word_ids;")
     conn.executescript(
         """
-        DROP TABLE IF EXISTS _qalaam_global_word_ids;
-        CREATE TEMPORARY TABLE _qalaam_global_word_ids AS
-        SELECT
-            ROW_NUMBER() OVER (
-                ORDER BY CAST(substr(verse_key, 1, instr(verse_key,':')-1) AS INTEGER) ASC,
-                         CAST(substr(verse_key, instr(verse_key,':')+1) AS INTEGER) ASC,
-                         word_index ASC
-            ) AS word_id,
-            verse_key,
-            word_index,
-            text
-        FROM qalaam_v1_qul_scripts_words
-        WHERE script = 'uthmani_simple';
-        CREATE INDEX idx_gwid ON _qalaam_global_word_ids (word_id);
+        CREATE TEMPORARY TABLE _qalaam_global_word_ids (
+            script TEXT NOT NULL,
+            word_id INTEGER NOT NULL,
+            verse_key TEXT NOT NULL,
+            word_index INTEGER NOT NULL,
+            text TEXT NOT NULL,
+            PRIMARY KEY (script, word_id)
+        );
         """
     )
-    total_words = conn.execute("SELECT COUNT(*) FROM _qalaam_global_word_ids").fetchone()[0]
-    print(f"    {total_words} global word ids generated")
+    for script in needed_scripts:
+        conn.execute(
+            f"""
+            INSERT INTO _qalaam_global_word_ids (script, word_id, verse_key, word_index, text)
+            SELECT ?,
+                ROW_NUMBER() OVER (
+                    ORDER BY CAST(substr(verse_key, 1, instr(verse_key,':')-1) AS INTEGER) ASC,
+                             CAST(substr(verse_key, instr(verse_key,':')+1) AS INTEGER) ASC,
+                             word_index ASC
+                ) AS word_id,
+                verse_key,
+                word_index,
+                text
+            FROM qalaam_v1_qul_scripts_words
+            WHERE script = ?
+            """,
+            (script, script),
+        )
+        cnt = conn.execute(
+            "SELECT COUNT(*) FROM _qalaam_global_word_ids WHERE script = ?",
+            (script,),
+        ).fetchone()[0]
+        print(f"    {script:25s} {cnt} word ids")
+    conn.execute("CREATE INDEX idx_gwid_script_id ON _qalaam_global_word_ids (script, word_id)")
 
     pages_inserted = 0
     words_inserted = 0
@@ -141,16 +186,18 @@ def main() -> int:
             )
             pages_inserted += 1
 
-            # For each ayah-line, expand the word_id range from the global index
+            # For each ayah-line, expand the word_id range from this
+            # layout's chosen script.
+            script_for_layout = SCRIPT_FOR.get(canonical, "uthmani_simple")
             if line_type == "ayah" and fwid and lwid and fwid <= lwid:
                 rows = conn.execute(
                     """
                     SELECT word_id, verse_key, word_index, text
                     FROM _qalaam_global_word_ids
-                    WHERE word_id BETWEEN ? AND ?
+                    WHERE script = ? AND word_id BETWEEN ? AND ?
                     ORDER BY word_id
                     """,
-                    (fwid, lwid),
+                    (script_for_layout, fwid, lwid),
                 ).fetchall()
                 for word_id, verse_key, word_index, text in rows:
                     conn.execute(

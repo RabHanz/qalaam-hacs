@@ -64,28 +64,25 @@ function isAyahEndMarker(text: string): boolean {
 const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 /**
- * Layout-slug → font-family stack. Without the real KFGQPC font files
- * we approximate visible difference using free Quran-grade fonts. When
- * the official fonts ship, swap the heads of these stacks.
+ * Mushaf font stack. We use UthmanicHafs as primary — it's the official
+ * KFGQPC Hafs Unicode font from Quran Foundation, with built-in
+ * OpenType substitution that turns U+06DD + Arabic-Indic digit into
+ * an authentic verse-end rosette glyph. No CSS bolt-on needed.
+ *
+ * Layout differentiation: the three layouts share UthmanicHafs as the
+ * glyph source but differ in:
+ *   - Line breaks (madani_15 / kfgqpc_v1 / kfgqpc_v4 each use distinct
+ *     QUL layout pagination — verses break at different points per
+ *     layout's printed mushaf)
+ *   - Tajweed coloring overlay (v4 only — see .mushaf-layout-tajweed)
+ *
+ * Per-page glyph fonts (v1/v2/v4 page-by-page WOFF2) require QUL's
+ * code_v1/code_v2 PUA codepoints in the data — our backend ingests
+ * the readable Uthmani text, so glyph fonts wouldn't render. When we
+ * re-ingest with code_v2 we can swap to per-page fonts.
  */
-function fontStackFor(layoutSlug: string): string {
-  switch (layoutSlug) {
-    case 'kfgqpc_v1':
-      // v1 approximation: lead with Noto Naskh Arabic so the visible
-      // glyph differs from v2's Amiri Quran when the proprietary
-      // KFGQPC files aren't loaded.
-      return '"KFGQPC HAFS Uthmanic Script", "Noto Naskh Arabic", "Amiri", "Amiri Quran", serif';
-    case 'kfgqpc_v4':
-      // Tajweed variant — same Amiri Quran base as v2 but with the
-      // .mushaf-tajweed class applied (color treatment on shadda /
-      // emphatic letters approximating the KFGQPC tajweed colors).
-      return '"KFGQPC HAFS Uthmanic Script Tajweed", "Amiri Quran", "Noto Naskh Arabic", serif';
-    case 'madani_15':
-    default:
-      // Default Madani v2 approximation — Amiri Quran is closest in
-      // proportion and ligature behavior among free fonts.
-      return '"KFGQPC HAFS Uthmanic Script V2", "Amiri Quran", "Noto Naskh Arabic", "Amiri", serif';
-  }
+function fontStackFor(_layoutSlug: string): string {
+  return '"UthmanicHafs", "Amiri Quran", "Noto Naskh Arabic", "Amiri", serif';
 }
 
 export function MushafLines({
@@ -278,15 +275,21 @@ export function MushafLines({
                 {line.words.map((w, i) => {
                   const sep = i < line.words.length - 1 ? ' ' : '';
                   if (isAyahEndMarker(w.text)) {
+                    // Prefix the digit with U+06DD ARABIC END OF AYAH.
+                    // UthmanicHafs's OpenType substitution turns this
+                    // pair into the authentic rosette glyph natively —
+                    // no CSS ring, no bolt-on. This is exactly how
+                    // Quran.com and Tarteel do it.
+                    const rosetteText = `۝${w.text}`;
                     return (
                       <span key={`${line.lineNumber.toString()}-${w.wordId.toString()}`}>
                         <a
                           href={`/study/${w.verseKey.split(':')[0] ?? '1'}/${w.verseKey.split(':')[1] ?? '1'}`}
                           title={`Ayah ${w.verseKey} — ends here`}
                           aria-label={`End of ayah ${w.verseKey}`}
-                          className="ayah-rosette inline-flex items-center justify-center"
+                          className="ayah-end hover:text-leaf"
                         >
-                          <span className="ayah-rosette-num font-arabic">{w.text}</span>
+                          {rosetteText}
                         </a>
                         {sep}
                       </span>

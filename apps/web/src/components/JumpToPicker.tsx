@@ -111,24 +111,27 @@ export function JumpToPicker({
     });
   }, [surahs, filter]);
 
-  function go(): void {
-    if (!picked) return;
-    const a = Math.max(1, Math.min(picked.verseCount, Number.parseInt(ayah, 10) || 1));
-    const vk = `${picked.surah.toString()}:${a.toString()}`;
+  function go(targetSurah: number, targetAyah: number): void {
+    const vk = `${targetSurah.toString()}:${targetAyah.toString()}`;
     setOpen(false);
     if (mode === 'mushaf') {
       router.push(`/mushaf/${layoutSlug}/page-for/${encodeURIComponent(vk)}`);
     } else if (mode === 'reader') {
-      router.push(`/read/${picked.surah.toString()}#${vk}`);
+      router.push(`/read/${targetSurah.toString()}#${vk}`);
     } else {
       window.dispatchEvent(
-        new CustomEvent('qalaam:jump', { detail: { surah: picked.surah, ayah: a } }),
+        new CustomEvent('qalaam:jump', { detail: { surah: targetSurah, ayah: targetAyah } }),
       );
     }
-    // Reset selection for next open
     setPicked(null);
     setAyah('1');
     setFilter('');
+  }
+
+  function goFromVerseInput(): void {
+    if (!picked) return;
+    const a = Math.max(1, Math.min(picked.verseCount, Number.parseInt(ayah, 10) || 1));
+    go(picked.surah, a);
   }
 
   return (
@@ -211,14 +214,14 @@ export function JumpToPicker({
                     <li className="text-center text-sm text-ink-muted italic py-6">Loading…</li>
                   ) : null}
                   {filtered.map((s) => (
-                    <li key={s.surah}>
+                    <li key={s.surah} className="flex items-stretch gap-1">
+                      {/* Tap surah → navigate immediately to verse 1.
+                          The "+verse" pill on the right opens the inline
+                          picker for users who want a specific ayah. */}
                       <button
                         type="button"
-                        onClick={() => {
-                          setPicked(s);
-                          setAyah('1');
-                        }}
-                        className="w-full text-left flex items-baseline justify-between gap-3 px-3 py-2.5 rounded-md hover:bg-paper-100"
+                        onClick={() => go(s.surah, 1)}
+                        className="flex-1 text-left flex items-baseline justify-between gap-3 px-3 py-2.5 rounded-md hover:bg-paper-100"
                       >
                         <div className="flex items-baseline gap-3 min-w-0">
                           <span className="smallcaps font-mono text-[10px] tabular-nums text-ink-muted w-7 shrink-0">
@@ -240,6 +243,20 @@ export function JumpToPicker({
                           {s.nameArabic}
                         </span>
                       </button>
+                      <button
+                        type="button"
+                        aria-label={`Pick a specific ayah in ${s.nameEnglish}`}
+                        onClick={() => {
+                          setPicked(s);
+                          setAyah('1');
+                        }}
+                        className="shrink-0 px-2 rounded-md text-ink-muted hover:bg-paper-100 hover:text-leaf"
+                        title="Choose a specific ayah"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                          <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -259,13 +276,13 @@ export function JumpToPicker({
                     value={ayah}
                     onChange={(e) => setAyah(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') go();
+                      if (e.key === 'Enter') goFromVerseInput();
                     }}
                     className="flex-1 rounded-md border border-hairline bg-paper-100 px-4 py-2.5 text-base font-mono tabular-nums text-ink-strong focus:outline-none focus:border-leaf"
                   />
                   <button
                     type="button"
-                    onClick={go}
+                    onClick={goFromVerseInput}
                     className="rounded-full bg-leaf text-paper px-5 py-2.5 smallcaps text-xs tracking-widest hover:opacity-95"
                   >
                     Go →
