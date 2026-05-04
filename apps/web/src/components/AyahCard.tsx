@@ -118,20 +118,21 @@ export function AyahCard({
   const [tafsirOpen, setTafsirOpen] = useState(false);
   const [tafsir, setTafsir] = useState<{ text: string; lang: string; scholar: string | null; loading: boolean } | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const audioReadyRef = useRef(false);
 
   const ayah = Number.parseInt(verseKey.split(':')[1] ?? '0', 10);
 
-  // Pre-load audio URL whenever the reciter changes — keeps the click
-  // handler inside the user-gesture window so audio.play() doesn't get
-  // blocked by browsers.
+  // Pre-fetch the audio URL whenever (verseKey, reciter) changes, so the
+  // click handler can call audioRef.current.play() synchronously inside
+  // the user-gesture window. The audio element itself is mounted in the
+  // JSX (not detached `new Audio()`) so it lives in the DOM and behaves
+  // reliably across browsers (Safari/iOS in particular requires a mounted
+  // element).
   useEffect(() => {
-    audioReadyRef.current = false;
-    audioRef.current?.pause();
-    audioRef.current = null;
-
     let cancelled = false;
+    setAudioUrl(null);
+    setPlaying(false);
     void (async () => {
       try {
         const res = await fetch(
@@ -139,12 +140,7 @@ export function AyahCard({
         );
         if (!res.ok || cancelled) return;
         const body = (await res.json()) as { audioUrl: string };
-        const a = new Audio();
-        a.preload = 'metadata';
-        a.src = body.audioUrl;
-        a.addEventListener('ended', () => setPlaying(false));
-        audioRef.current = a;
-        audioReadyRef.current = true;
+        if (!cancelled) setAudioUrl(body.audioUrl);
       } catch {
         /* ignore — Listen will retry on click */
       }
@@ -182,17 +178,22 @@ export function AyahCard({
 
   function togglePlay(): void {
     const a = audioRef.current;
-    if (!a) return; // not ready yet — fail gracefully
+    if (!a || !audioUrl) return;
     if (playing) {
       a.pause();
       setPlaying(false);
       return;
     }
-    // Fire .play() synchronously so the click counts as a user gesture
-    a.play().then(
-      () => setPlaying(true),
-      () => setPlaying(false),
-    );
+    // Fire .play() synchronously inside the user-gesture window
+    const p = a.play();
+    if (p && typeof p.then === 'function') {
+      p.then(
+        () => setPlaying(true),
+        () => setPlaying(false),
+      );
+    } else {
+      setPlaying(true);
+    }
   }
 
   async function toggleWbw(): Promise<void> {
@@ -379,6 +380,16 @@ export function AyahCard({
           )}
         </div>
       ) : null}
+
+      {/* Mounted audio element — required for reliable playback. */}
+      <audio
+        ref={audioRef}
+        src={audioUrl ?? undefined}
+        preload="none"
+        onEnded={() => setPlaying(false)}
+        onPause={() => setPlaying(false)}
+        onPlay={() => setPlaying(true)}
+      />
 
       {/* Action chip row — wraps on mobile, no horizontal scroll */}
       <nav

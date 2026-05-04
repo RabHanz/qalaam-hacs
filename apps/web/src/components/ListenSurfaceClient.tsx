@@ -3,10 +3,12 @@
 /**
  * ListenSurfaceClient — interactive layer for /listen.
  *
- * Mobile-first: surah picker as a searchable scrollable list, reciter cards
- * as a 2-up grid (1-up <640px), MiniPlayer fixed at the bottom of the
- * viewport. Tapping a reciter sets it as active. Tapping a surah jumps the
- * player to verse 1 of that surah.
+ * Hydration-safe: starts with deterministic defaults, syncs from localStorage
+ * in a useEffect after mount.
+ *
+ * Mobile-first: surah list scrolls in its own container; reciter list is a
+ * stacked card list with active "NOW PLAYING" tag; MiniPlayer fixed at the
+ * bottom of the viewport.
  */
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
@@ -44,11 +46,13 @@ function arabicNumeral(n: number): string {
 }
 
 export function ListenSurfaceClient({ apiBase, reciters, surahs }: Props): ReactNode {
+  // Deterministic defaults — must match what SSR renders.
   const [activeReciter, setActiveReciter] = useState<string>('sudais');
   const [activeVerseKey, setActiveVerseKey] = useState<string>('1:1');
   const [filter, setFilter] = useState('');
+  const [hydrated, setHydrated] = useState(false);
 
-  // Restore + write-through to localStorage so MiniPlayer stays in sync.
+  // Restore + write-through to localStorage
   useEffect(() => {
     try {
       const r = window.localStorage.getItem(STORE_R);
@@ -58,34 +62,41 @@ export function ListenSurfaceClient({ apiBase, reciters, surahs }: Props): React
     } catch {
       /* ignore */
     }
+    setHydrated(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function pickReciter(slug: string): void {
     setActiveReciter(slug);
-    try {
-      window.localStorage.setItem(STORE_R, slug);
-    } catch {
-      /* ignore */
+    if (hydrated) {
+      try {
+        window.localStorage.setItem(STORE_R, slug);
+      } catch {
+        /* ignore */
+      }
     }
   }
 
   function pickSurah(surah: number): void {
     const vk = `${surah.toString()}:1`;
     setActiveVerseKey(vk);
-    try {
-      window.localStorage.setItem(STORE_VK, vk);
-    } catch {
-      /* ignore */
+    if (hydrated) {
+      try {
+        window.localStorage.setItem(STORE_VK, vk);
+      } catch {
+        /* ignore */
+      }
     }
   }
 
   function handleVerseKeyChange(next: string): void {
     setActiveVerseKey(next);
-    try {
-      window.localStorage.setItem(STORE_VK, next);
-    } catch {
-      /* ignore */
+    if (hydrated) {
+      try {
+        window.localStorage.setItem(STORE_VK, next);
+      } catch {
+        /* ignore */
+      }
     }
   }
 
@@ -98,11 +109,11 @@ export function ListenSurfaceClient({ apiBase, reciters, surahs }: Props): React
   }, [surahs, filter]);
 
   return (
-    <div className="grid gap-8 sm:gap-10 md:grid-cols-12">
+    <div className="grid gap-6 sm:gap-10 md:grid-cols-12">
       {/* Reciter cards */}
       <section aria-labelledby="reciter-heading" className="md:col-span-5">
-        <div className="flex items-baseline justify-between mb-4">
-          <h2 id="reciter-heading" className="font-display text-xl sm:text-2xl tracking-tight">
+        <div className="flex items-baseline justify-between mb-3">
+          <h2 id="reciter-heading" className="font-display text-lg sm:text-2xl tracking-tight">
             Reciter
           </h2>
           <span className="smallcaps text-leaf text-[11px] tracking-widest">
@@ -115,7 +126,7 @@ export function ListenSurfaceClient({ apiBase, reciters, surahs }: Props): React
             No reciters available — backend may be unreachable.
           </p>
         ) : (
-          <ul className="grid gap-2 sm:gap-2.5 grid-cols-1">
+          <ul className="grid gap-2 grid-cols-1">
             {reciters.map((r) => {
               const active = activeReciter === r.slug;
               return (
@@ -125,9 +136,7 @@ export function ListenSurfaceClient({ apiBase, reciters, surahs }: Props): React
                     onClick={() => pickReciter(r.slug)}
                     aria-pressed={active}
                     className={`w-full text-left paper-card flex items-baseline justify-between gap-3 px-4 py-3 transition-colors ${
-                      active
-                        ? 'border-leaf shadow-sm'
-                        : 'hover:bg-paper-100/70'
+                      active ? 'shadow-sm' : 'hover:bg-paper-100/70'
                     }`}
                     style={
                       active
@@ -135,7 +144,7 @@ export function ListenSurfaceClient({ apiBase, reciters, surahs }: Props): React
                         : undefined
                     }
                   >
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p
                         className={`font-display text-sm sm:text-base truncate ${
                           active ? 'text-leaf' : 'text-ink'
@@ -148,7 +157,7 @@ export function ListenSurfaceClient({ apiBase, reciters, surahs }: Props): React
                           </span>
                         ) : null}
                       </p>
-                      <p className="text-[11px] smallcaps text-ink-muted tracking-widest mt-0.5">
+                      <p className="text-[10px] sm:text-[11px] smallcaps text-ink-muted tracking-widest mt-0.5">
                         {r.style} · {r.riwayah}
                       </p>
                     </div>
@@ -170,8 +179,8 @@ export function ListenSurfaceClient({ apiBase, reciters, surahs }: Props): React
 
       {/* Surah picker */}
       <section aria-labelledby="surah-heading" className="md:col-span-7">
-        <div className="flex items-baseline justify-between mb-4 gap-3 flex-wrap">
-          <h2 id="surah-heading" className="font-display text-xl sm:text-2xl tracking-tight">
+        <div className="flex items-baseline justify-between mb-3 gap-3 flex-wrap">
+          <h2 id="surah-heading" className="font-display text-lg sm:text-2xl tracking-tight">
             Surah
           </h2>
           <input
@@ -200,12 +209,12 @@ export function ListenSurfaceClient({ apiBase, reciters, surahs }: Props): React
                     type="button"
                     onClick={() => pickSurah(s.surah)}
                     aria-selected={isActive}
-                    className={`w-full text-left flex items-baseline justify-between gap-3 px-4 py-3 transition-colors ${
+                    className={`w-full text-left flex items-baseline justify-between gap-3 px-3 sm:px-4 py-2.5 sm:py-3 transition-colors ${
                       isActive ? 'bg-paper-100' : 'hover:bg-paper-100/60'
                     }`}
                   >
-                    <div className="flex items-baseline gap-3 min-w-0">
-                      <span className="smallcaps font-mono text-[11px] tabular-nums text-ink-muted w-7 shrink-0">
+                    <div className="flex items-baseline gap-2 sm:gap-3 min-w-0">
+                      <span className="smallcaps font-mono text-[10px] sm:text-[11px] tabular-nums text-ink-muted w-6 sm:w-7 shrink-0">
                         {s.surah.toString().padStart(3, '0')}
                       </span>
                       <div className="min-w-0">
@@ -216,7 +225,7 @@ export function ListenSurfaceClient({ apiBase, reciters, surahs }: Props): React
                         >
                           {s.nameEnglish}
                         </p>
-                        <p className="text-[11px] smallcaps text-ink-muted tracking-widest mt-0.5">
+                        <p className="text-[10px] smallcaps text-ink-muted tracking-widest mt-0.5">
                           {s.verseCount.toString()} verses · {s.revelationPlace}
                           {isActive ? ' · playing' : ''}
                         </p>
@@ -225,7 +234,7 @@ export function ListenSurfaceClient({ apiBase, reciters, surahs }: Props): React
                     <p
                       dir="rtl"
                       lang="ar"
-                      className="font-arabic text-lg sm:text-xl text-ink shrink-0"
+                      className="font-arabic text-base sm:text-xl text-ink shrink-0"
                       style={{ unicodeBidi: 'plaintext', lineHeight: 1.2 }}
                     >
                       {s.nameArabic}
@@ -236,7 +245,7 @@ export function ListenSurfaceClient({ apiBase, reciters, surahs }: Props): React
             })}
           </ul>
         )}
-        <p className="text-[11px] smallcaps text-ink-muted tracking-widest mt-3">
+        <p className="text-[10px] sm:text-[11px] smallcaps text-ink-muted tracking-widest mt-3">
           {arabicNumeral(filteredSurahs.length)} surahs · auto-advance enabled
         </p>
       </section>

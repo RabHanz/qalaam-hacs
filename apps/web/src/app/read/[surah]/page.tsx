@@ -1,39 +1,25 @@
 /**
- * /read/[surah] — Quranly-style ayah-by-ayah reader.
+ * /read/[surah] — Quranly-style reader.
  *
- * Layout: editorial running header (English + Arabic surah name + meta) →
- * sticky ReaderControls (translation chip group + reciter chip group) →
- * vertical stack of AyahCards.
- *
- * Mobile-first: 16px gutters at <640px, 24px at sm, 64px at md+. Sticky
- * controls collapse padding on mobile. AyahCard scrolls action chips
- * horizontally when the viewport can't fit them.
- *
- * Translation/reciter come from URL `?t=...&r=...` (parsed server-side
- * via `searchParams`) and persist to localStorage on the client.
- *
- * Per CLAUDE.md adab: no XP, no streak, no scoreboard, no surveillance.
- * The reader is dignified — Arabic centered, generous breathing room,
- * embedded Arabic ayah numerals (no forced rosettes; the layout DB has
- * the canonical numbering glyph in-line with the words).
+ * Server component fetches surah meta + verses + translations + reciters +
+ * available layouts, then hands the lot to the single client island
+ * `ReadSurfaceClient` which owns all interactive state (translation, reciter,
+ * layout, view mode, single-ayah index). This unifies the data flow and
+ * fixes the hydration mismatch that was happening when state was split
+ * between a server component and a client island reading URL params.
  */
 import { QalaamError } from '@qalaam/core';
-import Link from 'next/link';
 
-import { AyahCard } from '../../../components/AyahCard.js';
 import { EmptyState } from '../../../components/EmptyState.js';
 import { ErrorState } from '../../../components/ErrorState.js';
-import { LoadingState } from '../../../components/LoadingState.js';
-import { ReaderControls } from '../../../components/ReaderControls.js';
+import { ReadSurfaceClient, type VerseLite } from '../../../components/ReadSurfaceClient.js';
 import { SiteNav } from '../../../components/SiteNav.js';
 import { qalaamClient } from '../../../lib/qalaam-client.js';
 
-import { Suspense } from 'react';
 import type { ReactNode } from 'react';
 
 interface PageProps {
   readonly params: Promise<{ surah: string }>;
-  readonly searchParams: Promise<{ t?: string; r?: string }>;
 }
 
 interface SurahMeta {
@@ -60,6 +46,12 @@ interface ReciterItem {
   readonly style: string;
 }
 
+interface LayoutItem {
+  readonly slug: string;
+  readonly name: string;
+  readonly subtitle?: string;
+}
+
 const BASMALA = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ';
 
 async function fetchJson<T>(url: string, revalidate = 86400): Promise<T | null> {
@@ -72,133 +64,8 @@ async function fetchJson<T>(url: string, revalidate = 86400): Promise<T | null> 
   }
 }
 
-async function fetchSurahMeta(baseUrl: string, surah: number): Promise<SurahMeta | null> {
-  const body = await fetchJson<{ data: SurahMeta }>(
-    `${baseUrl}/v1/metadata/surahs/${surah.toString()}`,
-  );
-  return body?.data ?? null;
-}
-
-async function fetchTranslations(baseUrl: string): Promise<readonly TranslationItem[]> {
-  const body = await fetchJson<{ translations: TranslationItem[] }>(`${baseUrl}/v1/translations`);
-  return (body?.translations ?? []).filter((t) => t.language === 'en');
-}
-
-async function fetchReciters(baseUrl: string): Promise<readonly ReciterItem[]> {
-  const body = await fetchJson<{ reciters: ReciterItem[] }>(`${baseUrl}/v1/reciters`);
-  return body?.reciters ?? [];
-}
-
-async function fetchTranslationVerses(
-  baseUrl: string,
-  slug: string,
-  surah: number,
-  verseCount: number,
-): Promise<Map<string, string>> {
-  // Hits backend per-verse — backend returns from SQLite in <1ms; the cost
-  // is mostly fetch overhead. Concurrency-limit to 16 in flight at once.
-  const out = new Map<string, string>();
-  if (slug === 'none' || verseCount === 0) return out;
-  const verseKeys = Array.from({ length: verseCount }, (_, i) => `${surah.toString()}:${(i + 1).toString()}`);
-  const CHUNK = 16;
-  for (let i = 0; i < verseKeys.length; i += CHUNK) {
-    const slice = verseKeys.slice(i, i + CHUNK);
-    await Promise.all(
-      slice.map(async (vk) => {
-        const r = await fetchJson<{ text: string }>(
-          `${baseUrl}/v1/translations/${slug}/by_verse/${encodeURIComponent(vk)}`,
-          604800,
-        );
-        if (r?.text) out.set(vk, r.text);
-      }),
-    );
-  }
-  return out;
-}
-
-async function ReaderBody({
-  surahNumber,
-  meta,
-  translationSlug,
-  reciterSlug,
-  tafsirSlug,
-  apiBase,
-}: {
-  surahNumber: number;
-  meta: SurahMeta | null;
-  translationSlug: string;
-  reciterSlug: string;
-  tafsirSlug: string | null;
-  apiBase: string;
-}): Promise<ReactNode> {
-  let response;
-  try {
-    response = await qalaamClient.getSurahVerses(surahNumber);
-  } catch (err) {
-    if (err instanceof QalaamError && err.code === 'qalaam.data.not-loaded') {
-      return (
-        <EmptyState
-          title="Quran data not yet downloaded"
-          hint="Run `make data-fetch` from the repo root to download the QUL data substrate (per ADR-0002)."
-        />
-      );
-    }
-    return <ErrorState message={err instanceof Error ? err.message : String(err)} />;
-  }
-
-  if (response.verses.length === 0) {
-    return (
-      <EmptyState
-        title="No verses returned"
-        hint="The backend returned an empty list. Confirm /v1/chapters/:id/verses is wired."
-      />
-    );
-  }
-
-  const verseCount = meta?.verseCount ?? response.verses.length;
-  const translationMap =
-    translationSlug && translationSlug !== 'none'
-      ? await fetchTranslationVerses(apiBase, translationSlug, surahNumber, verseCount)
-      : new Map<string, string>();
-
-  return (
-    <div className="space-y-5 sm:space-y-7">
-      {/* Bismillah header (skip surah 9) */}
-      {surahNumber !== 9 && meta?.bismillahPre !== 0 ? (
-        <div className="text-center py-6 sm:py-10">
-          <div className="rule-hairline mx-auto max-w-xs" />
-          <p
-            dir="rtl"
-            className="font-arabic mt-6 text-3xl sm:text-4xl md:text-5xl text-ink-strong leading-[1.8]"
-            style={{ unicodeBidi: 'plaintext', fontWeight: 600 }}
-            aria-label="Bismillah"
-          >
-            {BASMALA}
-          </p>
-          <div className="rule-hairline mx-auto max-w-xs mt-6" />
-        </div>
-      ) : null}
-
-      {response.verses.map((v) => (
-        <AyahCard
-          key={v.verseKey}
-          verseKey={v.verseKey}
-          arabic={v.textUthmani}
-          translation={translationMap.get(v.verseKey) ?? null}
-          tafsirSlug={tafsirSlug}
-          reciterSlug={reciterSlug}
-          apiBase={apiBase}
-        />
-      ))}
-    </div>
-  );
-}
-
-export default async function ReadSurahPage({
-  params,
-  searchParams,
-}: PageProps): Promise<ReactNode> {
-  const [{ surah }, sp] = await Promise.all([params, searchParams]);
+export default async function ReadSurahPage({ params }: PageProps): Promise<ReactNode> {
+  const { surah } = await params;
   const surahNumber = Number.parseInt(surah, 10);
   if (!Number.isFinite(surahNumber) || surahNumber < 1 || surahNumber > 114) {
     return (
@@ -215,115 +82,136 @@ export default async function ReadSurahPage({
   }
 
   const apiBase = process.env.PUBLIC_API_URL ?? 'http://localhost:4111';
-  const [meta, translations, reciters] = await Promise.all([
-    fetchSurahMeta(apiBase, surahNumber),
-    fetchTranslations(apiBase),
-    fetchReciters(apiBase),
+
+  let response;
+  try {
+    response = await qalaamClient.getSurahVerses(surahNumber);
+  } catch (err) {
+    if (err instanceof QalaamError && err.code === 'qalaam.data.not-loaded') {
+      return (
+        <>
+          <SiteNav />
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 py-20">
+            <EmptyState
+              title="Quran data not yet downloaded"
+              hint="Run `make data-fetch` from the repo root to download the QUL data substrate."
+            />
+          </div>
+        </>
+      );
+    }
+    return (
+      <>
+        <SiteNav />
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-20">
+          <ErrorState message={err instanceof Error ? err.message : String(err)} />
+        </div>
+      </>
+    );
+  }
+
+  const verses: readonly VerseLite[] = response.verses.map((v) => ({
+    verseKey: v.verseKey,
+    textUthmani: v.textUthmani,
+  }));
+
+  const [meta, translationsBody, recitersBody, layoutsBody] = await Promise.all([
+    fetchJson<{ data: SurahMeta }>(`${apiBase}/v1/metadata/surahs/${surahNumber.toString()}`),
+    fetchJson<{ translations: TranslationItem[] }>(`${apiBase}/v1/translations`),
+    fetchJson<{ reciters: ReciterItem[] }>(`${apiBase}/v1/reciters`),
+    fetchJson<{ layouts?: LayoutItem[]; data?: string[] }>(`${apiBase}/v1/layouts`),
   ]);
 
-  const translationSlug = sp.t ?? 'pickthall';
-  const reciterSlug = sp.r ?? 'sudais';
-  // Tafsir slug — pinned to a single English tafsir for v0.5; will become
-  // user-selectable once more tafsir packs are ingested.
-  const tafsirSlug = 'maududi';
+  // SSR-prefetch the default translation so the page renders complete on
+  // first paint. (Client side, it lazy-fetches when the user picks a
+  // different translation.)
+  const defaultT = 'pickthall';
+  const prefetchedTranslation: Record<string, string> = {};
+  try {
+    const fetched = await Promise.all(
+      verses.map((v) =>
+        fetchJson<{ text: string }>(
+          `${apiBase}/v1/translations/${defaultT}/by_verse/${encodeURIComponent(v.verseKey)}`,
+          604800,
+        ),
+      ),
+    );
+    fetched.forEach((row, i) => {
+      if (row?.text && verses[i]) prefetchedTranslation[verses[i].verseKey] = row.text;
+    });
+  } catch {
+    /* ignore — client will refetch */
+  }
 
-  const activeTranslation =
-    translationSlug !== 'none'
-      ? translations.find((t) => t.slug === translationSlug) ?? null
-      : null;
+  const surahMeta = meta?.data ?? null;
+  const translations = (translationsBody?.translations ?? []).filter((t) => t.language === 'en');
+  const reciters = recitersBody?.reciters ?? [];
+  const layouts =
+    layoutsBody?.layouts ??
+    (layoutsBody?.data ?? []).map((slug) => ({ slug, name: slug }));
 
   return (
     <>
       <SiteNav />
 
-      {/* Editorial running header — mobile-first */}
+      {/* Editorial running header */}
       <header className="border-b border-hairline">
         <div className="mx-auto flex max-w-5xl items-end justify-between gap-4 px-4 sm:px-6 py-6 sm:py-10">
           <div className="min-w-0">
             <p className="smallcaps text-leaf text-[11px] tracking-widest">Sūrat</p>
-            <h1 className="font-display mt-1.5 text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-ink-strong truncate">
-              {meta?.nameEnglish ?? `Surah ${surahNumber.toString()}`}
+            <h1 className="font-display mt-1.5 text-2xl sm:text-4xl md:text-5xl font-light tracking-tight text-ink-strong truncate">
+              {surahMeta?.nameEnglish ?? `Surah ${surahNumber.toString()}`}
             </h1>
-            {meta ? (
-              <p className="mt-1.5 text-xs sm:text-sm text-ink-muted">
+            {surahMeta ? (
+              <p className="mt-1.5 text-[11px] sm:text-sm text-ink-muted">
                 <span className="font-mono tabular-nums">
                   {surahNumber.toString().padStart(3, '0')}
                 </span>
                 {' · '}
-                {meta.verseCount.toString()} verses · {meta.revelationPlace}
+                {surahMeta.verseCount.toString()} verses · {surahMeta.revelationPlace}
               </p>
             ) : null}
           </div>
           <p
             dir="rtl"
-            className="font-arabic text-4xl sm:text-5xl md:text-6xl text-ink-strong shrink-0"
+            lang="ar"
+            className="font-arabic text-3xl sm:text-5xl md:text-6xl text-ink-strong shrink-0"
             style={{ lineHeight: 1, unicodeBidi: 'plaintext' }}
           >
-            {meta?.nameArabic ?? ''}
+            {surahMeta?.nameArabic ?? ''}
           </p>
         </div>
       </header>
 
-      <ReaderControls
-        translations={translations}
-        reciters={reciters}
-        defaultTranslation="pickthall"
-        defaultReciter="sudais"
-      />
-
-      {/* Translator attribution — ONCE for the whole surah, not per-verse.
-          Wraps cleanly on mobile (the long full title gets its own line). */}
-      {activeTranslation ? (
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 pt-4 sm:pt-6">
-          <p className="text-[11px] sm:text-xs text-ink-muted text-center leading-relaxed">
-            <span className="smallcaps tracking-widest">Translation</span>
-            <span className="block sm:inline sm:mx-2 mt-1 sm:mt-0">
-              <span>{activeTranslation.name}</span>
-              <span className="mx-2 opacity-50">·</span>
-              <span className="italic">{activeTranslation.translator}</span>
-            </span>
+      {/* Bismillah header (skip surah 9). Rendered server-side, hydration-safe. */}
+      {surahNumber !== 9 && surahMeta?.bismillahPre !== 0 ? (
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 text-center py-6 sm:py-10">
+          <div className="rule-hairline mx-auto max-w-xs" />
+          <p
+            dir="rtl"
+            lang="ar"
+            className="font-arabic mt-5 sm:mt-6 text-2xl sm:text-4xl md:text-5xl text-ink-strong leading-[1.8]"
+            style={{ unicodeBidi: 'plaintext', fontWeight: 600 }}
+            aria-label="Bismillah"
+          >
+            {BASMALA}
           </p>
+          <div className="rule-hairline mx-auto max-w-xs mt-5 sm:mt-6" />
         </div>
       ) : null}
 
-      <main className="mx-auto max-w-3xl px-4 sm:px-6 py-6 sm:py-10">
-        <Suspense fallback={<LoadingState label="Loading surah…" lines={8} />}>
-          <ReaderBody
-            surahNumber={surahNumber}
-            meta={meta}
-            translationSlug={translationSlug}
-            reciterSlug={reciterSlug}
-            tafsirSlug={tafsirSlug}
-            apiBase={apiBase}
-          />
-        </Suspense>
-
-        <nav
-          aria-label="Surah navigation"
-          className="flex items-baseline justify-between text-sm pt-12 mt-12 border-t border-hairline"
-        >
-          {surahNumber > 1 ? (
-            <Link
-              href={`/read/${(surahNumber - 1).toString()}`}
-              className="smallcaps text-ink-muted hover:text-leaf"
-            >
-              ← Previous
-            </Link>
-          ) : (
-            <span />
-          )}
-          {surahNumber < 114 ? (
-            <Link
-              href={`/read/${(surahNumber + 1).toString()}`}
-              className="smallcaps text-ink-muted hover:text-leaf"
-            >
-              Next →
-            </Link>
-          ) : (
-            <span />
-          )}
-        </nav>
-      </main>
+      <ReadSurfaceClient
+        apiBase={apiBase}
+        verses={verses}
+        translations={translations}
+        reciters={reciters}
+        layouts={layouts}
+        tafsirSlug="muyassar"
+        defaultTranslation={defaultT}
+        defaultReciter="sudais"
+        defaultLayout={layouts[0]?.slug ?? 'madani_15'}
+        prefetchedTranslation={prefetchedTranslation}
+      />
     </>
   );
 }

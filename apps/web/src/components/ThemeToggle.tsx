@@ -119,7 +119,7 @@ export function ThemeToggle(): ReactNode {
     <div
       role="radiogroup"
       aria-label="Theme"
-      className="inline-flex items-center rounded-full border border-hairline bg-paper-100/70 p-0.5"
+      className="inline-flex items-center rounded-full border border-hairline bg-paper-100/70 p-0.5 shrink-0"
     >
       {options.map((opt) => {
         const active = theme === opt.value;
@@ -133,13 +133,14 @@ export function ThemeToggle(): ReactNode {
             aria-label={opt.label}
             title={opt.label}
             onClick={() => pick(opt.value)}
-            className={`inline-flex items-center justify-center rounded-full p-1.5 transition-colors ${
+            className={`inline-flex items-center justify-center rounded-full p-1 sm:p-1.5 transition-colors ${
               active
                 ? 'bg-surface text-leaf shadow-sm'
                 : 'text-ink-muted hover:text-ink'
             }`}
           >
-            <Icon size={14} />
+            <Icon size={12} className="sm:hidden" />
+            <Icon size={14} className="hidden sm:inline" />
           </button>
         );
       })}

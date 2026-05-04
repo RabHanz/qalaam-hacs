@@ -77,11 +77,17 @@ export function MiniPlayer({
     };
   }, [verseKey, reciterSlug, apiBase]);
 
-  // After URL is set + we wanted to resume, kick playback off
+  // After URL is set + we wanted to resume, kick playback off. We have to
+  // wait until the new src has loaded enough; `canplay` is the safest bet,
+  // but on most browsers play() will queue and start once enough buffer is
+  // available, so calling here is reliable.
   useEffect(() => {
-    if (audioUrl && shouldResumeRef.current && audioRef.current) {
-      shouldResumeRef.current = false;
-      audioRef.current.play().then(
+    if (!audioUrl || !shouldResumeRef.current || !audioRef.current) return;
+    const a = audioRef.current;
+    shouldResumeRef.current = false;
+    const p = a.play();
+    if (p && typeof p.then === 'function') {
+      p.then(
         () => setPlaying(true),
         () => setPlaying(false),
       );
@@ -103,15 +109,20 @@ export function MiniPlayer({
 
   function togglePlay(): void {
     const a = audioRef.current;
-    if (!a) return;
+    if (!a || !audioUrl) return;
     if (playing) {
       a.pause();
       setPlaying(false);
-    } else {
-      a.play().then(
+      return;
+    }
+    const p = a.play();
+    if (p && typeof p.then === 'function') {
+      p.then(
         () => setPlaying(true),
         () => setPlaying(false),
       );
+    } else {
+      setPlaying(true);
     }
   }
 
