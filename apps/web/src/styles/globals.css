@@ -479,6 +479,18 @@
     .recite-highlight, .recite-highlight * { transition: none; }
   }
 
+  /* Hifz-check word states (browser-side recite-and-check). */
+  .recite-matched {
+    color: var(--color-mistake-correct, #2e7d4f);
+    text-shadow: 0 0 0.18em color-mix(in srgb, var(--color-mistake-correct, #2e7d4f) 35%, transparent);
+  }
+  .recite-mismatch {
+    color: var(--color-mistake-error, #c0392b);
+    text-decoration: underline wavy var(--color-mistake-error, #c0392b);
+    text-decoration-skip-ink: none;
+    text-underline-offset: 0.18em;
+  }
+
   /* Verse-end rosette anchor. ALWAYS uses UthmanicHafs so the
    * Arabic-Indic-digit's OpenType subst draws the proper rosette
    * glyph, even when the parent line is in Nastaliq (IndoPak) or

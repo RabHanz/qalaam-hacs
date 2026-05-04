@@ -2464,3 +2464,117 @@ Per CLAUDE.md Principle 08 and §10.1 ("specify the leading indicators that tell
 
 If monthly-active Hifdh-session users (≥ 3 sessions in past 30 days) drops below 30% of MAU, **pause feature work and run a JTBD switch-interview round** with churned users. Hifdh is the moat; no other feature compensates.
 
+
+---
+
+## 27. Upstream integrations map (added 2026-05-05)
+
+This section tracks every external Quran-tech project we plan to consume,
+embed, or learn from — so we don't reinvent. Sources:
+- [Quran Foundation org repos (31 total)](https://github.com/orgs/quran/repositories)
+- [QUL — Quranic Universal Library](https://qul.tarteel.ai/)
+- [Quran Foundation API + SDKs](https://api-docs.quran.foundation/)
+- [Tarteel AI](https://tarteel.ai/)
+- [cpfair/quran-tajweed (MIT)](https://github.com/cpfair/quran-tajweed)
+- [nuqayah/qpc-fonts](https://github.com/nuqayah/qpc-fonts)
+
+### 27.1 Quran MCP server (mcp.quran.ai)
+
+**Status:** Live + open-source, [quran/quran-mcp](https://github.com/quran/quran-mcp).
+
+Provides `fetch_quran` / `search_tafsir` / morphology / mushaf rendering /
+concordance to any AI assistant via MCP. 50+ translations, 30+ languages,
+15+ tafsir scholars (Ibn Kathir, al-Tabari, al-Qurtubi…), Hafs/Warsh/Qaloon.
+
+**Plan:**
+- v0.5 — embed an MCP CLIENT in our backend; `/study` panel falls back
+  to mcp.quran.ai for content we haven't ingested (deep tafsir, lesser
+  qira'at).
+- v0.6 — publish our OWN `qalaam-mcp` exposing family-aware tools
+  (hifdh-state, mutashabihat clusters, family bookmarks) ALONGSIDE
+  the canonical fetch_quran/search_tafsir. Ours adds family + adab
+  features; theirs covers depth of source material.
+
+### 27.2 recite.quran.ai — voice mistake detection
+
+Tarteel-style real-time mispronunciation flagger. Trained on 75K+ minutes
+of curated Quran audio; <200ms latency on NVIDIA. No public weights.
+
+**Our paths:**
+- ✅ `/recite/[verseKey]` — WS to local `services/realtime-feedback`
+  (faster-whisper stub).
+- ✅ `/hifz-check/[verseKey]` — browser Web Speech API (no infra dep,
+  audio stays on device).
+- v0.6 — self-host `tarteelai/whisper-base-ar-quran` ONNX in
+  `services/asr-worker` (~150MB, CPU-OK).
+- v2.0 — Quran-fine-tuned Whisper-large-v3 for Pro tier.
+
+ADR refs: ADR-0005 (on-device ASR), ADR-0007 (reciter licensing).
+
+### 27.3 Tajweed annotation
+
+- ✅ ingested cpfair/quran-tajweed (MIT, 60,057 annotations × 18 rules).
+- 〰️ track quran/quran-tajweed (forked) for algorithm-tree updates.
+- ❌ skip quran/tajweed (Java highlighter) — we have the data.
+
+### 27.4 QPC fonts
+
+- ✅ vendored 1208 page-fonts (v1 + v2) + UthmanicHafs Unicode at
+  `apps/web/public/fonts/quran/`.
+- ❌ v4 tajweed glyph font — license-respect outreach pending (ADR-0007).
+
+### 27.5 QUL completeness — ingest scorecard
+
+| Category | QUL total | Qalaam | Status |
+|---|---|---|---|
+| Recitations | 152 (62 segmented) | 14 | 〰️ |
+| Translations | 209 + 16 WBW | 2 (en) | ❌ |
+| Tafsirs | 115 | 2 (Muyassar AR + Ibn Kathir AR) | ❌ |
+| Mushaf Layouts | 27 | 3 | ❌ |
+| Quran Scripts | 28 | 4 + Imlaei ayah-level | 〰️ |
+| Fonts | 18 | UthmanicHafs + 1208 v1/v2 page-fonts | 〰️ |
+| Quran Metadata | 8 | 6 + 15-row sajda | ✅ |
+| Transliteration | 9 | 0 | ❌ |
+| Surah Info | 9 langs | 4 (en/ml/ta/ur) | 〰️ |
+| **Topics & Concepts** | **2,512** | 0 | ❌ |
+| **Grammar & Morphology** | **77,429 entries** | 0 | ❌ |
+| Mutashabihat | 5,277 | 814 clusters + 19,385 pairs | ✅ |
+| Similar Ayahs | 4,001 | 3,552 | ✅ |
+| Ayah Themes | 1,049 | 0 | ❌ |
+
+**Highest-leverage gaps (priority order):**
+1. **Morphology** (77K word-level POS/root/lemma) — unlocks /study word-by-word.
+2. **Topics + Themes** (3,500+ entries) — semantic cross-reference UX.
+3. **Translations + Tafsirs depth** — most user-visible breadth gap.
+4. **Reciters depth** (152 vs 14) — most by-count gap.
+
+### 27.6 Other quran org repos to track
+
+| Repo | Stars | Language | For us |
+|---|---|---|---|
+| [quran_android](https://github.com/quran/quran_android) | 2342 | Kotlin | Android ref |
+| [quran-ios / QuranEngine](https://github.com/quran/quran-ios) | 551 | Swift | iOS ref |
+| [quran.com-frontend-next](https://github.com/quran/quran.com-frontend-next) | 1847 | TS | Mushaf rendering ref |
+| [audio.quran.com](https://github.com/quran/audio.quran.com) | 166 | Svelte | /listen patterns |
+| [api-js / @quranjs/api](https://github.com/quran/api-js) | 49 | TS | Drop-in client |
+| [ayah-detection](https://github.com/quran/ayah-detection) | 111 | Python | Image-mushaf overlay |
+| [waqt.org](https://github.com/quran/waqt.org) | 108 | PHP | Prayer-times pattern |
+| [common-components](https://github.com/quran/common-components) | 41 | JS | Component ref |
+| [mobile-sync](https://github.com/quran/mobile-sync) | 1 | Kotlin | Bookmark sync |
+
+### 27.7 Implementation queue
+
+1. **`make qul-deep-ingest`** — pull all 14 QUL categories. Phase per
+   category. Per-resource rate limit + sha-pin.
+2. ✅ **Hifz check MVP** — `/hifz-check/[verseKey]` (browser ASR).
+3. **MCP client** — backend tooling that calls mcp.quran.ai for the
+   /study panel fallback content.
+4. **Morphology ingest + word-by-word /study** — biggest pedagogical win.
+5. **Translations + tafsirs depth-pull** — 2/2 → 50+/20+.
+6. **Reciters depth-pull** — 14 → 50+ (segmented coverage prioritized).
+7. **Self-hosted ASR worker** — Tarteel Whisper ONNX behind /recite WS.
+8. **`qalaam-mcp` server** — emit our family-aware tools.
+9. **Image-mushaf overlay** — `mushaf-layout-12.sqlite/6/{N}.png|json`
+   we already have + ayah-detection scripts.
+10. **Mobile** — Kotlin / Swift apps borrowing from quran_android +
+    QuranEngine patterns.

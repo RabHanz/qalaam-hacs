@@ -48,12 +48,12 @@ The phase table above tracks **engineering scaffolding**. This section tracks **
 
 | INTRO promise                                                  | Reality                                                                                | Done |
 | -------------------------------------------------------------- | -------------------------------------------------------------------------------------- | :--: |
-| Multiple Arabic scripts (Uthmani, Indo-Pak, Imlaei, QPC Hafs)  | Only Uthmani in `/read/[surah]`; layouts table has 3 KFGQPC mushafs but no script picker | ❌ |
-| Madani 15-line page-faithful mushaf                            | Layout DB live (madani_15 + 2 more × 604 pages × 9k lines × 251k words); no `/mushaf/:layout/:page` route yet | 〰️ |
-| Tajweed colored beautifully + legend                            | None                                                                                    | ❌ |
+| Multiple Arabic scripts (Uthmani, Indo-Pak, Imlaei, QPC Hafs)  | 4 scripts in `qalaam_v1_qul_scripts_words` (uthmani, uthmani_simple, qpc_v4_tajweed, indopak_nastaleeq) + Imlaei ayah-level. Reader's Layout chip-row flips active script in-place across Continuous / One-ayah / Mushaf modes via `textForLayout()` | ✅ |
+| Madani 15-line page-faithful mushaf                            | `/mushaf/:layout/:page` live with pretty URL slugs (`/mushaf/madinah/N`, `/mushaf/indopak/N`, `/mushaf/tajweed/N`). MushafLines auto-fits font to container width; verse-end rosettes via UthmanicHafs OpenType. Listen player chains pages + cross-surah. "Exit mushaf" pill. | ✅ |
+| Tajweed colored beautifully + legend                            | 60,057 char-range annotations × 18 rules ingested (cpfair/quran-tajweed, MIT). `/v1/tajweed/:vk` endpoint. 18-class `.tajweed-*` CSS palette (Quran.com convention). Activates on `/mushaf/tajweed` + `/read` Mushaf-style + Layout=Tajweed. Legend not yet surfaced. | 〰️ |
 | Word-by-word translations on tap                                | `/v1/wbw/:vk` returns Arabic word splits (fallback from scripts_words); per-ayah expansion in `AyahCard` works; English glosses missing for ~73k words | 〰️ |
 | Multiple translations side-by-side                              | 2 ingested (Pickthall public-domain, Saheeh International) for full 6,236 verses; AyahCard shows the picked one inline; side-by-side comparison view absent | 〰️ |
-| Multiple tafsirs (Saheeh, Ibn Kathir, Maududi, Muyassar)        | Catalog only. Zero tafsir text rows in DB.                                              | ❌ |
+| Multiple tafsirs (Saheeh, Ibn Kathir, Maududi, Muyassar)        | 2 ingested: Tafsir al-Muyassar (ar, 6,236 rows) + Tafsir Ibn Kathir (ar, 6,236 rows). Tafsir chip on AyahCard live. QUL has 115 total — pull-deep tracked in STRATEGY §27.5. | 〰️ |
 | Bookmarks, highlights, tags, notes                              | Per-ayah bookmark to localStorage (AyahCard); no notes / tags / highlights              | 〰️ |
 | 3-pane deep-study view                                          | `/study/[surah]/[ayah]` exists but tafsir + asbab al-nuzul panes empty                  | 〰️ |
 | Search across translations + Arabic                             | None                                                                                    | ❌ |
@@ -66,8 +66,8 @@ The phase table above tracks **engineering scaffolding**. This section tracks **
 
 | INTRO promise                                          | Reality                                                                                  | Done |
 | ------------------------------------------------------ | ---------------------------------------------------------------------------------------- | :--: |
-| 80+ reciters                                           | 14 ingested (Husary, Mishary, Sudais, Maher, Saad, Abu Bakr, Minshawi, abdul-basit M+M, Yasser, Saud Shuraim, Hani Rifai, Khalifa Tunaiji, Husary Mujawwad). Roadmap to 80+ via QUL `/resources/recitation`. | 〰️ |
-| Verse-by-verse highlighting following audio            | Word-level segments in DB; AyahCard plays audio but doesn't highlight following words    | 〰️ |
+| 80+ reciters                                           | 14 ingested with full audio + 1.08M segments (Husary, Mishary, Sudais, Maher, Saad, Abu Bakr, Minshawi, abdul-basit M+M, Yasser, Saud Shuraim, Hani Rifai, Khalifa Tunaiji, Husary Mujawwad). Verse_key bug fixed (5 reciters had global-index ayahs; rebuilt 31K audio + 388K segments via `fix-recitations-verse-keys.py`). QUL has 152 total — track in STRATEGY §27.5. | 〰️ |
+| Verse-by-verse highlighting following audio            | ✅ Tarteel-style word-by-word highlight live. `ContinuousReaderPlayer` (sticky bottom bar, /read + /mushaf surfaces) drives via 1.08M segment rows + rAF tracker (~16ms) + 80ms lookahead. Letterform color highlight (NO background rect). Cross-surah continuous chain. Buffer-swap gapless playback. AyahCard per-ayah Listen has its own `selfHighlightIdx`. MiniPlayer broadcasts `qalaam:highlight` CustomEvent. Single-ayah index auto-advances; verse cards auto-scroll into view. | ✅ |
 | Speed control / repeat-this-verse / sleep timer        | None                                                                                      | ❌ |
 | Background playback / lock-screen controls             | None                                                                                      | ❌ |
 | Offline downloads per-surah / per-juz                   | None                                                                                      | ❌ |
@@ -90,7 +90,7 @@ The phase table above tracks **engineering scaffolding**. This section tracks **
 | Daily parent dashboard (calm summary, not real-time)                    | `/hifdh` shows seed state; no per-child dashboard                                                | 〰️ |
 | One-tap "I just heard them recite" rating                                | None                                                                                              | ❌ |
 | Per-page mistake heatmap                                                 | None                                                                                              | ❌ |
-| Verse-pause drill                                                        | `/recite/:verseKey` exists; FeedbackSession is a UI stub                                         | 〰️ |
+| Verse-pause drill                                                        | `/recite/:verseKey` (WS to local realtime-feedback service) + ✅ NEW `/hifz-check/:verseKey` (browser Web Speech API, on-device, no infra dep). HifzCheckClient does word-level diff with normalize() (strips harakat + alef variants); paints matched/mismatch states. Privacy: audio never leaves browser per ADR-0005. | 〰️ |
 | Forgiving streaks with grace days                                        | Backend returns grace days; UI shows them                                                        | ✅ |
 | Family halaqah view                                                      | None                                                                                              | ❌ |
 | Voice notes + praise stickers                                            | None                                                                                              | ❌ |
