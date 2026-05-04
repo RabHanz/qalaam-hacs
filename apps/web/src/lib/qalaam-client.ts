@@ -8,7 +8,7 @@
  */
 import { QalaamError, type VerseKey } from '@qalaam/core';
 
-const DEFAULT_BASE = process.env['PUBLIC_API_URL'] ?? 'http://localhost:4000';
+const DEFAULT_BASE = process.env['PUBLIC_API_URL'] ?? 'http://localhost:4111';
 
 export interface VerseResponse {
   readonly verseKey: VerseKey;

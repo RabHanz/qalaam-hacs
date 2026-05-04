@@ -36,10 +36,15 @@ interface HifdhStatePayload {
   streak_days: number;
   grace_days_remaining: number;
   current_sabqi: string | null;
+  current_sabaq?: string | null;
   manzil_cycle_position: string | null;
   weakest_pages: string[];
   mutashabihat_watchlist: string[];
-  today_session_count: number;
+  // Backend canonical field name (since 2026-05-04). Older `today_session_count`
+  // kept as fallback for pre-existing in-flight responses.
+  portions_due_today?: number;
+  minutes_completed_today?: number;
+  today_session_count?: number;
   family_members?: ChildSummary[];
   weekly_leaderboard?: LeaderboardEntry[];
   family_name?: string;
@@ -116,7 +121,7 @@ async function HifdhContent({
             />
             <Stat
               label="Portions due today"
-              value={(state.today_session_count ?? 0).toString()}
+              value={(state.portions_due_today ?? state.today_session_count ?? 0).toString()}
               caption={state.current_sabqi ? `Current sabaq: ${state.current_sabqi}` : 'No sabaq set yet.'}
             />
             <Stat

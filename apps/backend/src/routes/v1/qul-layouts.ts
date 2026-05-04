@@ -72,8 +72,12 @@ export async function qulLayoutsRoutes(
   }
 
   fastify.get('/v1/layouts', { schema: { tags: ['layouts'] } }, async (_req, reply) => {
+    // Only surface layouts that actually have ingested data — checks each
+    // KNOWN_LAYOUTS slug against the reader's pageCount, drops zeros.
+    const r = reader();
+    const available = Array.from(KNOWN_LAYOUTS).filter((slug) => r.pageCount(slug) > 0);
     void reply.header('cache-control', `public, max-age=${SEVEN_DAYS_S.toString()}`);
-    return { data: Array.from(KNOWN_LAYOUTS) };
+    return { data: available };
   });
 
   fastify.get<{ Params: { layout: string } }>(

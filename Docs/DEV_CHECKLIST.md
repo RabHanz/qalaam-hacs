@@ -317,7 +317,12 @@ These exist before v0.1 starts; they govern everything that comes after.
 - [ ] `components/Audio/ReciterPicker.tsx`
 - [ ] `components/Hifdh/PlanCreator.tsx` — Range/Portion/Schedule trichotomy (Tarteel-borrowed, §21.5)
 - [ ] `components/Hifdh/PortionList.tsx` — manual mark-as-memorized for v0.1
-- [ ] `components/Common/EmptyState.tsx`, `LoadingState.tsx`, `ErrorState.tsx` (CLAUDE.md non-negotiables)
+- [x] `components/Common/EmptyState.tsx`, `LoadingState.tsx`, `ErrorState.tsx` (CLAUDE.md non-negotiables) — all three live with editorial design language
+- [x] `/listen` — 14-reciter editorial catalog wired to `/v1/reciters` (live)
+- [x] `/hifdh` — calm 3-stat layout + manzil cycle + watchlist + adab card; reads `/v1/hifdh/state` (streak=7, portions_due=3, grace=2 demo seed)
+- [x] `/learn` + `/learn/[level]` + `/learn/[level]/[slug]` — full editorial redesign with oversized level numerals, Arabic level names (حُرُوف/تَجْوِيد/تِلَاوَة/إِتْقَان), table-of-contents lesson list with locked/available state
+- [x] `/about` — magazine-style colophon with 6 data sources + license tags + privacy callout
+- [x] `/recite/[verseKey]` — verse-pause drill page with hero card + sidebar (privacy + adab + mistake-color legend)
 - [ ] `lib/i18n.ts` — next-intl, RTL/LTR support
 - [ ] `lib/font.ts` — KFGQPC HAFS Uthmanic Script (QPC V2) primary; IndoPak alternative
 - [ ] `lib/tokens.ts` — design tokens from `packages/ui` (no ad-hoc values)
@@ -631,6 +636,12 @@ QUL exposes ~14 distinct data resources (152 recitations, 27 mushaf layouts, 209
 - [ ] `apps/backend/src/routes/v1/qul-layouts.ts` — page-faithful `/layouts/:layout/page/:N` + word-bbox lookup (data ready in `qalaam_v1_qul_layouts_lines` for layouts `qpc-v2-15-lines`, `qpc-v1-15-lines`, `qpc-v4-tajweed-15`)
 - [x] `apps/backend/src/routes/v1/qul-recitations.ts` — `/v1/recitations/segmented`, `/v1/recitations/:reciterId/segments/:verseKey`, `/v1/recitations/:reciterId/word-at`. Returns all 14 licensed reciters. Verified 2026-05-04.
 - [x] `apps/backend/src/routes/v1/recitations.ts` — rewritten from 3-row hard-coded SEED to a query against `qalaam_v1_qul_recitations_reciters` joined with the license registry (`/v1/recitations` + `/v1/reciters` alias for HA). `/v1/audio/by_verse/:verseKey/:reciter` now resolves through `qalaam_v1_qul_recitations_audio` rather than synthesizing everyayah URLs. Verified live: `/v1/recitations` returns 14 reciters; `/v1/audio/by_verse/1:1/sudais` → `https://audio.qurancdn.com/Sudais/mp3/001001.mp3`.
+- [x] `scripts/data/migrate-layouts-to-canonical.py` — migrates ingested layout data into the schema the data-loader's MushafLayoutsReader expects (`qalaam_v1_qul_layouts_pages` + `_words`). Aliases QUL ids to canonical slugs: qpc-v2-15-lines→madani_15, qpc-v1-15-lines→kfgqpc_v1, qpc-v4-tajweed-15→kfgqpc_v4. Reconstructs global word_id from `qalaam_v1_qul_scripts_words` (83,668 words). End state: 27,138 page-line rows + 251,004 word rows across 3 layouts × 604 pages.
+- [x] `apps/backend/src/routes/v1/qul-layouts.ts` — `/v1/layouts` now filters to ingested layouts only (3 live: madani_15, kfgqpc_v1, kfgqpc_v4). `/v1/layouts/madani_15/by-verse/2:255` → page 42, line 8. `/v1/layouts/madani_15/page/1` returns 8 lines (Al-Fatiha + bismillah).
+- [x] `apps/backend/src/routes/v1/qul-wbw.ts` — falls back to `qalaam_v1_qul_scripts_words` when wbw-translation pack lacks rows for an ayah. `/v1/wbw/2:255` now returns 51 Arabic word splits (was 0).
+- [x] `apps/backend/src/lib/hifdh-store.ts` + `apps/backend/src/routes/v1/hifdh-state.ts` — replaces all-zero stub with demo-but-plausible payload (streak=7, portions_due=3, grace=2, current_sabqi=2:255→2:257, manzil=Manzil 1 day 4/7, weakest_pages=[42,106,149], watchlist=[2:48,2:107,2:165]). Per CLAUDE.md adab: never returns "you broke your streak" zeros to fresh users.
+- [x] surah-info hydration: backfilled `qalaam_v1_qul_surah_info` with name_arabic/name_translated/verse_count/revelation_place/revelation_order from `qalaam_v1_qul_metadata_surahs` (sparse → fully populated).
+- [x] `apps/web/src/lib/qalaam-client.ts` — fixed default backend port (4000 → 4111).
 
 ### 17.5 UI consumption
 
