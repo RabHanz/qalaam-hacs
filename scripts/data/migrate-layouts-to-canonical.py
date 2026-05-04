@@ -51,14 +51,17 @@ ALIAS: dict[str, str] = {
 SCRIPT_FOR: dict[str, str] = {
     # madani_15 — full Uthmani with all diacritics (KFGQPC v2 baseline).
     "madani_15":  "uthmani",
-    # kfgqpc_v1 — simplified Uthmani (older v1 ortho omits some marks);
-    # subtly differs from v2 in diacritics on most pages.
-    "kfgqpc_v1":  "uthmani_simple",
-    # kfgqpc_v4 — uses readable Uthmani text + CSS tajweed-color overlay
-    # (.mushaf-layout-tajweed) for the visual differentiation. The PUA
-    # glyph codes from qpc_v4_tajweed exist in scripts_words but require
-    # the proprietary v4 font to render — without it they show as tofu
-    # boxes. We can swap once that font is licensed and self-hosted.
+    # kfgqpc_v1 → repurposed as the IndoPak Nastaleeq variant. In our
+    # QUL data, `uthmani` and `uthmani_simple` are byte-identical, so
+    # using either for v1 produces a layout indistinguishable from v2.
+    # IndoPak Nastaleeq uses the alternate Sub-Continental orthography
+    # (different alif/yaa/lam-alif forms — VISIBLY different on every
+    # word), which gives the user a real second mushaf variant to read.
+    "kfgqpc_v1":  "indopak_nastaleeq",
+    # kfgqpc_v4 — Uthmani text + .mushaf-layout-tajweed CSS overlay.
+    # The PUA glyph codes from qpc_v4_tajweed exist in scripts_words
+    # but require the proprietary v4 font to render — without it they
+    # show as tofu boxes. Swap once the v4 font is licensed.
     "kfgqpc_v4":  "uthmani",
 }
 

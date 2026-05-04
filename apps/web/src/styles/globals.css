@@ -20,14 +20,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Amiri:wght@400;700&family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap');
 
 /* UthmanicHafs — official KFGQPC Hafs Uthmanic Script Unicode font from
- * Quran Foundation. Proper OpenType substitution renders Arabic-Indic
- * digits + U+06DD as authentic verse-end rosette glyphs. This is what
- * Quran.com and Tarteel use for Unicode-text mushaf rendering.
+ * Quran Foundation. Self-hosted at /fonts/quran/UthmanicHafs1Ver18.woff2
+ * to remove the Quran-Foundation-CDN dependency (the file is the same
+ * woff2; downloaded once via scripts/data/download-fonts.sh).
  * Reference: https://api-docs.quran.foundation/docs/tutorials/fonts/font-rendering/
  */
 @font-face {
   font-family: 'UthmanicHafs';
-  src: url('https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.woff2') format('woff2');
+  src: url('/fonts/quran/UthmanicHafs1Ver18.woff2') format('woff2');
   font-display: swap;
   font-weight: 400;
 }
@@ -449,34 +449,58 @@
     border-color: color-mix(in srgb, var(--color-leaf-700) 70%, transparent);
   }
 
-  /* kfgqpc_v4 — tajweed coloring approximation. Real KFGQPC tajweed
-   * colors letters by phonetic role (ghunnah green, ikhfaa blue,
-   * idgham yellow, qalqalah red, hamza-wasl gray). Without the
-   * actual font, we apply a subtle color overlay to shadda + tanween
-   * marks so the v4 layout reads as visually distinct. */
-  .mushaf-layout-tajweed [dir="rtl"] {
-    color: var(--color-ink-strong, #04181d);
-  }
-  .mushaf-layout-tajweed [dir="rtl"] a:hover { color: var(--color-leaf-500); }
-
-  /* Tajweed CSS hue-rotation for shadda + tanween-bearing chars.
-   * U+0651 SHADDA, U+064B/4C/4D TANWEEN. We can't target individual
-   * chars in plain HTML so we use a slight hue-rotate filter that
-   * tints the whole text toward the warm tajweed palette. Subtle but
-   * visibly different from v1/v2.
+  /* Tajweed palette — annotation-driven (cpfair/quran-tajweed MIT).
+   * 18 rules from the source dataset, mapped to the Quran.com /
+   * Tanzeel color convention. Each .tajweed-<rule> class paints a
+   * single character-range span; classes are applied via the
+   * applyTajweed() helper in src/lib/tajweed.ts.
+   *
+   * Color groups (KFGQPC v4 convention):
+   *   Ghunnah family (n/m sounds with nasal extension)         → green
+   *   Madd family (vowel elongation)                            → orange/red
+   *   Qalqalah (echoing stop letters)                           → bright red
+   *   Hamzat wasl + silent letters                              → grey
+   *   Lam shamsiyyah (assimilated lam)                          → grey
+   *   Idghaam family (assimilation)                             → muted blue
+   *   Ikhfa family (concealment)                                → teal
+   *   Iqlab (lip conversion)                                    → magenta
    */
-  .mushaf-layout-tajweed .ayah-rosette {
-    border-color: color-mix(in srgb, #c0392b 55%, var(--color-leaf-500) 45%);
-    background:
-      radial-gradient(closest-side, color-mix(in srgb, #c0392b 18%, transparent) 0%, transparent 75%),
-      transparent;
-  }
-  .mushaf-layout-tajweed .ayah-rosette-num {
-    color: #8a3220;
-  }
-  /* Slight color shift on the body text gives v4 its distinctive
-   * "tajweed" feel without needing the actual colored font. */
-  .mushaf-layout-tajweed [dir="rtl"] > span > a {
-    background-image: linear-gradient(180deg, transparent 0%, transparent 65%, color-mix(in srgb, #c0392b 8%, transparent) 100%);
-  }
+  .tajweed-ghunnah               { color: #2e7d4f; } /* green */
+  .tajweed-idghaam_ghunnah       { color: #2e7d4f; }
+  .tajweed-idghaam_no_ghunnah    { color: #4f80a4; } /* steel blue */
+  .tajweed-idghaam_shafawi       { color: #4f80a4; }
+  .tajweed-idghaam_mutajanisayn  { color: #4f80a4; }
+  .tajweed-idghaam_mutaqaribayn  { color: #4f80a4; }
+  .tajweed-ikhfa                 { color: #1e7a8a; } /* teal */
+  .tajweed-ikhfa_shafawi         { color: #1e7a8a; }
+  .tajweed-iqlab                 { color: #b04194; } /* magenta */
+  .tajweed-qalqalah              { color: #c0392b; } /* red */
+  .tajweed-madd_2                { color: #d97706; } /* orange — 2 harakat */
+  .tajweed-madd_246              { color: #d97706; }
+  .tajweed-madd_6                { color: #c0392b; } /* red — required 6 harakat */
+  .tajweed-madd_munfasil         { color: #d97706; }
+  .tajweed-madd_muttasil         { color: #c0392b; }
+  .tajweed-hamzat_wasl           { color: #909090; } /* grey */
+  .tajweed-silent                { color: #909090; }
+  .tajweed-lam_shamsiyyah        { color: #b8b8b8; }
+
+  /* Dark-mode contrast tweaks */
+  :root[data-theme="dark"] .tajweed-ghunnah,
+  :root[data-theme="dark"] .tajweed-idghaam_ghunnah          { color: #5fc28a; }
+  :root[data-theme="dark"] .tajweed-idghaam_no_ghunnah,
+  :root[data-theme="dark"] .tajweed-idghaam_shafawi,
+  :root[data-theme="dark"] .tajweed-idghaam_mutajanisayn,
+  :root[data-theme="dark"] .tajweed-idghaam_mutaqaribayn      { color: #7eb6da; }
+  :root[data-theme="dark"] .tajweed-ikhfa,
+  :root[data-theme="dark"] .tajweed-ikhfa_shafawi             { color: #4fc6d8; }
+  :root[data-theme="dark"] .tajweed-iqlab                     { color: #e08fcc; }
+  :root[data-theme="dark"] .tajweed-qalqalah,
+  :root[data-theme="dark"] .tajweed-madd_6,
+  :root[data-theme="dark"] .tajweed-madd_muttasil             { color: #ff7763; }
+  :root[data-theme="dark"] .tajweed-madd_2,
+  :root[data-theme="dark"] .tajweed-madd_246,
+  :root[data-theme="dark"] .tajweed-madd_munfasil             { color: #ffb454; }
+  :root[data-theme="dark"] .tajweed-hamzat_wasl,
+  :root[data-theme="dark"] .tajweed-silent,
+  :root[data-theme="dark"] .tajweed-lam_shamsiyyah            { color: #b8b8b8; }
 }

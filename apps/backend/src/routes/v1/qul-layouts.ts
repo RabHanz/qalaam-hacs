@@ -84,9 +84,14 @@ export async function qulLayoutsRoutes(
         sourceLabel: 'King Fahd Glorious Quran Printing Complex',
       },
       kfgqpc_v1: {
-        name: 'Madinah Mushaf (v1)',
-        subtitle: '15 lines · KFGQPC v1',
-        sourceLabel: 'King Fahd Glorious Quran Printing Complex',
+        // The kfgqpc_v1 slot is fed by the IndoPak Nastaleeq script
+        // because in our QUL data the v1/v2 Uthmani text is identical
+        // (deduplicated upstream). IndoPak Nastaleeq gives a genuinely
+        // different reading variant — alternate alif/yaa/lam-alif
+        // forms — so users see a real second mushaf when they switch.
+        name: 'IndoPak (Nastaleeq)',
+        subtitle: '15 lines · Sub-Continental orthography',
+        sourceLabel: 'Quranic Universal Library',
       },
       kfgqpc_v4: {
         name: 'Madinah Mushaf · Tajweed',

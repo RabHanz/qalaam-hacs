@@ -25,6 +25,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
+import { resolveApiBase } from '../lib/api-base.js';
+import { applyTajweed, fetchTajweed, type TajweedAnnotation } from '../lib/tajweed.js';
+
 interface LayoutWord {
   readonly wordId: number;
   readonly wordIndex: number;
@@ -56,9 +59,16 @@ interface Props {
   readonly minFontPx?: number;
 }
 
+// Verse-end marker detection.
+// • Uthmani: bare Arabic-Indic digit ('٢')
+// • IndoPak Nastaleeq: combining-mark cluster ('۟', '۟ۙ', etc) using
+//   chars from U+06D6–U+06ED (small high marks) without any base
+//   Arabic letter.
 const ARABIC_DIGITS_RE = /^[٠-٩]+$/;
+const INDOPAK_END_RE = /^[ۖ-ۭ]+$/;
 function isAyahEndMarker(text: string): boolean {
-  return ARABIC_DIGITS_RE.test(text.trim());
+  const t = text.trim();
+  return ARABIC_DIGITS_RE.test(t) || INDOPAK_END_RE.test(t);
 }
 
 const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
@@ -81,8 +91,20 @@ const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayout
  * the readable Uthmani text, so glyph fonts wouldn't render. When we
  * re-ingest with code_v2 we can swap to per-page fonts.
  */
-function fontStackFor(_layoutSlug: string): string {
-  return '"UthmanicHafs", "Amiri Quran", "Noto Naskh Arabic", "Amiri", serif';
+function fontStackFor(layoutSlug: string): string {
+  switch (layoutSlug) {
+    case 'kfgqpc_v1':
+      // IndoPak Nastaleeq orthography uses different combining marks
+      // (U+0670 alif khanjari, U+06DF small high rounded zero) that
+      // UthmanicHafs's OpenType subst tables interpret as rosette
+      // glyphs — producing spurious inline khatmas. Use a general-
+      // purpose Naskh that doesn't ligate IndoPak diacritics.
+      return '"Noto Naskh Arabic", "Amiri", "Amiri Quran", serif';
+    case 'kfgqpc_v4':
+    case 'madani_15':
+    default:
+      return '"UthmanicHafs", "Amiri Quran", "Noto Naskh Arabic", "Amiri", serif';
+  }
 }
 
 export function MushafLines({
@@ -96,12 +118,73 @@ export function MushafLines({
   const lineRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const [fontPx, setFontPx] = useState<number>(maxFontPx);
   const [didFit, setDidFit] = useState(false);
+  const [tajweedByVerse, setTajweedByVerse] = useState<Map<string, readonly TajweedAnnotation[]>>(
+    new Map(),
+  );
 
   // Reset measurement state whenever the lines or layout changes — both
   // affect natural widths and therefore the optimal font-size.
   useEffect(() => {
     setDidFit(false);
   }, [lines, layoutSlug]);
+
+  // For the tajweed layout, fetch annotations for every distinct verse
+  // currently rendered. The cache in lib/tajweed.ts persists across
+  // re-renders so we don't re-fetch on every paint.
+  useEffect(() => {
+    if (layoutSlug !== 'kfgqpc_v4') return;
+    const apiBase = resolveApiBase();
+    const verseKeys = new Set<string>();
+    for (const line of lines) {
+      if (line.lineType !== 'ayah') continue;
+      for (const w of line.words) verseKeys.add(w.verseKey);
+    }
+    let cancelled = false;
+    void (async () => {
+      const next = new Map<string, readonly TajweedAnnotation[]>();
+      await Promise.all(
+        Array.from(verseKeys).map(async (vk) => {
+          const ann = await fetchTajweed(apiBase, vk);
+          next.set(vk, ann);
+        }),
+      );
+      if (!cancelled) setTajweedByVerse(next);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [lines, layoutSlug]);
+
+  // Build per-verse word-offset map: for each verse, maps word_index →
+  // start char position of that word in the verse's joined text.
+  // Used to convert ayah-level tajweed offsets to word-level slice
+  // boundaries.
+  const verseWordOffsets = (() => {
+    if (layoutSlug !== 'kfgqpc_v4') return new Map<string, Map<number, number>>();
+    // Group words by verse, ordered by word_index, and accumulate
+    // offsets. Words are space-joined when forming the canonical
+    // ayah text (matches how cpfair/quran-tajweed's source aligns).
+    const byVerse = new Map<string, { wordIndex: number; text: string }[]>();
+    for (const line of lines) {
+      for (const w of line.words) {
+        const arr = byVerse.get(w.verseKey) ?? [];
+        arr.push({ wordIndex: w.wordIndex, text: w.text });
+        byVerse.set(w.verseKey, arr);
+      }
+    }
+    const out = new Map<string, Map<number, number>>();
+    for (const [vk, words] of byVerse.entries()) {
+      words.sort((a, b) => a.wordIndex - b.wordIndex);
+      const offsets = new Map<number, number>();
+      let cursor = 0;
+      for (const w of words) {
+        offsets.set(w.wordIndex, cursor);
+        cursor += w.text.length + 1; // +1 for the space separator
+      }
+      out.set(vk, offsets);
+    }
+    return out;
+  })();
 
   useIsoLayoutEffect(() => {
     const container = containerRef.current;
@@ -113,7 +196,9 @@ export function MushafLines({
     function fit(): void {
       if (!container || cancelled) return;
       const rect = container.getBoundingClientRect();
-      const available = rect.width - 6; // safety margin
+      // 16px safety margin (was 6) — covers font-swap drift, sub-pixel
+      // rounding, and nested-span margin growth under tajweed coloring.
+      const available = rect.width - 16;
       if (available <= 0) {
         raf = requestAnimationFrame(fit);
         return;
@@ -122,14 +207,13 @@ export function MushafLines({
       const probeSize = maxFontPx;
       let widestNatural = 0;
 
-      // Measure each line's natural width at probeSize. We set ALL line
-      // spans to probeSize first, then read scrollWidth from each. This
-      // batches the writes before the reads so the browser only does
-      // one layout pass.
+      // Reset transform from previous run before measuring naturally.
       const spans = lineRefs.current.filter((s): s is HTMLSpanElement => s !== null);
       for (const span of spans) {
+        span.style.transform = '';
         span.style.fontSize = `${probeSize.toString()}px`;
       }
+      // One layout pass: read scrollWidth from each.
       for (const span of spans) {
         const w = span.scrollWidth;
         if (w > widestNatural) widestNatural = w;
@@ -141,13 +225,34 @@ export function MushafLines({
       }
 
       // Linear scaling: font-size scales width linearly at this scale.
-      const idealSize = (available / widestNatural) * probeSize;
+      // Apply 0.985 down-shift to undershoot — guarantees no overflow
+      // even when the web font swaps from fallback to UthmanicHafs after
+      // the measurement.
+      const idealSize = (available / widestNatural) * probeSize * 0.985;
       const final = Math.max(minFontPx, Math.min(maxFontPx, idealSize));
 
-      // Apply the SHARED font-size to all lines.
       for (const span of spans) {
         span.style.fontSize = `${final.toString()}px`;
       }
+
+      // Defense in depth: AFTER applying font-size, check each line. If
+      // any line still overflows due to font-swap or sub-pixel drift,
+      // apply transform: scaleX to that specific line so it visually
+      // fits without further reflow. This is the same trick Quran.com
+      // uses for the rare line that doesn't fit at the chosen size.
+      requestAnimationFrame(() => {
+        if (cancelled) return;
+        for (const span of spans) {
+          const w = span.scrollWidth;
+          const parentW = span.parentElement?.clientWidth ?? available;
+          if (w > parentW + 0.5) {
+            const sx = parentW / w;
+            span.style.transform = `scaleX(${sx.toString()})`;
+            span.style.transformOrigin = 'center';
+          }
+        }
+      });
+
       setFontPx(final);
       setDidFit(true);
     }
@@ -275,12 +380,25 @@ export function MushafLines({
                 {line.words.map((w, i) => {
                   const sep = i < line.words.length - 1 ? ' ' : '';
                   if (isAyahEndMarker(w.text)) {
-                    // Prefix the digit with U+06DD ARABIC END OF AYAH.
-                    // UthmanicHafs's OpenType substitution turns this
-                    // pair into the authentic rosette glyph natively —
-                    // no CSS ring, no bolt-on. This is exactly how
-                    // Quran.com and Tarteel do it.
-                    const rosetteText = `۝${w.text}`;
+                    // Always render the verse-end marker by deriving
+                    // the digit from `verseKey`. Trusting the source
+                    // word breaks for IndoPak (whose end-marker is the
+                    // tail-cluster '۟ۙ' — a non-printable char in
+                    // Naskh fonts) and ensures every layout shows the
+                    // proper Arabic-Indic verse number. UthmanicHafs's
+                    // OpenType substitution renders the digit as a
+                    // rosette automatically; Noto Naskh shows it
+                    // inline as a numeral.
+                    const ayahNum = w.verseKey.split(':')[1] ?? '';
+                    const arabicDigits = ayahNum
+                      .split('')
+                      .map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d)
+                      .join('');
+                    // Verse-end marker always rendered with UthmanicHafs
+                    // — its OpenType subst draws an authentic rosette
+                    // around the digit. Other layout fonts (Noto Naskh
+                    // for IndoPak) lack rosette glyphs, so without this
+                    // override the marker shows as a missing-glyph box.
                     return (
                       <span key={`${line.lineNumber.toString()}-${w.wordId.toString()}`}>
                         <a
@@ -288,12 +406,44 @@ export function MushafLines({
                           title={`Ayah ${w.verseKey} — ends here`}
                           aria-label={`End of ayah ${w.verseKey}`}
                           className="ayah-end hover:text-leaf"
+                          style={{ fontFamily: '"UthmanicHafs", "Amiri Quran", serif' }}
                         >
-                          {rosetteText}
+                          {arabicDigits}
                         </a>
                         {sep}
                       </span>
                     );
+                  }
+                  // For the tajweed layout, slice the ayah-level
+                  // annotations for this word and render colored spans.
+                  // Annotations come from /v1/tajweed/:verseKey
+                  // (cpfair/quran-tajweed MIT). Word's start offset in
+                  // the ayah text comes from verseWordOffsets.
+                  let wordContent: ReactNode = w.text;
+                  if (layoutSlug === 'kfgqpc_v4') {
+                    const verseAnn = tajweedByVerse.get(w.verseKey) ?? [];
+                    const wordStart =
+                      verseWordOffsets.get(w.verseKey)?.get(w.wordIndex) ?? 0;
+                    const wordEnd = wordStart + w.text.length;
+                    const localAnn: TajweedAnnotation[] = [];
+                    for (const a of verseAnn) {
+                      if (a.end <= wordStart || a.start >= wordEnd) continue;
+                      localAnn.push({
+                        start: Math.max(0, a.start - wordStart),
+                        end: Math.min(w.text.length, a.end - wordStart),
+                        rule: a.rule,
+                      });
+                    }
+                    if (localAnn.length > 0) {
+                      const segs = applyTajweed(w.text, localAnn);
+                      wordContent = segs.map((s, si) =>
+                        s.rule ? (
+                          <span key={si} className={`tajweed-${s.rule}`}>{s.text}</span>
+                        ) : (
+                          <span key={si}>{s.text}</span>
+                        ),
+                      );
+                    }
                   }
                   return (
                     <span key={`${line.lineNumber.toString()}-${w.wordId.toString()}`}>
@@ -302,7 +452,7 @@ export function MushafLines({
                         className="hover:text-leaf"
                         title={w.verseKey}
                       >
-                        {w.text}
+                        {wordContent}
                       </a>
                       {sep}
                     </span>

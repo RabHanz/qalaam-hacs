@@ -51,9 +51,9 @@ interface LayoutInfo {
   readonly pageCount?: number;
 }
 
-async function fetchJson<T>(url: string): Promise<T | null> {
+async function fetchJson<T>(url: string, revalidate = 86400): Promise<T | null> {
   try {
-    const res = await fetch(url, { next: { revalidate: 86400 } });
+    const res = await fetch(url, { next: { revalidate } });
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch {
@@ -81,9 +81,12 @@ export default async function MushafPage({ params }: PageProps): Promise<ReactNo
 
   const apiBase = process.env.PUBLIC_API_URL ?? 'http://localhost:4111';
 
+  // Layout list metadata uses a short cache window so layout-name
+  // updates propagate quickly. Page word data still long-cached
+  // because it's stable.
   const [pageBody, layoutsBody] = await Promise.all([
-    fetchJson<{ data: LayoutPage }>(`${apiBase}/v1/layouts/${encodeURIComponent(layout)}/page/${pageNumber.toString()}`),
-    fetchJson<{ layouts?: LayoutInfo[]; data?: string[] }>(`${apiBase}/v1/layouts`),
+    fetchJson<{ data: LayoutPage }>(`${apiBase}/v1/layouts/${encodeURIComponent(layout)}/page/${pageNumber.toString()}`, 60),
+    fetchJson<{ layouts?: LayoutInfo[]; data?: string[] }>(`${apiBase}/v1/layouts`, 60),
   ]);
 
   if (!pageBody?.data) {
