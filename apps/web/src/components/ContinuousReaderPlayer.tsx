@@ -216,10 +216,6 @@ export function ContinuousReaderPlayer({
   }, [activeBuffer, verseIdx, active]);
 
   function pickActiveSegment(tMs: number, segments: readonly Segment[]): Segment | null {
-    // Lookahead window: trigger highlight slightly BEFORE the segment
-    // start to compensate for browser timeupdate jitter (~250ms native
-    // resolution). 80ms ahead matches the eye's ability to anticipate
-    // the next syllable in normal recitation.
     const LOOKAHEAD_MS = 80;
     const t = tMs + LOOKAHEAD_MS;
     for (let i = 0; i < segments.length; i += 1) {
@@ -227,8 +223,6 @@ export function ContinuousReaderPlayer({
       if (!s) continue;
       if (t >= s.startMs && t <= s.endMs) return s;
     }
-    // Between segments — return the most recent one we passed so the
-    // highlight stays on the previous word instead of vanishing.
     let last: Segment | null = null;
     for (const s of segments) {
       if (s.endMs < t) last = s;
@@ -239,16 +233,36 @@ export function ContinuousReaderPlayer({
   function onTimeUpdate(): void {
     const a = activeAudio();
     const bundle = activeBundle();
-    if (!a || !bundle) return;
+    if (!a || !bundle || !verses[verseIdx]) return;
     const tMs = a.currentTime * 1000;
-    const seg = pickActiveSegment(tMs, bundle.segments);
+    const verseKey = verses[verseIdx].verseKey;
+    const segments = bundle.segments;
+
+    // Once we're past the last segment's end_ms, advance the highlight
+    // to lastSegment.wordIndex + 1 so the verse-end digit / closing
+    // word lights up DURING playback (not after onEnded fires, which
+    // is too late — buffer swap clears it before the eye lands).
+    const lastSeg = segments.length > 0 ? segments[segments.length - 1] : null;
+    if (lastSeg && tMs >= lastSeg.endMs) {
+      const finalIdx = lastSeg.wordIndex; // already +1 because we want one PAST the last segmented word
+      if (
+        finalIdx !== lastWordIdxRef.current ||
+        verseKey !== lastVerseKeyRef.current
+      ) {
+        lastWordIdxRef.current = finalIdx;
+        lastVerseKeyRef.current = verseKey;
+        onHighlight({ verseKey, wordIndex: finalIdx });
+      }
+      return;
+    }
+
+    const seg = pickActiveSegment(tMs, segments);
     if (!seg) return;
-    const verseKey = verses[verseIdx]?.verseKey ?? '';
     if (
       seg.wordIndex === lastWordIdxRef.current &&
       verseKey === lastVerseKeyRef.current
     ) {
-      return; // no change → no callback churn
+      return;
     }
     lastWordIdxRef.current = seg.wordIndex;
     lastVerseKeyRef.current = verseKey;
