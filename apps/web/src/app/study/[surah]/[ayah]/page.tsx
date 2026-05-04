@@ -14,6 +14,7 @@ import { EmptyState } from '../../../../components/EmptyState.js';
 import { ErrorState } from '../../../../components/ErrorState.js';
 import { HairlineDivider } from '../../../../components/Glyph.js';
 import { LoadingState } from '../../../../components/LoadingState.js';
+import { MorphologyPane } from '../../../../components/MorphologyPane.js';
 import { MutashabihatWatchlistPane } from '../../../../components/MutashabihatWatchlistPane.js';
 import { SiteNav } from '../../../../components/SiteNav.js';
 import { WordByWordPane } from '../../../../components/WordByWordPane.js';
@@ -153,7 +154,7 @@ async function StudyBody({
           )}
         </section>
 
-        {/* Word-by-word */}
+        {/* Word-by-word — gloss only */}
         <section
           className="paper-card-raised mt-6 p-8 md:p-10"
           aria-label={`Word by word for ${verseKey}`}
@@ -164,6 +165,22 @@ async function StudyBody({
           </div>
           <Suspense fallback={<LoadingState label="Loading word-by-word…" lines={3} />}>
             <WordByWordPane verseKey={verseKey} />
+          </Suspense>
+        </section>
+
+        {/* Grammatical morphology — POS / lemma / root */}
+        <section
+          className="paper-card-raised mt-6 p-8 md:p-10"
+          aria-label={`Morphology of ${verseKey}`}
+        >
+          <div className="flex items-baseline justify-between mb-6">
+            <h2 className="font-display text-2xl font-light tracking-tight">Grammar</h2>
+            <span className="smallcaps text-leaf text-xs">
+              POS · lemma · root concordance
+            </span>
+          </div>
+          <Suspense fallback={<LoadingState label="Loading morphology…" lines={3} />}>
+            <MorphologyPane verseKey={verseKey} />
           </Suspense>
         </section>
 

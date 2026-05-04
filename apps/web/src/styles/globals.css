@@ -479,6 +479,47 @@
     .recite-highlight, .recite-highlight * { transition: none; }
   }
 
+  /* Word-by-word morphology POS chips — semantic color groups inspired
+   * by Tarteel/Quran.com convention. Verbs read warm, nouns cool,
+   * function words muted; the eye reads grammatical structure at a
+   * glance. Hairline border in the resting state, filled when open
+   * (clicked / aria-expanded). */
+  .pos-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 9999px;
+    border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+    background: color-mix(in srgb, currentColor 5%, transparent);
+    cursor: pointer;
+    transition: background-color 160ms ease-out, border-color 160ms ease-out;
+    line-height: 1.2;
+  }
+  .pos-chip:hover, .pos-chip-open {
+    background: color-mix(in srgb, currentColor 16%, transparent);
+    border-color: color-mix(in srgb, currentColor 60%, transparent);
+  }
+  .pos-verb     { color: #c0392b; }       /* red */
+  .pos-noun     { color: #1e7a8a; }       /* teal */
+  .pos-adj      { color: #4f80a4; }       /* steel blue */
+  .pos-pronoun  { color: #6e4caf; }       /* violet */
+  .pos-particle { color: #6b6b6b; }       /* gray */
+  .pos-det      { color: #8a6d3b; }       /* warm gray */
+  .pos-neg      { color: #b04194; }       /* magenta */
+  .pos-other    { color: #6b6b6b; }
+  :root[data-theme="dark"] .pos-verb     { color: #ff7763; }
+  :root[data-theme="dark"] .pos-noun     { color: #4fc6d8; }
+  :root[data-theme="dark"] .pos-adj      { color: #7eb6da; }
+  :root[data-theme="dark"] .pos-pronoun  { color: #c89bff; }
+  :root[data-theme="dark"] .pos-particle { color: #b8b8b8; }
+  :root[data-theme="dark"] .pos-det      { color: #d4b07b; }
+  :root[data-theme="dark"] .pos-neg      { color: #e08fcc; }
+  :root[data-theme="dark"] .pos-other    { color: #b8b8b8; }
+
   /* Hifz-check word states (browser-side recite-and-check). */
   .recite-matched {
     color: var(--color-mistake-correct, #2e7d4f);
