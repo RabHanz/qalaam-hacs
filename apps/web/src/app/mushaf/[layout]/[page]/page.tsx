@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { EmptyState } from '../../../../components/EmptyState.js';
 import { JumpToPicker } from '../../../../components/JumpToPicker.js';
 import { MushafLines } from '../../../../components/MushafLines.js';
+import { MushafPagePlayer } from '../../../../components/MushafPagePlayer.js';
 import { MushafPageSwipe } from '../../../../components/MushafPageSwipe.js';
 import { SiteNav } from '../../../../components/SiteNav.js';
 
@@ -207,6 +208,23 @@ export default async function MushafPage({ params }: PageProps): Promise<ReactNo
           )}
         </nav>
       </main>
+
+      {/* Continuous-recitation player — Tarteel-style, plays through
+          the verses on this page and chains into the next page/surah. */}
+      <MushafPagePlayer
+        lines={data.lines.map((l) => ({ lineType: l.lineType, words: l.words.map((w) => ({ verseKey: w.verseKey })) }))}
+        initialSurah={
+          (() => {
+            for (const line of data.lines) {
+              for (const w of line.words) {
+                const s = Number.parseInt(w.verseKey.split(':')[0] ?? '1', 10);
+                if (Number.isFinite(s)) return s;
+              }
+            }
+            return 1;
+          })()
+        }
+      />
     </>
   );
 }

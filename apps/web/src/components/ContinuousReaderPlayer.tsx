@@ -109,6 +109,30 @@ export function ContinuousReaderPlayer({
     setVerses(initialVerses);
     setActiveSurah(currentSurah);
   }, [initialVerses, currentSurah]);
+
+  // Auto-resume continuous playback on mount if the previous surah's
+  // chain set the qalaam-continue-on-load flag (cross-surah hand-off).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let shouldResume = false;
+    try {
+      shouldResume = window.localStorage.getItem('qalaam-continue-on-load') === '1';
+      if (shouldResume) window.localStorage.removeItem('qalaam-continue-on-load');
+    } catch {
+      /* ignore */
+    }
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('continue') === '1') {
+      shouldResume = true;
+      url.searchParams.delete('continue');
+      window.history.replaceState(null, '', url.toString());
+    }
+    if (shouldResume) {
+      window.dispatchEvent(new CustomEvent('qalaam:audio-claim', { detail: { source: 'continuous' } }));
+      setActive(true);
+      setVerseIdx(0);
+    }
+  }, []);
   const [active, setActive] = useState(false);
   const [verseIdx, setVerseIdx] = useState(0);
   // Repeat mode: 'none' = surah-by-surah continuous (default),
@@ -372,34 +396,29 @@ export function ContinuousReaderPlayer({
       setActiveBuffer((b) => (b === 'A' ? 'B' : 'A'));
       setVerseIdx((i) => i + 1);
     } else if (activeSurah < 114) {
-      // End of surah → fetch next surah's verses and continue playing.
-      // No URL change; the player owns its own verses[] list.
-      void (async () => {
-        try {
-          const next = activeSurah + 1;
-          const res = await fetch(`${apiBase}/v1/chapters/${next.toString()}/verses`);
-          if (!res.ok) {
-            setActive(false);
-            setPlaying(false);
-            return;
+      // End of surah → navigate to the next surah's /read page so the
+      // visible reader page actually changes. Persist a continue=1
+      // query param + last-played verse 1:1 so the new page resumes
+      // continuous playback from the top automatically.
+      try {
+        const next = activeSurah + 1;
+        const lp = (() => {
+          try {
+            const raw = window.localStorage.getItem(STORE_LAST_PLAYED);
+            return raw ? (JSON.parse(raw) as Record<string, string>) : {};
+          } catch {
+            return {};
           }
-          const body = (await res.json()) as { verses: VerseRef[] };
-          if (!body.verses || body.verses.length === 0) {
-            setActive(false);
-            setPlaying(false);
-            return;
-          }
-          setVerses(body.verses);
-          setActiveSurah(next);
-          setVerseIdx(0);
-          // Reset buffers so the effect re-fetches both for the new surah.
-          setBundleA(null);
-          setBundleB(null);
-        } catch {
-          setActive(false);
-          setPlaying(false);
-        }
-      })();
+        })();
+        lp[next.toString()] = `${next.toString()}:1`;
+        window.localStorage.setItem(STORE_LAST_PLAYED, JSON.stringify(lp));
+        window.localStorage.setItem('qalaam-continue-on-load', '1');
+      } catch {
+        /* ignore */
+      }
+      // Hard navigate — the new page will mount the player fresh and
+      // auto-resume because of the continue flag above.
+      window.location.href = `/read/${(activeSurah + 1).toString()}?continue=1`;
     } else {
       setActive(false);
       setPlaying(false);

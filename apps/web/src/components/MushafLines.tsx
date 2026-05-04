@@ -87,6 +87,7 @@ const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayout
 function fontStackFor(layoutSlug: string): string {
   switch (layoutSlug) {
     case 'kfgqpc_v1':
+    case 'indopak':
       // IndoPak Nastaleeq → Noto Nastaliq Urdu (the authentic Nastaleeq
       // calligraphic style used in Sub-Continental mushafs). Falls back
       // to Scheherazade New / Noto Naskh Arabic if Nastaliq fails.
@@ -124,7 +125,7 @@ export function MushafLines({
   // currently rendered. The cache in lib/tajweed.ts persists across
   // re-renders so we don't re-fetch on every paint.
   useEffect(() => {
-    if (layoutSlug !== 'kfgqpc_v4') return;
+    if (layoutSlug !== 'kfgqpc_v4' && layoutSlug !== 'tajweed') return;
     const apiBase = resolveApiBase();
     const verseKeys = new Set<string>();
     for (const line of lines) {
@@ -152,7 +153,7 @@ export function MushafLines({
   // Used to convert ayah-level tajweed offsets to word-level slice
   // boundaries.
   const verseWordOffsets = (() => {
-    if (layoutSlug !== 'kfgqpc_v4') return new Map<string, Map<number, number>>();
+    if (layoutSlug !== 'kfgqpc_v4' && layoutSlug !== 'tajweed') return new Map<string, Map<number, number>>();
     // Group words by verse, ordered by word_index, and accumulate
     // offsets. Words are space-joined when forming the canonical
     // ayah text (matches how cpfair/quran-tajweed's source aligns).
@@ -299,9 +300,9 @@ export function MushafLines({
   // density tweak for v1 so the user sees a real difference between
   // chips even when the proprietary KFGQPC fonts aren't installed.
   const layoutClass =
-    layoutSlug === 'kfgqpc_v4'
+    (layoutSlug === 'kfgqpc_v4' || layoutSlug === 'tajweed')
       ? 'mushaf-layout-tajweed'
-      : layoutSlug === 'kfgqpc_v1'
+      : (layoutSlug === 'kfgqpc_v1' || layoutSlug === 'indopak')
         ? 'mushaf-layout-v1'
         : 'mushaf-layout-v2';
 
@@ -470,7 +471,7 @@ function renderLineText(
 
     // Apply tajweed coloring within this word for v4 layout
     let segs: { text: string; rule?: TajweedAnnotation['rule'] }[] = [{ text: w.text }];
-    if (layoutSlug === 'kfgqpc_v4') {
+    if ((layoutSlug === 'kfgqpc_v4' || layoutSlug === 'tajweed')) {
       const verseAnn = tajweedByVerse.get(w.verseKey) ?? [];
       const wordStart = verseWordOffsets.get(w.verseKey)?.get(w.wordIndex) ?? 0;
       const wordEnd = wordStart + w.text.length;
