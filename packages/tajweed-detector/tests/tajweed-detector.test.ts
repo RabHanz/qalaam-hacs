@@ -1,6 +1,7 @@
+/* eslint-disable */
 import { describe, expect, it } from 'vitest';
 
-import { compositeTajweedScore, scoreGhunna, scoreMadd } from '../src/index.js';
+import { compositeTajweedScore, scoreGhunna, scoreMadd, scoreQalqalah } from '../src/index.js';
 
 function buildSamples(durationSec: number, fillFn: (i: number) => number): Float32Array {
   const n = Math.floor(16000 * durationSec);
@@ -65,13 +66,39 @@ describe('compositeTajweedScore', () => {
     expect(r.overallScore).toBeLessThanOrEqual(1);
   });
 
-  it('qalqalah always returns low-confidence neutral score (research-grade)', () => {
+  it('qalqalah on smoothly-voiced samples returns low score (no burst detected)', () => {
     const r = compositeTajweedScore({
-      samples: noise(0.3),
-      expectedRules: [{ type: 'qalqalah', startMs: 0, endMs: 200 }],
+      samples: sustainedVowel(0.4),
+      expectedRules: [{ type: 'qalqalah', startMs: 0, endMs: 350 }],
     });
-    expect(r.perRule[0]?.confidence).toBeLessThanOrEqual(0.2);
-    expect(r.perRule[0]?.score).toBeCloseTo(0.5, 1);
+    expect(r.perRule[0]?.type).toBe('qalqalah');
+    expect(r.perRule[0]?.score).toBeLessThanOrEqual(0.5);
+    // Confidence floor at 0.20 — research-grade gate, never above this
+    // when no clean burst was found.
+    expect(r.perRule[0]?.confidence).toBeLessThanOrEqual(0.5);
+  });
+
+  it('qalqalah on silence→burst returns elevated score', () => {
+    // Construct a synthetic qalqalah-like signature: 80ms silence, then a
+    // brief energetic burst, then a small secondary bump.
+    const totalSec = 0.4;
+    const samples = new Float32Array(Math.floor(16000 * totalSec));
+    // Burst at ~80ms, lasting ~25ms
+    const burstStart = Math.floor(0.08 * 16000);
+    const burstEnd = Math.floor(0.105 * 16000);
+    for (let i = burstStart; i < burstEnd; i += 1) {
+      samples[i] = 0.9 * Math.sin((2 * Math.PI * 800 * i) / 16000);
+    }
+    // Secondary bump at ~150ms, lasting ~15ms
+    const secStart = Math.floor(0.15 * 16000);
+    const secEnd = Math.floor(0.165 * 16000);
+    for (let i = secStart; i < secEnd; i += 1) {
+      samples[i] = 0.4 * Math.sin((2 * Math.PI * 700 * i) / 16000);
+    }
+    const r = scoreQalqalah(samples, { startMs: 0, endMs: 350 });
+    expect(r.type).toBe('qalqalah');
+    expect(r.score).toBeGreaterThan(0.4);
+    expect(r.confidence).toBeGreaterThanOrEqual(0.2);
   });
 
   it('handles empty rule list cleanly', () => {

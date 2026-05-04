@@ -1,0 +1,50 @@
+@startuml qalaam-c4-containers
+' C4 Level 2 — Containers inside the Qalaam system boundary.
+' Render: `plantuml -tpng Docs/architecture/c4-containers.puml`
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_TOP_DOWN()
+
+title Qalaam — Containers (C4 Level 2)
+
+Person(family, "Family member")
+
+System_Boundary(qalaam, "Qalaam") {
+    Container(web, "apps/web", "Next.js 15 / React 19 / Tailwind v4", "Reader · Hifdh · Listen Mode · /study deep-pane")
+    Container(panel, "apps/ha-panel", "Vite + Preact bundle", "Lovelace panel served by qalaam HACS integration")
+    Container(backend, "apps/backend", "Fastify v5 + Zod", "REST: /v1/verses, /v1/metadata, /v1/wbw, /v1/mutashabihat, /v1/recitations, /v1/layouts, /v1/hifdh, /v1/curriculum")
+    ContainerDb(qul, "data/qul.sqlite", "SQLite + WAL", "Verses · mushaf layouts · mutashabihat · word-by-word · morphology (gpl-gated)")
+    ContainerDb(pg, "Postgres", "Hifdh state + family + audio cache index", "Per-user FSRS + plans")
+    ContainerDb(redis, "Redis", "Sessions + cache headers", "Per ADR-0010")
+    Container(asr, "services/asr-worker", "FastAPI + faster-whisper", "On-device transcription + Quran-aware aligner (ADR-0005)")
+    Container(tts, "services/tts-worker", "FastAPI + httpx", "ElevenLabs + Habibi providers; cache + watermark + quranic-guard (ADR-0019)")
+    Container(prosody, "services/prosody-worker", "FastAPI + numpy", "F0 / RMS / DTW for teach-back")
+    Container(realtime, "services/realtime-feedback", "WebSocket", "Live word highlighting during recitation")
+    Container(bridge, "services/device-bridge", "FastAPI + pychromecast + pyatv", "Cast / Sonos / AirPlay sidecar (announce-and-restore)")
+    Container(ha, "integrations/homeassistant", "Python custom_component", "HACS package: media_player, sensors, services, voice intents, panel")
+}
+
+System_Ext(qf, "Quran.Foundation")
+System_Ext(r2, "Cloudflare R2")
+System_Ext(speakers, "Speakers (Cast/Sonos/AirPlay/MQTT)")
+System_Ext(elevenlabs, "ElevenLabs API")
+
+Rel(family, web, "HTTPS")
+Rel(family, ha, "via Home Assistant UI / Voice")
+Rel(ha, panel, "Loads bundled JS", "static path")
+Rel(web, backend, "JSON / SSE", "HTTPS")
+Rel(ha, backend, "Bearer", "HTTPS")
+Rel(backend, qul, "read-only better-sqlite3")
+Rel(backend, pg, "Prisma client")
+Rel(backend, redis, "ioredis")
+Rel(backend, qf, "OAuth2 client_credentials", "HTTPS, cache ≤ 7d")
+Rel(backend, r2, "S3 GET/HEAD", "HTTPS")
+Rel(web, asr, "WebSocket (loopback)")
+Rel(web, prosody, "HTTP")
+Rel(web, realtime, "WebSocket")
+Rel(tts, elevenlabs, "POST /v1/text-to-speech", "HTTPS, env-gated")
+Rel(tts, r2, "S3 PUT/HEAD", "HTTPS")
+Rel(ha, bridge, "HTTP", "(when self-hosted)")
+Rel(bridge, speakers, "Cast / pyatv / SoCo / MQTT")
+
+@enduml

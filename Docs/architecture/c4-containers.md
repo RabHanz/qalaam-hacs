@@ -1,5 +1,55 @@
 # Qalaam — C4 Level 2: Containers
 
+> **Diagram sources:** `c4-containers.puml` (high-fidelity render via `scripts/docs/render-c4-png.sh`); the Mermaid block below renders natively on GitHub.
+
+```mermaid
+%%{init: {'theme': 'neutral'}}%%
+C4Container
+    title Qalaam — Containers (C4 Level 2)
+
+    Person(family, "Family member")
+
+    System_Boundary(qalaam, "Qalaam") {
+      Container(web, "apps/web", "Next.js 15 / React 19 / Tailwind v4", "Reader · Hifdh · Listen Mode · /study")
+      Container(panel, "apps/ha-panel", "Vite + Preact bundle", "Lovelace panel served via HACS integration")
+      Container(backend, "apps/backend", "Fastify v5 + Zod", "/v1/{verses,metadata,wbw,mutashabihat,recitations,layouts,hifdh,curriculum}")
+      ContainerDb(qul, "data/qul.sqlite", "SQLite + WAL", "Verses · layouts · mutashabihat · wbw · morphology (gpl-gated)")
+      ContainerDb(pg, "Postgres", "Hifdh state + family + audio cache index", "Per-user FSRS + plans")
+      ContainerDb(redis, "Redis", "Sessions + cache headers (ADR-0010)")
+      Container(asr, "services/asr-worker", "FastAPI + faster-whisper", "On-device transcription + Quran-aware aligner (ADR-0005)")
+      Container(tts, "services/tts-worker", "FastAPI + httpx", "ElevenLabs + Habibi; cache + watermark + quranic-guard (ADR-0019)")
+      Container(prosody, "services/prosody-worker", "FastAPI + numpy", "F0 / RMS / DTW for teach-back")
+      Container(realtime, "services/realtime-feedback", "WebSocket")
+      Container(bridge, "services/device-bridge", "FastAPI + pychromecast + pyatv")
+      Container(ha, "integrations/homeassistant", "Python custom_component", "media_player + sensors + services + voice + panel")
+    }
+
+    System_Ext(qf, "Quran.Foundation")
+    System_Ext(r2, "Cloudflare R2")
+    System_Ext(speakers, "Speakers (Cast/Sonos/AirPlay/MQTT)")
+    System_Ext(elevenlabs, "ElevenLabs API")
+
+    Rel(family, web, "HTTPS")
+    Rel(family, ha, "Home Assistant UI / Voice")
+    Rel(ha, panel, "Static path")
+    Rel(web, backend, "JSON / SSE")
+    Rel(ha, backend, "Bearer")
+    Rel(backend, qul, "better-sqlite3 RO")
+    Rel(backend, pg, "Prisma")
+    Rel(backend, redis, "ioredis")
+    Rel(backend, qf, "OAuth2 client_credentials", "cache ≤ 7d")
+    Rel(backend, r2, "S3 GET/HEAD")
+    Rel(web, asr, "WebSocket (loopback)")
+    Rel(web, prosody, "HTTP")
+    Rel(web, realtime, "WebSocket")
+    Rel(tts, elevenlabs, "POST /v1/text-to-speech", "env-gated")
+    Rel(tts, r2, "S3 PUT/HEAD")
+    Rel(ha, bridge, "HTTP (when self-hosted)")
+    Rel(bridge, speakers, "Cast/pyatv/SoCo/MQTT")
+```
+
+ASCII fallback (for terminals where Mermaid doesn't render):
+
 ```
 ┌────────────────────────────────────────────────────────────────────────────┐
 │                                Web tier                                     │

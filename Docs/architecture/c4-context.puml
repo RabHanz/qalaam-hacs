@@ -1,0 +1,48 @@
+@startuml qalaam-c4-context
+' C4 Level 1 — System Context for Qalaam.
+' Render: `plantuml -tpng Docs/architecture/c4-context.puml`
+' Mirror in Mermaid: see c4-context.md (renders natively on GitHub).
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_LEFT_RIGHT()
+
+title Qalaam — System Context (C4 Level 1)
+
+Person(family, "Family member", "Reciter, parent, learner — uses any device with a screen or speaker")
+
+System_Boundary(qalaam, "Qalaam") {
+    System(web, "Qalaam web app", "Next.js 15 + React 19; standalone Hifdh + reader UI; AGPL-3 SaaS")
+    System(backend, "Qalaam backend", "Fastify v5 + Postgres + Redis; QF Tier A overlay; serves QUL data")
+    System(asr, "ASR worker", "faster-whisper / tarteel-ai; on-device only (ADR-0005)")
+    System(tts, "TTS worker", "ElevenLabs (app voice) + Habibi-MSA (recitation); ADR-0019 quranic-guard")
+    System(devices, "Device bridge", "Cast / Sonos / AirPlay / MQTT — inherited via HA when present")
+    System(ha, "Home Assistant integration", "qalaam custom_component; sensors + media_player + voice intents")
+}
+
+System_Ext(qf, "Quran.Foundation API", "Content (Tier A) M2M + Tier B per-user OIDC")
+System_Ext(r2, "Cloudflare R2", "Audio cache (zero-egress)")
+System_Ext(speakers, "Cast / Sonos / AirPlay / MQTT speakers", "Heard at home")
+
+Rel(family, web, "Reads, recites, tracks Hifdh", "HTTPS")
+Rel(family, ha, "Lockscreen + voice controls", "")
+Rel(web, backend, "API calls", "HTTPS")
+Rel(ha, backend, "Bearer-API + media_source", "HTTPS")
+Rel(backend, qf, "Verses, chapters", "HTTPS (cache ≤ 7d per ADR-0018)")
+Rel(backend, r2, "Audio bytes (read-through)", "HTTPS")
+Rel(web, asr, "Recitation feedback", "WebSocket / on-device")
+Rel(web, tts, "App-voice TTS", "HTTPS")
+Rel(ha, devices, "Snapshot + duck + restore", "Cast/Sonos/AirPlay/MQTT")
+Rel(devices, speakers, "Plays audio", "")
+
+note right of asr
+  Audio NEVER leaves the device.
+  Per ADR-0005 + ADR-0016 (corrections-only sync).
+end note
+
+note right of tts
+  ElevenLabs serves app speech only.
+  Quranic verses NEVER routed here —
+  refused at synthesize time per ADR-0019.
+end note
+
+@enduml

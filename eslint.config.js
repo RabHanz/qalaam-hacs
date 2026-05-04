@@ -27,9 +27,13 @@ export default tseslint.config(
       '**/*.config.cjs',
       // One-shot ingest scripts run via tsx; not part of any tsconfig project.
       'scripts/data/ingest-qul-*.ts',
-      // New test files not yet in a per-package eslint tsconfig — covered by vitest typecheck.
-      'packages/data-loader/tests/qul-readers.test.ts',
-      'apps/backend/tests/qul-routes.test.ts',
+      // Test files in packages whose tsconfig excludes the tests/ dir —
+      // covered by vitest's own typecheck per the existing convention.
+      // `**/` prefix so absolute-path invocations (lint-staged) match.
+      '**/packages/data-loader/tests/qul-readers.test.ts',
+      '**/apps/backend/tests/qul-routes.test.ts',
+      '**/packages/api-client-ts/tests/qf-tier-b.test.ts',
+      '**/packages/tajweed-detector/tests/tajweed-detector.test.ts',
     ],
   },
 
