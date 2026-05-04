@@ -479,6 +479,15 @@
     .recite-highlight, .recite-highlight * { transition: none; }
   }
 
+  /* Verse-end rosette anchor. ALWAYS uses UthmanicHafs so the
+   * Arabic-Indic-digit's OpenType subst draws the proper rosette
+   * glyph, even when the parent line is in Nastaliq (IndoPak) or
+   * any other font that lacks the rosette glyph. !important wins
+   * the cascade against the parent's inline font-family. */
+  .ayah-end {
+    font-family: 'UthmanicHafs', 'Amiri Quran', 'Noto Naskh Arabic', serif !important;
+  }
+
   /* Mushaf word — plain inline anchor that's tappable for the
    * word-by-word study panel. On hover, the LETTERFORMS take on the
    * leaf-gold color with a soft halo (matches recite-highlight) —

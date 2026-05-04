@@ -85,7 +85,13 @@ const STORE_VIEW = 'qalaam-read-view';
 const STORE_LAYOUT = 'qalaam-read-layout';
 const STORE_SINGLE_STYLE = 'qalaam-single-style';
 
-type ViewMode = 'continuous' | 'single';
+// Three top-level reading modes:
+//   continuous - vertical scroll of ayah cards
+//   single     - one ayah at a time with prev/next pagination
+//   mushaf     - page-faithful mushaf rendering (one mushaf page on screen)
+// 'mushaf' replaces the older single-ayah Mushaf style toggle so the
+// rendering is its own first-class mode.
+type ViewMode = 'continuous' | 'single' | 'mushaf';
 type SingleStyle = 'card' | 'mushaf';
 
 function arabicNumeral(n: number): string {
@@ -344,29 +350,17 @@ export function ReadSurfaceClient({
             <Chip active={viewMode === 'single'} onClick={() => pickView('single')}>
               One ayah
             </Chip>
-            {viewMode === 'single' ? (
-              <>
-                <span className="mx-1 text-ink-muted/40 hidden sm:inline">|</span>
-                <Chip
-                  active={singleStyle === 'card'}
-                  onClick={() => setSingleStyle('card')}
-                  title="Card style — Arabic + translation + chips"
-                >
-                  Card
-                </Chip>
-                <Chip
-                  active={singleStyle === 'mushaf'}
-                  onClick={() => setSingleStyle('mushaf')}
-                  title="Mushaf style — page-faithful line breaks"
-                >
-                  Mushaf
-                </Chip>
-              </>
-            ) : null}
+            <Chip
+              active={viewMode === 'mushaf'}
+              onClick={() => pickView('mushaf')}
+              title="Mushaf — page-faithful line breaks"
+            >
+              Mushaf
+            </Chip>
           </ChipRow>
 
           {layouts.length > 0 ? (
-            <ChipRow label="Mushaf">
+            <ChipRow label="Layout">
               {layouts.map((l) => {
                 const labelRaw = l.name || l.slug;
                 const label =
@@ -377,33 +371,35 @@ export function ReadSurfaceClient({
                         .replace(/^Madinah Mushaf$/, 'Madinah')
                         .replace(/^Madinah Mushaf /, 'Madinah ');
                 const isActive = activeLayoutSlug === l.slug;
-                // In single-ayah Mushaf style, tapping the chip BINDS the
-                // active layout for the in-page mushaf rendering. In any
-                // other mode, tapping NAVIGATES to the full mushaf page
-                // for the current verse.
-                if (viewMode === 'single' && singleStyle === 'mushaf') {
-                  return (
-                    <Chip
-                      key={l.slug}
-                      active={isActive}
-                      onClick={() => setActiveLayoutSlug(l.slug)}
-                      title={l.subtitle ?? ''}
-                    >
-                      {label}
-                    </Chip>
-                  );
-                }
+                // ANY mode (continuous, one-ayah Card, one-ayah Mushaf):
+                // tapping a Mushaf chip BINDS the active layout for the
+                // current page. The script + font flip in place — no
+                // navigation. A separate "Open page →" link below
+                // takes you to the page-faithful /mushaf surface.
                 return (
-                  <a
+                  <Chip
                     key={l.slug}
-                    href={`/mushaf/${l.urlSlug ?? l.slug}/page-for/${encodeURIComponent(firstVk)}`}
+                    active={isActive}
+                    onClick={() => setActiveLayoutSlug(l.slug)}
                     title={l.subtitle ?? ''}
-                    className="shrink-0 rounded-full px-3 py-1 text-[11px] sm:text-xs smallcaps tracking-wider transition-colors border border-hairline text-ink hover:bg-paper-200/60 hover:border-leaf/40 hover:text-leaf"
                   >
-                    {label} →
-                  </a>
+                    {label}
+                  </Chip>
                 );
               })}
+              {(() => {
+                const active = layouts.find((l) => l.slug === activeLayoutSlug) ?? layouts[0];
+                if (!active) return null;
+                return (
+                  <a
+                    href={`/mushaf/${active.urlSlug ?? active.slug}/page-for/${encodeURIComponent(firstVk)}`}
+                    title="Open the page-faithful mushaf for this verse"
+                    className="shrink-0 ml-1 rounded-full px-3 py-1 text-[11px] sm:text-xs smallcaps tracking-wider border border-leaf/40 text-leaf hover:bg-leaf/10"
+                  >
+                    Open page →
+                  </a>
+                );
+              })()}
             </ChipRow>
           ) : null}
         </div>
@@ -452,6 +448,27 @@ export function ReadSurfaceClient({
               }
             />
           ))
+        ) : viewMode === 'mushaf' ? (
+          // Page-faithful mushaf rendering for THIS surah's verses.
+          // Renders the same MushafLines used on /mushaf, scoped to
+          // the verses on the current page so the user can read the
+          // surah in mushaf form without leaving /read.
+          <article
+            id={`mushaf-${activeLayoutSlug}`}
+            className="paper-card-raised p-4 sm:p-8 md:p-10"
+            aria-label="Mushaf rendering"
+          >
+            {verses.map((v) => (
+              <AyahMushafLines
+                key={`${v.verseKey}-${activeLayoutSlug}`}
+                verseKey={v.verseKey}
+                layoutSlug={activeLayoutSlug}
+                highlight={
+                  highlight?.verseKey === v.verseKey ? highlight : null
+                }
+              />
+            ))}
+          </article>
         ) : (
           <SingleAyahView
             verses={verses}
