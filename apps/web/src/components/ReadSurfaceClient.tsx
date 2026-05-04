@@ -476,6 +476,7 @@ export function ReadSurfaceClient({
         reciterSlug={reciter}
         reciterName={reciters.find((r) => r.slug === reciter)?.name.en}
         onHighlight={setHighlight}
+        currentSurah={surahN}
       />
     </>
   );

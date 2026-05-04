@@ -57,20 +57,69 @@ export function MiniPlayer({
   const shouldResumeRef = useRef(false);
 
   const reciterMeta = reciters.find((r) => r.slug === reciterSlug);
+  const segmentsRef = useRef<{ wordIndex: number; startMs: number; endMs: number }[]>([]);
+  const lastHlRef = useRef<{ verseKey: string; wordIndex: number } | null>(null);
 
-  // Resolve audio URL whenever (verseKey, reciter) changes
+  // Broadcast highlight while playing — any listener (AyahCard, etc.)
+  // can subscribe to qalaam:highlight and paint the matching word.
+  useEffect(() => {
+    if (!playing) {
+      window.dispatchEvent(new CustomEvent('qalaam:highlight', { detail: null }));
+      return;
+    }
+    let raf = 0;
+    function tick(): void {
+      const a = audioRef.current;
+      const segs = segmentsRef.current;
+      if (a && segs.length > 0) {
+        const tMs = a.currentTime * 1000 + 80;
+        let active: { wordIndex: number; startMs: number; endMs: number } | null = null;
+        for (const s of segs) {
+          if (tMs >= s.startMs && tMs <= s.endMs) {
+            active = s;
+            break;
+          }
+        }
+        const last = segs[segs.length - 1];
+        let wordIndex = -1;
+        if (!active && last && tMs > last.endMs) wordIndex = last.wordIndex;
+        else if (active) wordIndex = active.wordIndex - 1;
+        if (wordIndex >= 0) {
+          const next = { verseKey, wordIndex };
+          const prev = lastHlRef.current;
+          if (!prev || prev.verseKey !== next.verseKey || prev.wordIndex !== next.wordIndex) {
+            lastHlRef.current = next;
+            window.dispatchEvent(new CustomEvent('qalaam:highlight', { detail: next }));
+          }
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    }
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [playing, verseKey]);
+
+  // Resolve audio URL + segments whenever (verseKey, reciter) changes,
+  // and broadcast the current word so any listener (e.g. an AyahCard
+  // on the same page) can paint the matching word.
   useEffect(() => {
     let cancelled = false;
     setAudioUrl(null);
     setPosition(0);
+    segmentsRef.current = [];
     void (async () => {
       try {
-        const res = await fetch(
-          `${apiBase}/v1/audio/by_verse/${encodeURIComponent(verseKey)}/${reciterSlug}`,
-        );
+        const [res, segRes] = await Promise.all([
+          fetch(`${apiBase}/v1/audio/by_verse/${encodeURIComponent(verseKey)}/${reciterSlug}`),
+          fetch(`${apiBase}/v1/recitations/${reciterSlug}/segments/${encodeURIComponent(verseKey)}`),
+        ]);
         if (!res.ok || cancelled) return;
         const body = (await res.json()) as { audioUrl: string };
         if (!cancelled) setAudioUrl(body.audioUrl);
+        if (segRes.ok) {
+          const segBody = (await segRes.json()) as { data: { wordIndex: number; startMs: number; endMs: number }[] };
+          segmentsRef.current = segBody.data ?? [];
+        }
       } catch {
         /* ignore */
       }

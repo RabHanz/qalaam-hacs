@@ -38,6 +38,9 @@ interface Props {
   readonly reciterSlug: string;
   readonly reciterName?: string | undefined;
   readonly onHighlight: (h: { verseKey: string; wordIndex: number } | null) => void;
+  /** Surah number of the verses[] above. Used to chain into the next
+   *  surah when continuous playback reaches the end of this one. */
+  readonly currentSurah: number;
 }
 
 interface AudioBundle {
@@ -71,11 +74,22 @@ async function fetchBundle(
 }
 
 export function ContinuousReaderPlayer({
-  verses,
+  verses: initialVerses,
   reciterSlug,
   reciterName,
   onHighlight,
+  currentSurah,
 }: Props): ReactNode {
+  // The player keeps its own running list of verses so it can chain
+  // surahs without unmounting. Starts with the parent-supplied surah's
+  // verses and appends the next surah's verses when we reach the end.
+  const [verses, setVerses] = useState<readonly VerseRef[]>(initialVerses);
+  const [activeSurah, setActiveSurah] = useState<number>(currentSurah);
+  // Reset list when the surrounding surah changes (user navigated /read/N).
+  useEffect(() => {
+    setVerses(initialVerses);
+    setActiveSurah(currentSurah);
+  }, [initialVerses, currentSurah]);
   const [active, setActive] = useState(false);
   const [verseIdx, setVerseIdx] = useState(0);
   // Dual-buffer audio elements for gapless playback. The "current"
@@ -270,12 +284,6 @@ export function ContinuousReaderPlayer({
   }
 
   function onEnded(): void {
-    // Before advancing, paint the LAST WORD OF THE VERSE — segments
-    // sometimes don't cover the verse-end digit (e.g. 2:1 has 2 words
-    // but only word 1 is segmented), so the final tick of audio
-    // doesn't hit a new segment. Find the highest wordIndex from QUL
-    // word data; if a segment exists for that index use it, else
-    // synthesize one from the highest segment's index + 1.
     const bundle = activeBundle();
     const verseKey = verses[verseIdx]?.verseKey ?? '';
     if (bundle && verseKey) {
@@ -284,8 +292,6 @@ export function ContinuousReaderPlayer({
         const last = bundle.segments[bundle.segments.length - 1];
         if (last) lastWordIdx = last.wordIndex - 1;
       }
-      // Try to advance one more so the verse-end digit / final word
-      // gets the highlight before we move on.
       if (lastWordIdx >= 0) {
         onHighlight({ verseKey, wordIndex: lastWordIdx + 1 });
         lastWordIdxRef.current = lastWordIdx + 2;
@@ -293,8 +299,39 @@ export function ContinuousReaderPlayer({
       }
     }
     if (verseIdx + 1 < verses.length) {
+      // Same-surah advance: swap buffers (next verse pre-loaded) +
+      // bump verseIdx.
       setActiveBuffer((b) => (b === 'A' ? 'B' : 'A'));
       setVerseIdx((i) => i + 1);
+    } else if (activeSurah < 114) {
+      // End of surah → fetch next surah's verses and continue playing.
+      // No URL change; the player owns its own verses[] list.
+      void (async () => {
+        try {
+          const next = activeSurah + 1;
+          const res = await fetch(`${apiBase}/v1/chapters/${next.toString()}/verses`);
+          if (!res.ok) {
+            setActive(false);
+            setPlaying(false);
+            return;
+          }
+          const body = (await res.json()) as { verses: VerseRef[] };
+          if (!body.verses || body.verses.length === 0) {
+            setActive(false);
+            setPlaying(false);
+            return;
+          }
+          setVerses(body.verses);
+          setActiveSurah(next);
+          setVerseIdx(0);
+          // Reset buffers so the effect re-fetches both for the new surah.
+          setBundleA(null);
+          setBundleB(null);
+        } catch {
+          setActive(false);
+          setPlaying(false);
+        }
+      })();
     } else {
       setActive(false);
       setPlaying(false);

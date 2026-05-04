@@ -139,6 +139,11 @@ export function AyahCard({
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioLoading, setAudioLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Word-highlight state — populated while THIS ayah's Listen button
+  // is playing. Independent of the highlightWordIndex prop (which is
+  // driven by the global continuous player).
+  const [selfHighlightIdx, setSelfHighlightIdx] = useState<number | null>(null);
+  const segmentsRef = useRef<{ wordIndex: number; startMs: number; endMs: number }[]>([]);
   // Intent flag: user clicked Listen but URL was not ready yet. When the
   // src lands (canplay event), we honor the pending intent and start
   // playback. This survives the iOS Safari autoplay policy because the
@@ -159,8 +164,7 @@ export function AyahCard({
     playIntentRef.current = false;
   }, [verseKey, reciterSlug]);
 
-  // Pause when another player claims audio focus (continuous reader,
-  // MiniPlayer on /listen, sibling ayah cards).
+  // Pause when another player claims audio focus.
   useEffect(() => {
     function onClaim(e: Event): void {
       const detail = (e as CustomEvent<{ source: string }>).detail;
@@ -169,10 +173,76 @@ export function AyahCard({
       if (a && !a.paused) {
         a.pause();
       }
+      setSelfHighlightIdx(null);
     }
     window.addEventListener('qalaam:audio-claim', onClaim);
     return () => window.removeEventListener('qalaam:audio-claim', onClaim);
   }, [verseKey]);
+
+  // Pre-load segments when reciter or verse changes so word-highlight
+  // is ready to fire as soon as the user taps Listen.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const r = await fetch(
+          `${apiBase}/v1/recitations/${reciterSlug}/segments/${encodeURIComponent(verseKey)}`,
+        );
+        if (!r.ok || cancelled) return;
+        const body = (await r.json()) as { data: { wordIndex: number; startMs: number; endMs: number }[] };
+        segmentsRef.current = body.data ?? [];
+      } catch {
+        segmentsRef.current = [];
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [verseKey, reciterSlug, apiBase]);
+
+  // Drive word-highlight via rAF while THIS ayah is playing. Mirrors
+  // the continuous player's highlight algorithm but scoped to one
+  // ayah, and writes to local state (not the global onHighlight).
+  useEffect(() => {
+    if (!playing) {
+      setSelfHighlightIdx(null);
+      return;
+    }
+    let raf = 0;
+    function tick(): void {
+      const a = audioRef.current;
+      const segs = segmentsRef.current;
+      if (a && segs.length > 0) {
+        const tMs = a.currentTime * 1000;
+        const lookahead = tMs + 80;
+        let active: { wordIndex: number; startMs: number; endMs: number } | null = null;
+        for (const s of segs) {
+          if (lookahead >= s.startMs && lookahead <= s.endMs) {
+            active = s;
+            break;
+          }
+        }
+        const last = segs[segs.length - 1];
+        if (!active && last && tMs > last.endMs) {
+          // Past the last segment — paint the verse-end / final word.
+          setSelfHighlightIdx(last.wordIndex);
+          raf = requestAnimationFrame(tick);
+          return;
+        }
+        if (!active) {
+          // Between segments — keep last passed.
+          let mostRecent: { wordIndex: number; startMs: number; endMs: number } | null = null;
+          for (const s of segs) if (s.endMs < lookahead) mostRecent = s;
+          if (mostRecent) setSelfHighlightIdx(mostRecent.wordIndex - 1);
+        } else {
+          setSelfHighlightIdx(active.wordIndex - 1);
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    }
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [playing]);
 
   // Restore bookmark state
   useEffect(() => {
@@ -361,19 +431,22 @@ export function AyahCard({
         }}
         aria-label={`Verse ${verseKey}`}
       >
-        {highlightWordIndex !== undefined && highlightWordIndex !== null ? (
-          arabic.split(/\s+/).map((word, i, arr) => (
+        {(() => {
+          // Use self-driven highlight (this ayah's own Listen button)
+          // OR the prop-driven one (global continuous player) —
+          // whichever is non-null.
+          const idx = selfHighlightIdx ?? highlightWordIndex ?? null;
+          if (idx === null || idx === undefined) return arabic;
+          return arabic.split(/\s+/).map((word, i, arr) => (
             <span
               key={i}
-              className={i === highlightWordIndex ? 'recite-highlight' : undefined}
+              className={i === idx ? 'recite-highlight' : undefined}
             >
               {word}
               {i < arr.length - 1 ? ' ' : ''}
             </span>
-          ))
-        ) : (
-          arabic
-        )}
+          ));
+        })()}
       </p>
 
       {/* Translation — distinctly LTR, sans, smaller, muted-ish to read as gloss.
