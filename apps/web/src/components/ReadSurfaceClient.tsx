@@ -25,6 +25,7 @@ import type { ReactNode } from 'react';
 import { resolveApiBase } from '../lib/api-base.js';
 import { AyahCard } from './AyahCard.js';
 import { AyahMushafLines } from './AyahMushafLines.js';
+import { ContinuousReaderPlayer } from './ContinuousReaderPlayer.js';
 import { HairlineDivider } from './Glyph.js';
 
 export interface VerseLite {
@@ -100,6 +101,7 @@ export function ReadSurfaceClient({
   const [singleIndex, setSingleIndex] = useState(0);
   const [singleDirection, setSingleDirection] = useState<'next' | 'prev' | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [highlight, setHighlight] = useState<{ verseKey: string; wordIndex: number } | null>(null);
   // Seed the translation map from the SSR prefetch so the first paint shows
   // translations under each verse.
   const [translationMap, setTranslationMap] = useState<Map<string, string>>(() => {
@@ -398,6 +400,9 @@ export function ReadSurfaceClient({
               tafsirSlug={tafsirSlug}
               reciterSlug={reciter}
               apiBase={apiBase}
+              highlightWordIndex={
+                highlight?.verseKey === v.verseKey ? highlight.wordIndex : null
+              }
             />
           ))
         ) : (
@@ -444,6 +449,17 @@ export function ReadSurfaceClient({
           )}
         </nav>
       </main>
+
+      {/* Continuous recitation player — sticky at bottom. Plays
+          through every verse of the surah and emits highlight events
+          for the current word. Reading the highlight state above
+          paints the active word in AyahCard / SingleAyahView. */}
+      <ContinuousReaderPlayer
+        verses={verses}
+        reciterSlug={reciter}
+        reciterName={reciters.find((r) => r.slug === reciter)?.name.en}
+        onHighlight={setHighlight}
+      />
     </>
   );
 }

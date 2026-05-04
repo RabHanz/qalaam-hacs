@@ -40,6 +40,10 @@ interface AyahCardProps {
   /** Optional, ignored — always resolves to the same-origin /api proxy on
    *  the client. Kept so existing parents compile unchanged. */
   readonly apiBase?: string;
+  /** Word index (0-based) currently being recited by the continuous
+   *  player. When non-null, the matching word in this card is painted
+   *  with the highlight color. */
+  readonly highlightWordIndex?: number | null;
 }
 
 function arabicNumeral(n: number): string {
@@ -121,6 +125,7 @@ export function AyahCard({
   translation,
   tafsirSlug,
   reciterSlug,
+  highlightWordIndex,
 }: AyahCardProps): ReactNode {
   const apiBase = resolveApiBase();
   const [playing, setPlaying] = useState(false);
@@ -319,7 +324,9 @@ export function AyahCard({
         </span>
       </header>
 
-      {/* Arabic verse — no justify, no kashida; clamp keeps it inside 375px */}
+      {/* Arabic verse — no justify, no kashida; clamp keeps it inside 375px.
+          When the continuous player passes a highlightWordIndex, split
+          the text on whitespace and paint the matching word. */}
       <p
         dir="rtl"
         lang="ar"
@@ -334,7 +341,19 @@ export function AyahCard({
         }}
         aria-label={`Verse ${verseKey}`}
       >
-        {arabic}
+        {highlightWordIndex !== undefined && highlightWordIndex !== null ? (
+          arabic.split(/\s+/).map((word, i, arr) => (
+            <span
+              key={i}
+              className={i === highlightWordIndex ? 'recite-highlight' : undefined}
+            >
+              {word}
+              {i < arr.length - 1 ? ' ' : ''}
+            </span>
+          ))
+        ) : (
+          arabic
+        )}
       </p>
 
       {/* Translation — distinctly LTR, sans, smaller, muted-ish to read as gloss.

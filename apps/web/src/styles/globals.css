@@ -449,6 +449,25 @@
     border-color: color-mix(in srgb, var(--color-leaf-700) 70%, transparent);
   }
 
+  /* Recite-highlight — paints the word currently being recited by
+   * the continuous player. Subtle warm-gold background pulse so it
+   * draws the eye without yelling. Reduced-motion-safe. */
+  .recite-highlight {
+    background-color: color-mix(in srgb, var(--color-leaf-300) 38%, transparent);
+    color: var(--color-leaf-700);
+    border-radius: 4px;
+    padding: 0 2px;
+    margin: 0 -2px;
+    transition: background-color 140ms ease-out;
+  }
+  :root[data-theme="dark"] .recite-highlight {
+    background-color: color-mix(in srgb, var(--color-leaf-500) 32%, transparent);
+    color: var(--color-leaf-300);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .recite-highlight { transition: none; }
+  }
+
   /* Mushaf word — plain inline anchor that's tappable for the
    * word-by-word study panel. Inline (not inline-block) so it stays
    * in the parent's bidi context and doesn't reorder the line. */
