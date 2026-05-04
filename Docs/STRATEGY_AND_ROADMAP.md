@@ -2487,9 +2487,11 @@ concordance to any AI assistant via MCP. 50+ translations, 30+ languages,
 15+ tafsir scholars (Ibn Kathir, al-Tabari, al-Qurtubi…), Hafs/Warsh/Qaloon.
 
 **Plan:**
-- v0.5 — embed an MCP CLIENT in our backend; `/study` panel falls back
-  to mcp.quran.ai for content we haven't ingested (deep tafsir, lesser
-  qira'at).
+- ✅ v0.5 — MCP CLIENT live in backend at `apps/backend/src/lib/mcp-quran-ai.ts`
+  (JSON-RPC over HTTP+SSE, session-aware, lazy-init, grounding-nonce
+  capture). Proxied via `/v1/mcp/tools` (list) + `/v1/mcp/call/:tool`
+  (allowed-list invoke) + `/v1/mcp/search-tafsir?q=…` (convenience).
+  ALLOWED_TOOLS gate prevents arbitrary tool invocation.
 - v0.6 — publish our OWN `qalaam-mcp` exposing family-aware tools
   (hifdh-state, mutashabihat clusters, family bookmarks) ALONGSIDE
   the canonical fetch_quran/search_tafsir. Ours adds family + adab
@@ -2528,8 +2530,8 @@ ADR refs: ADR-0005 (on-device ASR), ADR-0007 (reciter licensing).
 | Category | QUL total | Qalaam | Status |
 |---|---|---|---|
 | Recitations | 152 (62 segmented) | 14 | 〰️ |
-| Translations | 209 + 16 WBW | 2 (en) | ❌ |
-| Tafsirs | 115 | 2 (Muyassar AR + Ibn Kathir AR) | ❌ |
+| Translations | 209 + 16 WBW | **59 across 28 languages** ✅ | 〰️ |
+| Tafsirs | 115 | **7** (Muyassar, Ibn Kathir, Jalalayn, Qurtubi, Baghawi, Miqbas, Waseet — all AR) ✅ | 〰️ |
 | Mushaf Layouts | 27 | 3 | ❌ |
 | Quran Scripts | 28 | 4 + Imlaei ayah-level | 〰️ |
 | Fonts | 18 | UthmanicHafs + 1208 v1/v2 page-fonts | 〰️ |
@@ -2537,16 +2539,18 @@ ADR refs: ADR-0005 (on-device ASR), ADR-0007 (reciter licensing).
 | Transliteration | 9 | 0 | ❌ |
 | Surah Info | 9 langs | 4 (en/ml/ta/ur) | 〰️ |
 | **Topics & Concepts** | **2,512** | 0 | ❌ |
-| **Grammar & Morphology** | **77,429 entries** | 0 | ❌ |
+| **Grammar & Morphology** | **77,429 entries** | **128,219 tokens × 4,832 lemmas × 1,642 roots × 45 POS tags** ✅ (via Quranic Arabic Corpus v0.4 / Kais Dukes / GPL — superset of QUL's coverage) | ✅ |
 | Mutashabihat | 5,277 | 814 clusters + 19,385 pairs | ✅ |
 | Similar Ayahs | 4,001 | 3,552 | ✅ |
 | Ayah Themes | 1,049 | 0 | ❌ |
 
-**Highest-leverage gaps (priority order):**
-1. **Morphology** (77K word-level POS/root/lemma) — unlocks /study word-by-word.
-2. **Topics + Themes** (3,500+ entries) — semantic cross-reference UX.
-3. **Translations + Tafsirs depth** — most user-visible breadth gap.
+**Highest-leverage gaps (priority order — updated 2026-05-05):**
+1. ✅ **Morphology** — Quranic Arabic Corpus 128K tokens ingested.
+2. ✅ **Translations + Tafsirs depth** — 59 + 7 ingested.
+3. **Topics + Themes** (3,500+ entries) — semantic cross-reference UX.
 4. **Reciters depth** (152 vs 14) — most by-count gap.
+5. **Transliteration** (9 editions) — accessibility / recitation-learner UX.
+6. **Mushaf Layouts** (27 vs 3) — IndoPak 16-line, Qatar 15-line, DigitalKhatt v1/v2.
 
 ### 27.6 Other quran org repos to track
 
@@ -2564,17 +2568,22 @@ ADR refs: ADR-0005 (on-device ASR), ADR-0007 (reciter licensing).
 
 ### 27.7 Implementation queue
 
-1. **`make qul-deep-ingest`** — pull all 14 QUL categories. Phase per
-   category. Per-resource rate limit + sha-pin.
+1. ✅ **Translations + tafsirs depth-pull** — 59 / 7 ingested
+   (`scripts/data/ingest-translations-deep.py` + `…-tafsirs-deep.py`).
 2. ✅ **Hifz check MVP** — `/hifz-check/[verseKey]` (browser ASR).
-3. **MCP client** — backend tooling that calls mcp.quran.ai for the
-   /study panel fallback content.
-4. **Morphology ingest + word-by-word /study** — biggest pedagogical win.
-5. **Translations + tafsirs depth-pull** — 2/2 → 50+/20+.
+3. ✅ **MCP client** — `apps/backend/src/lib/mcp-quran-ai.ts` + routes
+   `/v1/mcp/tools` · `/v1/mcp/call/:tool` · `/v1/mcp/search-tafsir`.
+4. ✅ **Morphology ingest + word-by-word /study** — 128K tokens; new
+   /concordance/root/:root surface.
+5. **Topics + Themes (3,500+ entries)** — semantic cross-reference UX
+   on /study (sidebar of related verses).
 6. **Reciters depth-pull** — 14 → 50+ (segmented coverage prioritized).
 7. **Self-hosted ASR worker** — Tarteel Whisper ONNX behind /recite WS.
-8. **`qalaam-mcp` server** — emit our family-aware tools.
+8. **`qalaam-mcp` server** — emit our family-aware tools (hifdh-state,
+   mutashabihat clusters, family bookmarks).
 9. **Image-mushaf overlay** — `mushaf-layout-12.sqlite/6/{N}.png|json`
    we already have + ayah-detection scripts.
-10. **Mobile** — Kotlin / Swift apps borrowing from quran_android +
+10. **More mushaf layouts** — IndoPak 16-line, Qatar 15-line, DigitalKhatt.
+11. **Transliteration ingest** (9 editions) — accessibility surface.
+12. **Mobile** — Kotlin / Swift apps borrowing from quran_android +
     QuranEngine patterns.

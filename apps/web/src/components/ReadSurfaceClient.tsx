@@ -27,6 +27,7 @@ import { AyahCard } from './AyahCard.js';
 import { AyahMushafLines } from './AyahMushafLines.js';
 import { ContinuousReaderPlayer } from './ContinuousReaderPlayer.js';
 import { HairlineDivider } from './Glyph.js';
+import { TranslationPicker } from './TranslationPicker.js';
 
 export interface VerseLite {
   readonly verseKey: string;
@@ -315,19 +316,16 @@ export function ReadSurfaceClient({
       <div className="border-b border-hairline bg-paper-100/95 backdrop-blur-md sticky top-[60px] sm:top-[68px] z-20">
         <div className="mx-auto max-w-5xl px-3 sm:px-6 py-2.5 space-y-2">
           <ChipRow label="Translation">
-            <Chip active={translation === 'none'} onClick={() => pickTranslation('none')}>
-              Arabic only
-            </Chip>
-            {translations.map((t) => (
-              <Chip
-                key={t.slug}
-                active={translation === t.slug}
-                onClick={() => pickTranslation(t.slug)}
-                title={t.translator}
-              >
-                {t.name.replace(/^The /, '')}
-              </Chip>
-            ))}
+            {/* 59 translations across 28 languages — replace inline
+                chip-row with a language-grouped bottom-sheet picker. */}
+            <TranslationPicker
+              translations={translations}
+              value={translation}
+              onChange={(next) => pickTranslation(next)}
+            />
+            {/* Pinned shortcuts: Arabic only + the user's last 2-3
+                preferred translations could live here. For now we
+                keep the picker as the single entry point. */}
           </ChipRow>
 
           <ChipRow label="Reciter">

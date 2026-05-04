@@ -26,8 +26,10 @@ interface PageProps {
   readonly params: Promise<{ surah: string; ayah: string }>;
 }
 
-const TRANSLATIONS_TO_SHOW = ['pickthall', 'saheeh-international', 'clear-quran'] as const;
-const TAFSIRS_TO_SHOW = ['muyassar', 'saheeh-footnotes'] as const;
+// Default panes shown above the fold. The picker (TafsirsPanel below)
+// surfaces all 7 ingested tafsirs and lets the user toggle others.
+const TRANSLATIONS_TO_SHOW = ['pickthall', 'saheeh-international', 'maududi'] as const;
+const TAFSIRS_TO_SHOW = ['muyassar', 'ibn-kathir', 'jalalayn', 'qurtubi', 'baghawi', 'miqbas', 'waseet'] as const;
 
 async function StudyBody({
   surahNumber,
