@@ -66,11 +66,11 @@ export default function RootLayout({
   readonly children: ReactNode;
 }): ReactNode {
   return (
-    <html lang={DEFAULT_LOCALE} dir={dirOf(DEFAULT_LOCALE)}>
+    <html lang={DEFAULT_LOCALE} dir={dirOf(DEFAULT_LOCALE)} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
       </head>
-      <body className="min-h-screen bg-paper text-ink antialiased paper-texture">
+      <body className="min-h-screen bg-paper text-ink antialiased paper-texture" suppressHydrationWarning>
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:rounded-md focus:bg-ink focus:px-3 focus:py-2 focus:text-white"

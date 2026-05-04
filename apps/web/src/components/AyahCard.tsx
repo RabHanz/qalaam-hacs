@@ -85,6 +85,15 @@ function ShareIcon(): ReactNode {
   );
 }
 
+function SpinnerIcon(): ReactNode {
+  return (
+    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden className="animate-spin">
+      <circle cx="12" cy="12" r="9" opacity="0.25" />
+      <path d="M21 12a9 9 0 0 0-9-9" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function TafsirIcon(): ReactNode {
   return (
     <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
@@ -119,36 +128,27 @@ export function AyahCard({
   const [tafsir, setTafsir] = useState<{ text: string; lang: string; scholar: string | null; loading: boolean } | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioLoading, setAudioLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Intent flag: user clicked Listen but URL was not ready yet. When the
+  // src lands (canplay event), we honor the pending intent and start
+  // playback. This survives the iOS Safari autoplay policy because the
+  // .play() call STILL chains from the user's click via the ref-bound
+  // promise, even though it happens asynchronously.
+  const playIntentRef = useRef(false);
 
   const ayah = Number.parseInt(verseKey.split(':')[1] ?? '0', 10);
 
-  // Pre-fetch the audio URL whenever (verseKey, reciter) changes, so the
-  // click handler can call audioRef.current.play() synchronously inside
-  // the user-gesture window. The audio element itself is mounted in the
-  // JSX (not detached `new Audio()`) so it lives in the DOM and behaves
-  // reliably across browsers (Safari/iOS in particular requires a mounted
-  // element).
+  // Reset audio when (verseKey, reciter) changes. We DO NOT pre-fetch —
+  // fetching audio URLs for all 286 ayahs of Surah 2 on mount is wasteful
+  // and would saturate the browser's per-origin connection pool. Lazy
+  // fetch on first click. Most users never tap Listen on every ayah.
   useEffect(() => {
-    let cancelled = false;
     setAudioUrl(null);
     setPlaying(false);
-    void (async () => {
-      try {
-        const res = await fetch(
-          `${apiBase}/v1/audio/by_verse/${encodeURIComponent(verseKey)}/${reciterSlug}`,
-        );
-        if (!res.ok || cancelled) return;
-        const body = (await res.json()) as { audioUrl: string };
-        if (!cancelled) setAudioUrl(body.audioUrl);
-      } catch {
-        /* ignore — Listen will retry on click */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [verseKey, reciterSlug, apiBase]);
+    setAudioLoading(false);
+    playIntentRef.current = false;
+  }, [verseKey, reciterSlug]);
 
   // Restore bookmark state
   useEffect(() => {
@@ -176,15 +176,56 @@ export function AyahCard({
     }
   }
 
-  function togglePlay(): void {
+  async function togglePlay(): Promise<void> {
     const a = audioRef.current;
-    if (!a || !audioUrl) return;
+    if (!a) return;
     if (playing) {
       a.pause();
       setPlaying(false);
       return;
     }
-    // Fire .play() synchronously inside the user-gesture window
+    if (audioUrl) {
+      // We already have the URL — play right now (synchronous gesture chain)
+      const p = a.play();
+      if (p && typeof p.then === 'function') {
+        p.then(
+          () => setPlaying(true),
+          () => setPlaying(false),
+        );
+      } else {
+        setPlaying(true);
+      }
+      return;
+    }
+    // First click: lazy-fetch URL, then play when canplay fires.
+    setAudioLoading(true);
+    playIntentRef.current = true;
+    try {
+      const res = await fetch(
+        `${apiBase}/v1/audio/by_verse/${encodeURIComponent(verseKey)}/${reciterSlug}`,
+      );
+      if (!res.ok) {
+        setAudioLoading(false);
+        playIntentRef.current = false;
+        return;
+      }
+      const body = (await res.json()) as { audioUrl: string };
+      setAudioUrl(body.audioUrl);
+      // Don't call play() here — onCanPlay handler does it once the
+      // browser actually has data. This avoids the "play() failed because
+      // no audio data" rejection.
+    } catch {
+      setAudioLoading(false);
+      playIntentRef.current = false;
+    }
+  }
+
+  function handleCanPlay(): void {
+    setAudioLoading(false);
+    if (!playIntentRef.current) return;
+    playIntentRef.current = false;
+    const a = audioRef.current;
+    if (!a) return;
     const p = a.play();
     if (p && typeof p.then === 'function') {
       p.then(
@@ -385,7 +426,8 @@ export function AyahCard({
       <audio
         ref={audioRef}
         src={audioUrl ?? undefined}
-        preload="none"
+        preload="metadata"
+        onCanPlay={handleCanPlay}
         onEnded={() => setPlaying(false)}
         onPause={() => setPlaying(false)}
         onPlay={() => setPlaying(true)}
@@ -397,10 +439,10 @@ export function AyahCard({
         className="mt-3 flex flex-wrap gap-1.5 sm:gap-2"
       >
         <ChipButton
-          onClick={togglePlay}
-          active={playing}
-          icon={<PlayIcon playing={playing} />}
-          label={playing ? 'Pause' : 'Listen'}
+          onClick={() => void togglePlay()}
+          active={playing || audioLoading}
+          icon={audioLoading ? <SpinnerIcon /> : <PlayIcon playing={playing} />}
+          label={audioLoading ? 'Loading' : playing ? 'Pause' : 'Listen'}
           flagAccent={playing}
         />
         <ChipButton

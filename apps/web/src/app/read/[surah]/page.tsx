@@ -12,6 +12,7 @@ import { QalaamError } from '@qalaam/core';
 
 import { EmptyState } from '../../../components/EmptyState.js';
 import { ErrorState } from '../../../components/ErrorState.js';
+import { JumpToPicker } from '../../../components/JumpToPicker.js';
 import { ReadSurfaceClient, type VerseLite } from '../../../components/ReadSurfaceClient.js';
 import { SiteNav } from '../../../components/SiteNav.js';
 import { qalaamClient } from '../../../lib/qalaam-client.js';
@@ -115,11 +116,15 @@ export default async function ReadSurahPage({ params }: PageProps): Promise<Reac
     textUthmani: v.textUthmani,
   }));
 
+  // Metadata fetches use a short cache window so name/translator/layout
+  // changes propagate quickly. The verse content (already fetched above
+  // via qalaamClient) and per-verse translation rows below stay
+  // long-cached because they're stable.
   const [meta, translationsBody, recitersBody, layoutsBody] = await Promise.all([
-    fetchJson<{ data: SurahMeta }>(`${apiBase}/v1/metadata/surahs/${surahNumber.toString()}`),
-    fetchJson<{ translations: TranslationItem[] }>(`${apiBase}/v1/translations`),
-    fetchJson<{ reciters: ReciterItem[] }>(`${apiBase}/v1/reciters`),
-    fetchJson<{ layouts?: LayoutItem[]; data?: string[] }>(`${apiBase}/v1/layouts`),
+    fetchJson<{ data: SurahMeta }>(`${apiBase}/v1/metadata/surahs/${surahNumber.toString()}`, 60),
+    fetchJson<{ translations: TranslationItem[] }>(`${apiBase}/v1/translations`, 60),
+    fetchJson<{ reciters: ReciterItem[] }>(`${apiBase}/v1/reciters`, 60),
+    fetchJson<{ layouts?: LayoutItem[]; data?: string[] }>(`${apiBase}/v1/layouts`, 60),
   ]);
 
   // SSR-prefetch the default translation so the page renders complete on
@@ -209,9 +214,10 @@ export default async function ReadSurahPage({ params }: PageProps): Promise<Reac
         tafsirSlug="muyassar"
         defaultTranslation={defaultT}
         defaultReciter="sudais"
-        defaultLayout={layouts[0]?.slug ?? 'madani_15'}
         prefetchedTranslation={prefetchedTranslation}
       />
+
+      <JumpToPicker mode="reader" apiBase={apiBase} layoutSlug={layouts[0]?.slug ?? 'madani_15'} />
     </>
   );
 }

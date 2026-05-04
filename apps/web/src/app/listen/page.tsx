@@ -6,9 +6,9 @@
  * listening. Reciter cards are tappable and show a "Now playing" tag on
  * the active one.
  */
-import Link from 'next/link';
 import { Suspense } from 'react';
 
+import { JumpToPicker } from '../../components/JumpToPicker.js';
 import { ListenSurfaceClient } from '../../components/ListenSurfaceClient.js';
 import { LoadingState } from '../../components/LoadingState.js';
 import { SiteNav } from '../../components/SiteNav.js';
@@ -87,6 +87,8 @@ export default async function ListenPage(): Promise<ReactNode> {
           />
         </Suspense>
       </main>
+
+      <JumpToPicker mode="listen" apiBase={apiBase} />
     </>
   );
 }

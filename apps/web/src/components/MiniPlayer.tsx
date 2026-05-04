@@ -109,10 +109,16 @@ export function MiniPlayer({
 
   function togglePlay(): void {
     const a = audioRef.current;
-    if (!a || !audioUrl) return;
+    if (!a) return;
     if (playing) {
       a.pause();
       setPlaying(false);
+      return;
+    }
+    if (!audioUrl) {
+      // URL fetch still in flight — set the resume flag so the existing
+      // useEffect kicks playback off as soon as audioUrl resolves.
+      shouldResumeRef.current = true;
       return;
     }
     const p = a.play();
@@ -174,8 +180,7 @@ export function MiniPlayer({
               type="button"
               aria-label={playing ? 'Pause' : 'Play'}
               onClick={togglePlay}
-              disabled={!audioUrl}
-              className="shrink-0 inline-flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-leaf text-paper hover:opacity-90 disabled:opacity-40"
+              className="shrink-0 inline-flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-leaf text-paper hover:opacity-90"
             >
               {playing ? (
                 <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor" aria-hidden>

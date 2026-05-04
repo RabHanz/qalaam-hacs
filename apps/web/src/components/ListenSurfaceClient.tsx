@@ -66,6 +66,25 @@ export function ListenSurfaceClient({ apiBase, reciters, surahs }: Props): React
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Listen for cross-component jump-to-verse events (from JumpToPicker)
+  useEffect(() => {
+    const onJump = (e: Event): void => {
+      const detail = (e as CustomEvent<{ surah: number; ayah: number }>).detail;
+      if (!detail) return;
+      const vk = `${detail.surah.toString()}:${detail.ayah.toString()}`;
+      setActiveVerseKey(vk);
+      try {
+        window.localStorage.setItem(STORE_VK, vk);
+      } catch {
+        /* ignore */
+      }
+    };
+    window.addEventListener('qalaam:jump', onJump);
+    return () => {
+      window.removeEventListener('qalaam:jump', onJump);
+    };
+  }, []);
+
   function pickReciter(slug: string): void {
     setActiveReciter(slug);
     if (hydrated) {

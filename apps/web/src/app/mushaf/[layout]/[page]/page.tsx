@@ -9,6 +9,9 @@
 import Link from 'next/link';
 
 import { EmptyState } from '../../../../components/EmptyState.js';
+import { JumpToPicker } from '../../../../components/JumpToPicker.js';
+import { MushafLines } from '../../../../components/MushafLines.js';
+import { MushafPageSwipe } from '../../../../components/MushafPageSwipe.js';
 import { SiteNav } from '../../../../components/SiteNav.js';
 
 import type { ReactNode } from 'react';
@@ -150,78 +153,29 @@ export default async function MushafPage({ params }: PageProps): Promise<ReactNo
         </div>
       </div>
 
-      {/* Page body */}
+      {/* Jump to surah / verse — floating action */}
+      <JumpToPicker mode="mushaf" layoutSlug={layout} />
+
+      {/* Page body — swipeable + slide-in animation per page */}
       <main className="mx-auto max-w-3xl px-4 sm:px-6 py-8 sm:py-12">
+        <MushafPageSwipe layout={layout} pageNumber={pageNumber} totalPages={totalPages}>
         <article
-          className="paper-card-raised p-6 sm:p-10 md:p-14"
+          key={`${layout}-${pageNumber.toString()}`}
+          className="paper-card-raised p-6 sm:p-10 md:p-14 slide-in-next"
           aria-label={`Mushaf page ${pageNumber.toString()}`}
         >
-          <div dir="rtl" lang="ar" className="space-y-4 sm:space-y-5" style={{ unicodeBidi: 'plaintext' }}>
-            {data.lines.map((line) => {
-              if (line.lineType === 'surah_name') {
-                return (
-                  <p
-                    key={line.lineNumber}
-                    className="font-display text-center text-leaf text-base sm:text-lg smallcaps tracking-widest border-y border-hairline py-2"
-                  >
-                    Sūrat {line.surah !== null ? arabicNumeral(line.surah) : ''}
-                  </p>
-                );
-              }
-              if (line.lineType === 'basmallah') {
-                return (
-                  <p
-                    key={line.lineNumber}
-                    dir="rtl"
-                    lang="ar"
-                    className="font-arabic text-center text-ink-strong"
-                    style={{
-                      fontSize: 'clamp(1.4rem, 1rem + 1.6vw, 2.1rem)',
-                      lineHeight: 1.9,
-                      unicodeBidi: 'plaintext',
-                      fontWeight: 600,
-                    }}
-                  >
-                    بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
-                  </p>
-                );
-              }
-              return (
-                <p
-                  key={line.lineNumber}
-                  dir="rtl"
-                  lang="ar"
-                  className="font-arabic text-ink-strong text-center"
-                  style={{
-                    fontSize: 'clamp(1.4rem, 1rem + 1.5vw, 2.1rem)',
-                    lineHeight: 1.95,
-                    unicodeBidi: 'plaintext',
-                    fontWeight: 600,
-                    overflowWrap: 'break-word',
-                  }}
-                >
-                  {line.words.map((w, i) => (
-                    <span key={`${line.lineNumber.toString()}-${w.wordId.toString()}`}>
-                      <a
-                        href={`/study/${w.verseKey.split(':')[0] ?? '1'}/${w.verseKey.split(':')[1] ?? '1'}`}
-                        className="hover:text-leaf"
-                        title={w.verseKey}
-                      >
-                        {w.text}
-                      </a>
-                      {i < line.words.length - 1 ? ' ' : ''}
-                    </span>
-                  ))}
-                </p>
-              );
-            })}
-          </div>
+          <MushafLines lines={data.lines} layoutSlug={layout} sharedSize />
         </article>
+        </MushafPageSwipe>
+
+        <p className="text-[10px] smallcaps text-ink-muted/70 tracking-widest text-center pt-4 mt-4">
+          Swipe ← for next page · Swipe → for previous
+        </p>
 
         {/* Page nav */}
         <nav
           aria-label="Mushaf page navigation"
-          className="mt-8 flex items-baseline justify-between text-sm"
+          className="mt-6 flex items-baseline justify-between text-sm"
         >
           {pageNumber > 1 ? (
             <Link

@@ -23,6 +23,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
 import { AyahCard } from './AyahCard.js';
+import { AyahMushafLines } from './AyahMushafLines.js';
 import { HairlineDivider } from './Glyph.js';
 
 export interface VerseLite {
@@ -58,15 +59,17 @@ interface Props {
   readonly tafsirSlug: string;
   readonly defaultTranslation: string;
   readonly defaultReciter: string;
-  readonly defaultLayout: string;
   readonly prefetchedTranslation?: Record<string, string>;
 }
 
 const STORE_T = 'qalaam-translation';
 const STORE_R = 'qalaam-reciter';
 const STORE_VIEW = 'qalaam-read-view';
+const STORE_LAYOUT = 'qalaam-read-layout';
+const STORE_SINGLE_STYLE = 'qalaam-single-style';
 
 type ViewMode = 'continuous' | 'single';
+type SingleStyle = 'card' | 'mushaf';
 
 function arabicNumeral(n: number): string {
   return n.toString().split('').map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d).join('');
@@ -81,15 +84,18 @@ export function ReadSurfaceClient({
   tafsirSlug,
   defaultTranslation,
   defaultReciter,
-  defaultLayout,
   prefetchedTranslation,
 }: Props): ReactNode {
   // Initialize with defaults — guaranteed to match SSR. Refined in useEffect.
   const [translation, setTranslation] = useState<string>(defaultTranslation);
   const [reciter, setReciter] = useState<string>(defaultReciter);
-  const [layout, setLayout] = useState<string>(defaultLayout);
+  const [activeLayoutSlug, setActiveLayoutSlug] = useState<string>(
+    layouts[0]?.slug ?? 'madani_15',
+  );
   const [viewMode, setViewMode] = useState<ViewMode>('continuous');
+  const [singleStyle, setSingleStyle] = useState<SingleStyle>('card');
   const [singleIndex, setSingleIndex] = useState(0);
+  const [singleDirection, setSingleDirection] = useState<'next' | 'prev' | null>(null);
   const [hydrated, setHydrated] = useState(false);
   // Seed the translation map from the SSR prefetch so the first paint shows
   // translations under each verse.
@@ -110,11 +116,16 @@ export function ReadSurfaceClient({
       const t = url.searchParams.get('t') ?? window.localStorage.getItem(STORE_T) ?? defaultTranslation;
       const r = url.searchParams.get('r') ?? window.localStorage.getItem(STORE_R) ?? defaultReciter;
       const v = (window.localStorage.getItem(STORE_VIEW) as ViewMode | null) ?? 'continuous';
+      const lt = window.localStorage.getItem(STORE_LAYOUT);
+      const ss = (window.localStorage.getItem(STORE_SINGLE_STYLE) as SingleStyle | null) ?? 'card';
       const validT = t === 'none' || translations.some((x) => x.slug === t) ? t : defaultTranslation;
       const validR = reciters.some((x) => x.slug === r) ? r : defaultReciter;
+      const validL = lt && layouts.some((x) => x.slug === lt) ? lt : layouts[0]?.slug ?? 'madani_15';
       setTranslation(validT);
       setReciter(validR);
+      setActiveLayoutSlug(validL);
       setViewMode(v === 'single' ? 'single' : 'continuous');
+      setSingleStyle(ss === 'mushaf' ? 'mushaf' : 'card');
     } catch {
       /* ignore */
     }
@@ -136,10 +147,21 @@ export function ReadSurfaceClient({
       window.localStorage.setItem(STORE_T, translation);
       window.localStorage.setItem(STORE_R, reciter);
       window.localStorage.setItem(STORE_VIEW, viewMode);
+      window.localStorage.setItem(STORE_LAYOUT, activeLayoutSlug);
+      window.localStorage.setItem(STORE_SINGLE_STYLE, singleStyle);
     } catch {
       /* ignore */
     }
-  }, [translation, reciter, viewMode, hydrated, defaultTranslation, defaultReciter]);
+  }, [
+    translation,
+    reciter,
+    viewMode,
+    activeLayoutSlug,
+    singleStyle,
+    hydrated,
+    defaultTranslation,
+    defaultReciter,
+  ]);
 
   // Fetch translation pack whenever translation changes (skip if 'none').
   // For the SSR-prefetched default translation we already have all rows so
@@ -195,11 +217,6 @@ export function ReadSurfaceClient({
     [translation, translations],
   );
 
-  const activeLayout = useMemo(
-    () => layouts.find((l) => l.slug === layout) ?? null,
-    [layout, layouts],
-  );
-
   function pickTranslation(next: string): void {
     setTranslation(next);
     setSingleIndex(0);
@@ -209,21 +226,25 @@ export function ReadSurfaceClient({
     setReciter(next);
   }
 
-  function pickLayout(next: string): void {
-    setLayout(next);
-  }
-
   function pickView(next: ViewMode): void {
     setViewMode(next);
     setSingleIndex(0);
   }
 
   function goPrev(): void {
-    setSingleIndex((i) => Math.max(0, i - 1));
+    setSingleIndex((i) => {
+      if (i <= 0) return i;
+      setSingleDirection('prev');
+      return i - 1;
+    });
     requestAnimationFrame(() => containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
   function goNext(): void {
-    setSingleIndex((i) => Math.min(verses.length - 1, i + 1));
+    setSingleIndex((i) => {
+      if (i >= verses.length - 1) return i;
+      setSingleDirection('next');
+      return i + 1;
+    });
     requestAnimationFrame(() => containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
 
@@ -265,45 +286,93 @@ export function ReadSurfaceClient({
             ))}
           </ChipRow>
 
-          <ChipRow label="Layout">
+          <ChipRow label="View">
             <Chip active={viewMode === 'continuous'} onClick={() => pickView('continuous')}>
               Continuous
             </Chip>
             <Chip active={viewMode === 'single'} onClick={() => pickView('single')}>
               One ayah
             </Chip>
-            {layouts.length > 0 ? <span className="mx-1 text-ink-muted/40">|</span> : null}
-            {layouts.map((l) => (
-              <Chip
-                key={l.slug}
-                active={layout === l.slug}
-                onClick={() => pickLayout(l.slug)}
-                title={l.subtitle ?? ''}
-              >
-                {l.name.replace(/^Madinah Mushaf/, 'Madinah').replace(/^Madinah · /, '')}
-              </Chip>
-            ))}
-            {activeLayout ? (
-              <a
-                href={`/mushaf/${activeLayout.slug}/page-for/${encodeURIComponent(firstVk)}`}
-                className="ml-1 inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] sm:text-xs smallcaps tracking-wider text-leaf hover:bg-paper-200/60 border border-leaf/40"
-              >
-                Open mushaf →
-              </a>
+            {viewMode === 'single' ? (
+              <>
+                <span className="mx-1 text-ink-muted/40 hidden sm:inline">|</span>
+                <Chip
+                  active={singleStyle === 'card'}
+                  onClick={() => setSingleStyle('card')}
+                  title="Card style — Arabic + translation + chips"
+                >
+                  Card
+                </Chip>
+                <Chip
+                  active={singleStyle === 'mushaf'}
+                  onClick={() => setSingleStyle('mushaf')}
+                  title="Mushaf style — page-faithful line breaks"
+                >
+                  Mushaf
+                </Chip>
+              </>
             ) : null}
           </ChipRow>
+
+          {layouts.length > 0 ? (
+            <ChipRow label="Mushaf">
+              {layouts.map((l) => {
+                const labelRaw = l.name || l.slug;
+                const label =
+                  labelRaw === l.slug
+                    ? labelRaw
+                    : labelRaw
+                        .replace(/^Madinah Mushaf · /, 'Madinah · ')
+                        .replace(/^Madinah Mushaf$/, 'Madinah')
+                        .replace(/^Madinah Mushaf /, 'Madinah ');
+                const isActive = activeLayoutSlug === l.slug;
+                // In single-ayah Mushaf style, tapping the chip BINDS the
+                // active layout for the in-page mushaf rendering. In any
+                // other mode, tapping NAVIGATES to the full mushaf page
+                // for the current verse.
+                if (viewMode === 'single' && singleStyle === 'mushaf') {
+                  return (
+                    <Chip
+                      key={l.slug}
+                      active={isActive}
+                      onClick={() => setActiveLayoutSlug(l.slug)}
+                      title={l.subtitle ?? ''}
+                    >
+                      {label}
+                    </Chip>
+                  );
+                }
+                return (
+                  <a
+                    key={l.slug}
+                    href={`/mushaf/${l.slug}/page-for/${encodeURIComponent(firstVk)}`}
+                    title={l.subtitle ?? ''}
+                    className="shrink-0 rounded-full px-3 py-1 text-[11px] sm:text-xs smallcaps tracking-wider transition-colors border border-hairline text-ink hover:bg-paper-200/60 hover:border-leaf/40 hover:text-leaf"
+                  >
+                    {label} →
+                  </a>
+                );
+              })}
+            </ChipRow>
+          ) : null}
         </div>
       </div>
 
-      {/* Translator attribution — once per surah, only when translation chosen */}
+      {/* Translator attribution — once per surah, only when translation chosen.
+          Dedupe when name === translator (e.g. "Saheeh International"). */}
       {activeTranslation ? (
         <div className="mx-auto max-w-3xl px-4 sm:px-6 pt-4 sm:pt-6">
           <p className="text-[11px] sm:text-xs text-ink-muted text-center leading-relaxed">
             <span className="smallcaps tracking-widest">Translation</span>
             <span className="block sm:inline sm:mx-2 mt-1 sm:mt-0">
               <span>{activeTranslation.name}</span>
-              <span className="mx-2 opacity-50">·</span>
-              <span className="italic">{activeTranslation.translator}</span>
+              {activeTranslation.translator &&
+              activeTranslation.translator !== activeTranslation.name ? (
+                <>
+                  <span className="mx-2 opacity-50">·</span>
+                  <span className="italic">{activeTranslation.translator}</span>
+                </>
+              ) : null}
               {translationLoading ? (
                 <span className="mx-2 opacity-60 italic">loading…</span>
               ) : null}
@@ -340,6 +409,9 @@ export function ReadSurfaceClient({
             onPrev={goPrev}
             onNext={goNext}
             surahN={surahN}
+            direction={singleDirection}
+            style={singleStyle}
+            layoutSlug={activeLayoutSlug}
           />
         )}
 
@@ -423,6 +495,9 @@ function SingleAyahView({
   onPrev,
   onNext,
   surahN,
+  direction,
+  style,
+  layoutSlug,
 }: {
   verses: readonly VerseLite[];
   index: number;
@@ -434,10 +509,21 @@ function SingleAyahView({
   onPrev: () => void;
   onNext: () => void;
   surahN: number;
+  direction: 'next' | 'prev' | null;
+  style: SingleStyle;
+  layoutSlug: string;
 }): ReactNode {
   const v = verses[index];
+  const swipe = useSwipePager({
+    onSwipeNext: onNext,
+    onSwipePrev: onPrev,
+    canNext: index < verses.length - 1,
+    canPrev: index > 0,
+  });
   if (!v) return null;
   const total = verses.length;
+  const slideClass =
+    direction === 'next' ? 'slide-in-next' : direction === 'prev' ? 'slide-in-prev' : '';
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -468,15 +554,52 @@ function SingleAyahView({
         </button>
       </div>
 
-      <AyahCard
-        key={v.verseKey}
-        verseKey={v.verseKey}
-        arabic={v.textUthmani}
-        translation={translation === 'none' ? null : translationMap.get(v.verseKey) ?? null}
-        tafsirSlug={tafsirSlug}
-        reciterSlug={reciterSlug}
-        apiBase={apiBase}
-      />
+      {/* Touch / pointer swipe surface. Use `key` to force the slide
+          animation to replay on each ayah change. */}
+      <div
+        key={`${v.verseKey}-${style}-${layoutSlug}`}
+        className={`${slideClass} ${swipe.dragging ? 'swipe-drag' : 'swipe-spring-back'} touch-pan-y select-none`}
+        style={{ ['--swipe-x' as string]: swipe.dragging ? `${swipe.dx}px` : '0px' }}
+        onTouchStart={swipe.onTouchStart}
+        onTouchMove={swipe.onTouchMove}
+        onTouchEnd={swipe.onTouchEnd}
+        onTouchCancel={swipe.onTouchCancel}
+        onPointerDown={swipe.onPointerDown}
+        onPointerMove={swipe.onPointerMove}
+        onPointerUp={swipe.onPointerUp}
+        onPointerCancel={swipe.onPointerCancel}
+        aria-roledescription="Swipeable ayah pager"
+      >
+        {style === 'mushaf' ? (
+          <div className="space-y-4">
+            <AyahMushafLines apiBase={apiBase} verseKey={v.verseKey} layoutSlug={layoutSlug} />
+            {translation !== 'none' && translationMap.get(v.verseKey) ? (
+              <div className="paper-card p-5 sm:p-7">
+                <p className="smallcaps text-leaf text-[10px] tracking-widest mb-2">
+                  Translation
+                </p>
+                <p
+                  dir="ltr"
+                  lang="en"
+                  className="text-[15px] sm:text-base leading-relaxed text-ink/90 max-w-prose mx-auto"
+                  style={{ fontFamily: 'var(--font-body)' }}
+                >
+                  {translationMap.get(v.verseKey)}
+                </p>
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <AyahCard
+            verseKey={v.verseKey}
+            arabic={v.textUthmani}
+            translation={translation === 'none' ? null : translationMap.get(v.verseKey) ?? null}
+            tafsirSlug={tafsirSlug}
+            reciterSlug={reciterSlug}
+            apiBase={apiBase}
+          />
+        )}
+      </div>
 
       <HairlineDivider />
 
@@ -499,6 +622,113 @@ function SingleAyahView({
           {verses[Math.min(total - 1, index + 1)]?.verseKey ?? ''} →
         </button>
       </div>
+
+      <p className="text-[10px] smallcaps text-ink-muted/70 tracking-widest text-center pt-2">
+        Swipe ← for next · Swipe → for previous
+      </p>
     </div>
   );
 }
+
+/**
+ * useSwipePager — minimal touch + pointer swipe handler for horizontal
+ * pagination. Triggers onSwipeNext when the gesture moves left past
+ * threshold, onSwipePrev when it moves right past threshold. Vertical
+ * scrolling is preserved via `touch-action: pan-y` on the consuming
+ * element.
+ */
+function useSwipePager({
+  onSwipeNext,
+  onSwipePrev,
+  canNext,
+  canPrev,
+  threshold = 60,
+}: {
+  onSwipeNext: () => void;
+  onSwipePrev: () => void;
+  canNext: boolean;
+  canPrev: boolean;
+  threshold?: number;
+}): {
+  dragging: boolean;
+  dx: number;
+  onTouchStart: (e: React.TouchEvent) => void;
+  onTouchMove: (e: React.TouchEvent) => void;
+  onTouchEnd: () => void;
+  onTouchCancel: () => void;
+  onPointerDown: (e: React.PointerEvent) => void;
+  onPointerMove: (e: React.PointerEvent) => void;
+  onPointerUp: () => void;
+  onPointerCancel: () => void;
+} {
+  const [dx, setDx] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const startXRef = useRef<number | null>(null);
+  const startYRef = useRef<number | null>(null);
+  const lockedAxisRef = useRef<'x' | 'y' | null>(null);
+  const pointerActiveRef = useRef(false);
+
+  function begin(x: number, y: number): void {
+    startXRef.current = x;
+    startYRef.current = y;
+    lockedAxisRef.current = null;
+    setDragging(false);
+    setDx(0);
+  }
+  function move(x: number, y: number): boolean {
+    if (startXRef.current === null || startYRef.current === null) return false;
+    const ddx = x - startXRef.current;
+    const ddy = y - startYRef.current;
+    if (lockedAxisRef.current === null) {
+      if (Math.abs(ddx) < 8 && Math.abs(ddy) < 8) return false;
+      lockedAxisRef.current = Math.abs(ddx) > Math.abs(ddy) ? 'x' : 'y';
+    }
+    if (lockedAxisRef.current === 'y') return false;
+    setDragging(true);
+    setDx(ddx);
+    return true;
+  }
+  function end(): void {
+    const finalDx = dx;
+    setDragging(false);
+    setDx(0);
+    startXRef.current = null;
+    startYRef.current = null;
+    lockedAxisRef.current = null;
+    if (Math.abs(finalDx) < threshold) return;
+    if (finalDx < 0 && canNext) onSwipeNext();
+    else if (finalDx > 0 && canPrev) onSwipePrev();
+  }
+  return {
+    dragging,
+    dx,
+    onTouchStart: (e) => begin(e.touches[0]?.clientX ?? 0, e.touches[0]?.clientY ?? 0),
+    onTouchMove: (e) => {
+      const consumed = move(e.touches[0]?.clientX ?? 0, e.touches[0]?.clientY ?? 0);
+      if (consumed && e.cancelable) e.preventDefault();
+    },
+    onTouchEnd: end,
+    onTouchCancel: end,
+    onPointerDown: (e) => {
+      if (e.pointerType === 'touch') return; // touch handled above
+      pointerActiveRef.current = true;
+      begin(e.clientX, e.clientY);
+    },
+    onPointerMove: (e) => {
+      if (!pointerActiveRef.current) return;
+      move(e.clientX, e.clientY);
+    },
+    onPointerUp: () => {
+      if (!pointerActiveRef.current) return;
+      pointerActiveRef.current = false;
+      end();
+    },
+    onPointerCancel: () => {
+      if (!pointerActiveRef.current) return;
+      pointerActiveRef.current = false;
+      end();
+    },
+  };
+}
+
+export { useSwipePager };
