@@ -548,10 +548,18 @@ function renderLineText(
     // page-specific COLR/CPAL color font (QPCv4Page<N>). The font
     // paints tajweed colors directly via its color tables — no CSS
     // overlay needed. Bit-for-bit Madinah V4 1441H parity.
+    //
+    // Index alignment: `qalaam_v1_qul_layouts_words.word_index` is
+    // 0-based; `qalaam_v1_qul_qpc_v4_text.word_index` is 1-based
+    // (it inherits QUL's 1-based `word` column). Without the +1
+    // shift, layout-word 0 (بِسْمِ) looks up PUA-word 0 (none), falls
+    // through to the Unicode segs path, AND layout-word 1 (ٱللَّهِ)
+    // matches PUA-word 1 (which IS بِسْمِ) — visually duplicating
+    // the first word of every verse on tajweed mushaf pages.
     const isTajweed = isTajweedLayout(layoutSlug);
     const v4Verse = isTajweed ? qpcV4ByVerse.get(w.verseKey) : undefined;
     const v4Word = v4Verse?.fontFamily
-      ? v4Verse.words.find((vw) => vw.wordIndex === w.wordIndex)
+      ? v4Verse.words.find((vw) => vw.wordIndex === w.wordIndex + 1)
       : undefined;
 
     // PRIORITY 2 (fallback): CSS-overlay tajweed coloring on the
