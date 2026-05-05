@@ -17,7 +17,16 @@
 @import 'tailwindcss';
 @import './tokens.css';
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Amiri:wght@400;700&family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&family=Scheherazade+New:wght@400;500;700&display=swap');
+/*
+ * Google Fonts (Fraunces / IBM Plex Sans / Amiri / Amiri Quran / Noto
+ * Naskh Arabic / Noto Nastaliq Urdu / Scheherazade New) are loaded via
+ * <link rel="stylesheet"> in apps/web/src/app/layout.tsx <head>, NOT
+ * via @import here. Reason: Tailwind v4's PostCSS pipeline emits its
+ * utility CSS at the top of the bundle, pushing any @import past the
+ * first rule, where the CSS spec mandates browsers IGNORE it. That
+ * caused Nastaliq + Scheherazade to never load → IndoPak letters
+ * disjointed and tofu boxes everywhere.
+ */
 
 /* UthmanicHafs — official KFGQPC Hafs Uthmanic Script Unicode font from
  * Quran Foundation. Self-hosted at /fonts/quran/UthmanicHafs1Ver18.woff2

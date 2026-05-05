@@ -106,8 +106,8 @@ export default async function MushafPage({ params }: PageProps): Promise<ReactNo
         <SiteNav />
         <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6">
           <EmptyState
-            title="Mushaf page not found"
-            hint={`No data for layout '${layout}' page ${pageNumber.toString()}.`}
+            title="This page isn't available"
+            hint="Try a different page or layout from the menu above."
           />
         </div>
       </>
