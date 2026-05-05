@@ -104,6 +104,15 @@ const STORE_VIEW = 'qalaam-read-view';
 const STORE_LAYOUT = 'qalaam-read-layout';
 const STORE_SINGLE_STYLE = 'qalaam-single-style';
 const STORE_TLIT = 'qalaam-transliteration';
+const STORE_CHILDREN = 'qalaam-children-mode';
+// Children's mode preferred reciter list — muallim style first, then
+// well-known clear / slow reciters good for early learners.
+const CHILDREN_RECITER_PREFERENCE: readonly string[] = [
+  'ayman-sowaid',
+  'husary',
+  'menshawi',
+  'sudais',
+];
 
 // Three top-level reading modes:
 //   continuous - vertical scroll of ayah cards
@@ -144,6 +153,22 @@ export function ReadSurfaceClient({
   const [singleDirection, setSingleDirection] = useState<'next' | 'prev' | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [highlight, setHighlight] = useState<{ verseKey: string; wordIndex: number } | null>(null);
+  // Children's mode — bumps Arabic + body type sizes, switches to a
+  // child-friendly reciter (muallim / Husary), and hides advanced
+  // study controls (mutashabihat watch, morphology pane). Persists in
+  // localStorage; toggled from a small "kids" pill in the page header.
+  const [childrenMode, setChildrenMode] = useState(false);
+
+  // Reflect Children's mode as a body data-attribute so global CSS can
+  // up-scale type, soften shadows, and hide advanced affordances.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (childrenMode) document.body.dataset.children = '1';
+    else delete document.body.dataset.children;
+    return () => {
+      delete document.body.dataset.children;
+    };
+  }, [childrenMode]);
 
   // When the continuous player advances verse, also advance the
   // single-ayah view's index so the highlight is visible in that
@@ -221,6 +246,12 @@ export function ReadSurfaceClient({
       setViewMode(v === 'single' ? 'single' : 'continuous');
       setSingleStyle(ss === 'mushaf' ? 'mushaf' : 'card');
       setTransliteration(validTlit);
+      // Children's mode — read URL flag first, then fall back to
+      // stored preference. Defaults to off.
+      const ch =
+        url.searchParams.get('children') === '1' ||
+        window.localStorage.getItem(STORE_CHILDREN) === '1';
+      setChildrenMode(ch);
     } catch {
       /* ignore */
     }
@@ -488,6 +519,30 @@ export function ReadSurfaceClient({
               title="Mushaf — page-faithful line breaks"
             >
               Mushaf
+            </Chip>
+            <Chip
+              active={childrenMode}
+              onClick={() => {
+                const next = !childrenMode;
+                setChildrenMode(next);
+                try {
+                  window.localStorage.setItem(STORE_CHILDREN, next ? '1' : '0');
+                } catch {
+                  /* ignore */
+                }
+                // When turning Kids ON, swap to a child-friendly reciter
+                // if the current one isn't already in the preferred
+                // list. (Don't override if user explicitly picked one.)
+                if (next && !CHILDREN_RECITER_PREFERENCE.includes(reciter)) {
+                  const pick = CHILDREN_RECITER_PREFERENCE.find((s) =>
+                    reciters.some((r) => r.slug === s),
+                  );
+                  if (pick) setReciter(pick);
+                }
+              }}
+              title="Kids' mode — slow clear reciter, larger Arabic, simpler chrome"
+            >
+              Kids
             </Chip>
           </ChipRow>
 

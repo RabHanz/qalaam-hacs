@@ -196,6 +196,7 @@ async function StudyBody({
         <section
           className="paper-card-raised mt-6 p-8 md:p-10"
           aria-label={`Morphology of ${verseKey}`}
+          data-children-hide="1"
         >
           <div className="mb-6 flex items-baseline justify-between">
             <h2 className="font-display text-2xl font-light tracking-tight">Grammar</h2>
@@ -258,7 +259,9 @@ async function StudyBody({
             />
           </Suspense>
           <Suspense fallback={null}>
-            <MutashabihatWatchlistPane verseKey={verseKey} limit={5} />
+            <div data-children-hide="1">
+              <MutashabihatWatchlistPane verseKey={verseKey} limit={5} />
+            </div>
           </Suspense>
           <div className="paper-card p-5">
             <p className="smallcaps text-leaf text-xs">Quick navigation</p>

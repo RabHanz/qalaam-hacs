@@ -1,5 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+ 
+
 /**
  * /hifdh — family-private daily Hifdh dashboard.
+ *
+ * (Defensive ?? + delete on backend response fields: in-memory types
+ * mark fields non-null but the wire payload may omit them on older
+ * server versions; the runtime guards are intentional.)
  *
  * Design intent (per CLAUDE.md adab non-negotiables + competitive UX
  * research): explicit family-private ribbon at the top, streak as a
@@ -20,6 +27,7 @@ import { Suspense } from 'react';
 
 import { EmptyState } from '../../components/EmptyState.js';
 import { HairlineDivider } from '../../components/Glyph.js';
+import { HeardThemRecite } from '../../components/HeardThemRecite.js';
 import { LoadingState } from '../../components/LoadingState.js';
 import { MutashabihatWatchlistPane } from '../../components/MutashabihatWatchlistPane.js';
 import { SiteNav } from '../../components/SiteNav.js';
@@ -99,17 +107,19 @@ async function HifdhContent({
   const sabqiHead = state.current_sabqi?.split(/[\s\-–—]+/)[0]?.trim() ?? '';
 
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 reveal">
+    <div className="reveal grid grid-cols-1 gap-8 lg:grid-cols-12">
       {/* MAIN COLUMN */}
-      <div className="lg:col-span-8 space-y-6">
+      <div className="space-y-6 lg:col-span-8">
         {/* Hero — streak + portions in a calm typographic row */}
         <section className="paper-card-raised relative overflow-hidden p-8 md:p-10">
           <div
-            className="absolute -left-16 -bottom-16 h-44 w-44 rounded-full opacity-25"
-            style={{ background: 'radial-gradient(circle, var(--color-leaf-300) 0%, transparent 70%)' }}
+            className="absolute -bottom-16 -left-16 h-44 w-44 rounded-full opacity-25"
+            style={{
+              background: 'radial-gradient(circle, var(--color-leaf-300) 0%, transparent 70%)',
+            }}
             aria-hidden
           />
-          <div className="relative grid gap-8 sm:grid-cols-3 sm:gap-12 sm:items-baseline">
+          <div className="relative grid gap-8 sm:grid-cols-3 sm:items-baseline sm:gap-12">
             <Stat
               label="Continuous days"
               value={(state.streak_days ?? 0).toString()}
@@ -122,7 +132,9 @@ async function HifdhContent({
             <Stat
               label="Portions due today"
               value={(state.portions_due_today ?? state.today_session_count ?? 0).toString()}
-              caption={state.current_sabqi ? `Current sabaq: ${state.current_sabqi}` : 'No sabaq set yet.'}
+              caption={
+                state.current_sabqi ? `Current sabaq: ${state.current_sabqi}` : 'No sabaq set yet.'
+              }
             />
             <Stat
               label="Grace days this month"
@@ -134,10 +146,10 @@ async function HifdhContent({
 
         {/* Today: portion + weakest pages + watchlist with tappable links */}
         <section className="paper-card-raised p-6 sm:p-8 md:p-10">
-          <h2 className="font-display text-xl sm:text-2xl font-light tracking-tight mb-3">Today</h2>
+          <h2 className="font-display mb-3 text-xl font-light tracking-tight sm:text-2xl">Today</h2>
 
           {state.manzil_cycle_position ? (
-            <p className="text-sm sm:text-base text-ink leading-relaxed">
+            <p className="text-ink text-sm leading-relaxed sm:text-base">
               You're in <strong className="text-ink-strong">{state.manzil_cycle_position}</strong>.
             </p>
           ) : null}
@@ -145,10 +157,10 @@ async function HifdhContent({
           {/* Current portion → tappable link to /read */}
           {state.current_sabqi ? (
             <div className="mt-4">
-              <p className="smallcaps text-leaf text-[11px] tracking-widest mb-2">Current sabaq</p>
+              <p className="smallcaps text-leaf mb-2 text-[11px] tracking-widest">Current sabaq</p>
               <a
                 href={`/read/${(state.current_sabqi.split(':')[0] ?? '2').replace(/[^0-9]/g, '')}#${state.current_sabqi.split(' ')[0] ?? state.current_sabqi}`}
-                className="inline-flex items-center gap-2 rounded-full border border-hairline px-4 py-2 text-sm tabular-nums text-ink hover:border-leaf hover:text-leaf transition-colors"
+                className="border-hairline text-ink hover:border-leaf hover:text-leaf inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm tabular-nums transition-colors"
               >
                 <span className="font-mono">{state.current_sabqi}</span>
                 <span aria-hidden>→</span>
@@ -158,11 +170,13 @@ async function HifdhContent({
 
           {(state.weakest_pages?.length ?? 0) > 0 ? (
             <div className="mt-5">
-              <p className="smallcaps text-leaf text-[11px] tracking-widest mb-2">Pages needing review</p>
+              <p className="smallcaps text-leaf mb-2 text-[11px] tracking-widest">
+                Pages needing review
+              </p>
               <ul className="flex flex-wrap gap-2">
                 {(state.weakest_pages ?? []).map((p) => (
                   <li key={p}>
-                    <span className="inline-flex items-center gap-2 rounded-full border border-hairline px-3 py-1.5 text-xs font-mono tabular-nums text-ink">
+                    <span className="border-hairline text-ink inline-flex items-center gap-2 rounded-full border px-3 py-1.5 font-mono text-xs tabular-nums">
                       {p}
                     </span>
                   </li>
@@ -174,7 +188,9 @@ async function HifdhContent({
           {(state.mutashabihat_watchlist?.length ?? 0) > 0 ? (
             <>
               <HairlineDivider />
-              <p className="smallcaps text-leaf text-[11px] tracking-widest mb-2">Mutashabihat — watch for confusion</p>
+              <p className="smallcaps text-leaf mb-2 text-[11px] tracking-widest">
+                Mutashabihat — watch for confusion
+              </p>
               <ul className="flex flex-wrap gap-2">
                 {(state.mutashabihat_watchlist ?? []).map((vk) => {
                   const [s, a] = vk.split(':');
@@ -182,7 +198,7 @@ async function HifdhContent({
                     <li key={vk}>
                       <a
                         href={`/study/${s ?? '2'}/${a ?? '255'}`}
-                        className="inline-flex items-center gap-2 rounded-full border border-hairline px-3 py-1.5 text-xs font-mono tabular-nums text-ink hover:border-leaf hover:text-leaf transition-colors"
+                        className="border-hairline text-ink hover:border-leaf hover:text-leaf inline-flex items-center gap-2 rounded-full border px-3 py-1.5 font-mono text-xs tabular-nums transition-colors"
                       >
                         {vk}
                         <span aria-hidden>→</span>
@@ -196,8 +212,10 @@ async function HifdhContent({
 
           {/* I just heard them recite — one-tap rating row */}
           <HairlineDivider />
-          <p className="smallcaps text-leaf text-[11px] tracking-widest mb-3">I just heard them recite</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <p className="smallcaps text-leaf mb-3 text-[11px] tracking-widest">
+            I just heard them recite
+          </p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {[
               { label: 'Smooth', tone: 'leaf' },
               { label: 'Stumbled', tone: 'amber' },
@@ -209,7 +227,7 @@ async function HifdhContent({
                 type="button"
                 disabled
                 title="Wires to /v1/hifdh/rate in v0.5"
-                className={`paper-card px-3 py-2.5 text-[11px] sm:text-xs smallcaps tracking-wider text-ink-muted opacity-60 cursor-not-allowed text-center ${
+                className={`paper-card smallcaps text-ink-muted cursor-not-allowed px-3 py-2.5 text-center text-[11px] tracking-wider opacity-60 sm:text-xs ${
                   b.tone === 'leaf'
                     ? 'border-leaf/30'
                     : b.tone === 'amber'
@@ -221,8 +239,9 @@ async function HifdhContent({
               </button>
             ))}
           </div>
-          <p className="text-[11px] text-ink-muted italic mt-2">
-            Wires to <span className="font-mono">/v1/hifdh/rate</span> when family auth lands (v0.5).
+          <p className="text-ink-muted mt-2 text-[11px] italic">
+            Wires to <span className="font-mono">/v1/hifdh/rate</span> when family auth lands
+            (v0.5).
           </p>
         </section>
 
@@ -237,6 +256,10 @@ async function HifdhContent({
           </section>
         ) : null}
 
+        {/* One-tap "I heard them recite" — parent-facing, family-private,
+            client-only audit log (no server, no auth). */}
+        <HeardThemRecite currentPortion={state.current_sabqi ?? state.current_sabaq ?? null} />
+
         {/* Family leaderboard (family-private, opt-in framing built into component) */}
         {hasLeaderboard ? (
           <section className="paper-card-raised p-8 md:p-10">
@@ -250,19 +273,18 @@ async function HifdhContent({
       </div>
 
       {/* SIDEBAR — mutashabihat watchlist + family-private reminder */}
-      <aside className="lg:col-span-4 space-y-4">
-        <div className="lg:sticky lg:top-24 space-y-4">
+      <aside className="space-y-4 lg:col-span-4">
+        <div className="space-y-4 lg:sticky lg:top-24">
           {sabqiHead ? <MutashabihatWatchlistPane verseKey={sabqiHead} limit={4} /> : null}
 
           <div className="paper-card p-5">
             <p className="smallcaps text-leaf text-xs">Adab</p>
-            <p className="font-display mt-3 text-base italic leading-relaxed text-ink">
+            <p className="font-display text-ink mt-3 text-base italic leading-relaxed">
               No XP, no leaderboards, no public sharing.
             </p>
-            <p className="mt-3 text-sm text-ink-muted leading-relaxed">
-              Hifdh is between you and Allah. We surface daily summaries
-              only — never real-time alerts. Streaks have grace days.
-              Family stats stay inside your household.
+            <p className="text-ink-muted mt-3 text-sm leading-relaxed">
+              Hifdh is between you and Allah. We surface daily summaries only — never real-time
+              alerts. Streaks have grace days. Family stats stay inside your household.
             </p>
           </div>
         </div>
@@ -282,12 +304,12 @@ function Stat({ label, value, caption }: StatProps): ReactNode {
     <div>
       <p className="smallcaps text-leaf text-xs">{label}</p>
       <p
-        className="font-display mt-3 text-6xl md:text-7xl font-light tracking-tight text-ink-strong tabular-nums"
+        className="font-display text-ink-strong mt-3 text-6xl font-light tabular-nums tracking-tight md:text-7xl"
         style={{ lineHeight: 1 }}
       >
         {value}
       </p>
-      <p className="mt-3 text-sm text-ink-muted leading-relaxed">{caption}</p>
+      <p className="text-ink-muted mt-3 text-sm leading-relaxed">{caption}</p>
     </div>
   );
 }
@@ -301,27 +323,25 @@ export default function HifdhPage(): ReactNode {
       <SiteNav />
 
       {/* Family-private ribbon — explicit, always visible. Mobile collapses to short copy. */}
-      <div className="bg-paper-100 border-b border-hairline">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-2 text-[11px] sm:text-xs">
+      <div className="bg-paper-100 border-hairline border-b">
+        <div className="mx-auto max-w-7xl px-4 py-2 text-[11px] sm:px-6 sm:text-xs">
           <span className="smallcaps text-leaf tracking-widest">Family-private</span>
-          <span className="text-ink-muted ml-2 sm:ml-3 hidden sm:inline">
+          <span className="text-ink-muted ml-2 hidden sm:ml-3 sm:inline">
             Daily summary only. Never shared, never gamified, never punishing.
           </span>
-          <span className="text-ink-muted ml-2 sm:hidden">
-            Daily summary only. Never shared.
-          </span>
+          <span className="text-ink-muted ml-2 sm:hidden">Daily summary only. Never shared.</span>
         </div>
       </div>
 
-      <header className="border-b border-hairline">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-10">
+      <header className="border-hairline border-b">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
           <p className="smallcaps text-leaf text-[11px] tracking-widest">Hifdh · حِفْظ</p>
-          <h1 className="font-display mt-2 sm:mt-3 text-3xl sm:text-4xl md:text-5xl font-light tracking-tight">
+          <h1 className="font-display mt-2 text-3xl font-light tracking-tight sm:mt-3 sm:text-4xl md:text-5xl">
             Today, with intention.
           </h1>
-          <p className="mt-3 max-w-prose text-sm sm:text-base text-ink-muted leading-relaxed">
-            Your daily summary, drawn from FSRS-6 spacing + mutashabihat-aware
-            review. No real-time alerts. Streaks include grace days.
+          <p className="text-ink-muted mt-3 max-w-prose text-sm leading-relaxed sm:text-base">
+            Your daily summary, drawn from FSRS-6 spacing + mutashabihat-aware review. No real-time
+            alerts. Streaks include grace days.
           </p>
         </div>
       </header>
