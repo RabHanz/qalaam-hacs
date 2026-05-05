@@ -1,7 +1,5 @@
 'use client';
 
- 
-
 /**
  * MutashabihatDrillClient — interactive side-by-side drill UI.
  *
@@ -39,6 +37,8 @@
  */
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+
+import { renderWithSilentMarks } from '../lib/arabic-render.js';
 
 import type { ReactNode } from 'react';
 
@@ -599,7 +599,7 @@ function TokenPill({
         color: isEmphasised ? 'var(--color-ink-strong, #0e0e0e)' : 'var(--color-ink, #1a1a1a)',
       }}
     >
-      {token}
+      {renderWithSilentMarks(token, `tk-${mark}`)}
     </span>
   );
 }

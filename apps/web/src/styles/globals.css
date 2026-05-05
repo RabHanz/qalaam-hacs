@@ -740,13 +740,29 @@
    * Use a Naskh font that draws the codepoint as a tiny circle, override
    * UthmanicHafs which substitutes a full-size rosette. */
   .silent-mark {
-    font-family: 'Noto Naskh Arabic', 'Amiri', serif;
-    font-size: 0.32em;
-    vertical-align: 0.95em;
+    /* Force a Naskh-style font that draws U+06D6–U+06DC + U+06DF as
+     * tiny circles instead of the full-size rosettes UthmanicHafs
+     * substitutes. Display: inline-block lets the negative margins
+     * pull adjacent letters back together so the mark doesn't
+     * carve a wide gap into the line. */
+    font-family: 'Noto Naskh Arabic', 'Amiri Quran', 'Amiri', serif;
+    font-size: 0.45em;
+    /* Lifting via translate keeps the mark superscript-y without
+     * blowing the line height. baseline-shift via vertical-align is
+     * unreliable across fonts so we use transform. */
+    display: inline-block;
+    transform: translateY(-0.85em);
     color: var(--color-ink-muted, #6b6b6b);
+    opacity: 0.7;
     font-weight: 400;
     line-height: 0;
-    margin: 0 0.05em;
+    /* Tight inline gap so the mark hugs the letter it modifies. */
+    margin: 0 -0.18em;
+    /* Don't let the mark steal width that the surrounding glyphs
+     * need for joining. */
+    width: 0.6em;
+    text-align: center;
+    overflow: visible;
   }
   /* Inside the v4 tajweed layout the rule may also tag the silent
    * mark — keep it neutral regardless of rule color. */

@@ -19,6 +19,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { AZKAR, CATEGORIES } from '../data/azkar.js';
+import { renderWithSilentMarks } from '../lib/arabic-render.js';
 
 import type { Dhikr } from '../data/azkar.js';
 import type { ReactNode } from 'react';
@@ -190,7 +191,7 @@ function DhikrCard({
           lineHeight: 1.95,
         }}
       >
-        {dhikr.arabic}
+        {renderWithSilentMarks(dhikr.arabic, `dh-${dhikr.id}`)}
       </p>
 
       {/* Transliteration */}

@@ -598,9 +598,25 @@ export function AyahCard({
           // active one can pick up recite-highlight). The TRAILING word
           // is the verse-end digit (e.g. "١") — render it as a proper
           // rosette anchor in UthmanicHafs (matches the mushaf rendering).
+          //
+          // Silent-mark handling — UthmanicHafs draws the small-high
+          // pause / silent-letter marks (U+06D6–U+06D8 sajda/safha
+          // marks, U+06DA, U+06DB, U+06DC, U+06DF Arabic small high
+          // rounded zero, U+06E0–U+06E5, U+06E8) as full-size mid-line
+          // glyphs that look like spurious rosettes inline. The
+          // frontier-app convention (Quran.com, Tarteel, Quranly) is
+          // to render these as discreet superscript marks. We mirror
+          // MushafLines: split each word on those codepoints, wrap
+          // matches in <span class="silent-mark"> so globals.css
+          // shrinks them to ~0.3em and lifts them above the baseline.
           const idx = selfHighlightIdx ?? highlightWordIndex ?? null;
           const words = arabic.split(/\s+/);
           const ARABIC_DIGITS_RE = /^[٠-٩]+$/;
+          // U+06D6–U+06DC + U+06DF (silent / pause / sajda marks).
+          // We deliberately don't include U+06DD (Arabic end-of-ayah
+          // marker) — that one is rendered as the rosette by design
+          // when it follows the ayah digit.
+          const SILENT_MARK_RE = /([ۖۗۘۙۚۛۜ۟۠])/;
           return words.map((word, i, arr) => {
             const isLast = i === arr.length - 1;
             const isDigit = ARABIC_DIGITS_RE.test(word);
@@ -619,9 +635,20 @@ export function AyahCard({
                 </span>
               );
             }
+            // Split each word on silent-mark codepoints + wrap them
+            // so the .silent-mark CSS rule lifts + shrinks them.
+            const parts = word.split(SILENT_MARK_RE);
             return (
               <span key={i} className={className}>
-                {word}
+                {parts.map((p, pi) =>
+                  SILENT_MARK_RE.test(p) ? (
+                    <span key={`${i.toString()}-sm-${pi.toString()}`} className="silent-mark">
+                      {p}
+                    </span>
+                  ) : (
+                    <span key={`${i.toString()}-t-${pi.toString()}`}>{p}</span>
+                  ),
+                )}
                 {!isLast ? ' ' : ''}
               </span>
             );
