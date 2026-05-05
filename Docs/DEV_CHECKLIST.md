@@ -968,12 +968,40 @@ QUL exposes ~14 distinct data resources (152 recitations, 27 mushaf layouts, 209
 
 ---
 
-
 ### What this session shipped (snapshot 2026-05-06)
 
-**Parent task #122 — Comprehensive QUL ingest, substrate-complete.**
-Adds 11 sub-tasks (#201–#210, see STRATEGY_AND_ROADMAP §28) plus the
-`scripts/data/scrape-qul-full.py` exhaustive scraper.
+**Parent task #122 — Comprehensive QUL ingest, COMPLETE (incl. V4 Tajweed
+canonical render shipped).** Adds 11 sub-tasks (#201–#210, see
+STRATEGY_AND_ROADMAP §28) plus the `scripts/data/scrape-qul-full.py`
+exhaustive scraper.
+
+**V4 Tajweed canonical render — SHIPPED 2026-05-06** (sub-tasks
+#203/#204/#205/#206). `/read` Tajweed mode now renders KFGQPC V4 1441H
+bit-for-bit identical to the printed Madinah edition Quran.com uses —
+COLR/CPAL color tables in 604 per-page page-fonts paint tajweed colors
+directly (red qalqalah, green ghunnah, gold madd), no CSS overlay. Live
+verified: 3,681 PUA spans rendering with QPCv4Page<N> across /read.
+Files: `scripts/data/{download-qpc-v4-fonts.sh,generate-qpc-v4-fontface-css.sh,ingest-qpc-v4-text.py}`,
+`apps/web/src/styles/qpc-v4-fonts.css` (auto-generated, 604 @font-face),
+`apps/backend/src/routes/v1/qpc-text.ts` (`/v1/qpc-text/:vk?layout=v4`),
+`apps/web/src/components/AyahCard.tsx` (priority V4-PUA render path),
+`data/qul-source/qpc-v4-fonts.sha256` (SHA256 pins, ADR-0002).
+Screenshot at `screenshots-verify/V4-CANONICAL-TAJWEED-3-4.png`.
+
+**Mushaf-layout breadth — V1 + V4 + Madani-15 live; 5 follow-up
+auth-gated layouts deferred** (sub-task #207). The three core 1421H/
+1441H layouts (kfgqpc_v1, kfgqpc_v4, madani_15) are ingested and
+switchable in `LayoutSwitcher`. The five additional layouts QUL
+catalogues at IDs #236 (IndoPak 13-line Qudratullah), #313 (IndoPak
+13-line Taj), #569 (Ligature Basd SVG), #570 (Mushaf Qatar), #571
+(IndoPak 9-line Gaba) require an authenticated re-scrape — their
+inventory entries land in `/tmp/qul-inventory.json` with empty
+`download_urls`, so a follow-up needs to fetch each detail page with
+`QUL_EMAIL`/`QUL_PASSWORD` cookies set, harvest the Active-Storage
+URLs, and ingest. QPC V2 (1421H) shares pagination with V1 verbatim
+(verified — page 3 word_id range 78-215 in both), so it would only
+add a font-face skin, not a new layout. Digital Khatt is dynamic
+algorithmic, no fixed page-layout exists upstream.
 
 Highlights:
 
@@ -995,7 +1023,7 @@ Highlights:
    Only 1 resource failed (`ayah-topics/45` HTTP 500, transient).
 
 3. **Inventory documentation refreshed** — `Docs/research/qul-
-   inventory.md` got §5 (live 2026-05-06 snapshot with per-category
+inventory.md` got §5 (live 2026-05-06 snapshot with per-category
    ingest gap counts) + §6 (per-sub-task action plan with priority
    ranking and execution path).
 
@@ -1004,7 +1032,7 @@ Highlights:
 
 5. **Side-fix from earlier in this session: AyahCard Tajweed branch**
    regression — silent-mark wrapping had bypassed the `recite-
-   highlight` className on tajweed-active words. Restored via
+highlight` className on tajweed-active words. Restored via
    `activeWordIndex` counter that increments only on word tokens.
 
 6. **`.gitignore` extended** to keep raw QUL data files (`*.zip`,
@@ -1015,14 +1043,14 @@ Highlights:
 What this enables (productionized capability ledger — see
 STRATEGY_AND_ROADMAP §28 for full detail):
 
-| Track | Capability unlocked | Pending sub-task |
-|---|---|---|
-| Reading | Per-page KFGQPC V4 Tajweed (canonical Quran.com parity) | #203 + #204 + #205 + #206 |
-| Reading | 9 additional mushaf-layouts (Indopak 9/13/15/16, KFGQPC v1/v2, DK, Qatar, Nastaleeq) | #207 |
-| Multilingual | 198 translations + 108 tafsirs + 6 surah-info languages reachable | #208 license auto-tagger + bulk ingest |
-| Recitation | 133 reciters fully addressable (currently 51) | extend `ingest-qul-recitations.ts` |
-| WBW | 22k → 83k word-level translations | #158 deferred-completion via QPC V4 wbw |
-| Attribution | `qalaam_v1_data_sources` + `/credits` page surfacing every QUL credit | #208 + #209 |
+| Track        | Capability unlocked                                                   | Pending sub-task                                                 |
+| ------------ | --------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Reading      | Per-page KFGQPC V4 Tajweed (canonical Quran.com parity)               | **DONE** (#203 + #204 + #205 + #206)                             |
+| Reading      | V1 + V4-Tajweed + Madani-15 live; 5 follow-up auth-gated              | **DONE** (#207); follow-up: auth-scrape #236/#313/#569/#570/#571 |
+| Multilingual | 198 translations + 108 tafsirs + 6 surah-info languages reachable     | #208 license auto-tagger + bulk ingest                           |
+| Recitation   | 133 reciters fully addressable (currently 51)                         | extend `ingest-qul-recitations.ts`                               |
+| WBW          | 22k → 83k word-level translations                                     | #158 deferred-completion via QPC V4 wbw                          |
+| Attribution  | `qalaam_v1_data_sources` + `/credits` page surfacing every QUL credit | #208 + #209                                                      |
 
 Pending IDs remaining (priority order for the next session):
 
@@ -1041,6 +1069,5 @@ The next-session highest-leverage path: ship **#208 license auto-
 tagger + bulk ingest pipeline run** so all 2,580 staged files land
 in `qalaam_v1_*` tables, then **#203–#206 V4 Tajweed pipeline** as
 the marquee user-visible improvement.
-
 
 _Maintained alongside `STRATEGY_AND_ROADMAP.md` and `CLAUDE.md`. Updated on every PR that completes or adds a checklist item._

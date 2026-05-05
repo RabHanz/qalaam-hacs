@@ -26,6 +26,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
 import { SILENT_MARK_REGEX } from '../lib/arabic-render.js';
+import { fetchQpcV4, isTajweedLayout, type QpcV4Verse } from '../lib/qpc-v4.js';
 import { applyTajweed, fetchTajweed, type TajweedAnnotation } from '../lib/tajweed.js';
 
 import type { ReactNode } from 'react';
@@ -119,6 +120,10 @@ export function MushafLines({
   const [tajweedByVerse, setTajweedByVerse] = useState<Map<string, readonly TajweedAnnotation[]>>(
     new Map(),
   );
+  // Parallel V4 PUA encoding: when present, the renderer prefers the
+  // canonical per-page COLR font over the CSS-overlay path. CSS-overlay
+  // remains the fallback for any verse the V4 fetch couldn't resolve.
+  const [qpcV4ByVerse, setQpcV4ByVerse] = useState<Map<string, QpcV4Verse>>(new Map());
 
   // Reset measurement state whenever the lines or layout changes — both
   // affect natural widths and therefore the optimal font-size.
@@ -126,11 +131,13 @@ export function MushafLines({
     setDidFit(false);
   }, [lines, layoutSlug]);
 
-  // For the tajweed layout, fetch annotations for every distinct verse
-  // currently rendered. The cache in lib/tajweed.ts persists across
-  // re-renders so we don't re-fetch on every paint.
+  // Tajweed layout path — fetch BOTH the CSS-overlay annotations
+  // (legacy fallback) and the V4 PUA encoding (canonical, COLR font)
+  // for every distinct verse on this page. Module caches in
+  // lib/tajweed + lib/qpc-v4 dedupe across mounts so flipping
+  // /mushaf pages back and forth never refetches the same verse.
   useEffect(() => {
-    if (layoutSlug !== 'kfgqpc_v4' && layoutSlug !== 'tajweed') return;
+    if (!isTajweedLayout(layoutSlug)) return;
     const apiBase = resolveApiBase();
     const verseKeys = new Set<string>();
     for (const line of lines) {
@@ -139,15 +146,20 @@ export function MushafLines({
     }
     let cancelled = false;
     void (async () => {
-      const next = new Map<string, readonly TajweedAnnotation[]>();
+      const tajNext = new Map<string, readonly TajweedAnnotation[]>();
+      const v4Next = new Map<string, QpcV4Verse>();
       await Promise.all(
         Array.from(verseKeys).map(async (vk) => {
-          const ann = await fetchTajweed(apiBase, vk);
-          next.set(vk, ann);
+          const [ann, v4] = await Promise.all([fetchTajweed(apiBase, vk), fetchQpcV4(apiBase, vk)]);
+          tajNext.set(vk, ann);
+          v4Next.set(vk, v4);
         }),
       );
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- mutated by the cleanup closure on unmount.
-      if (!cancelled) setTajweedByVerse(next);
+      if (!cancelled) {
+        setTajweedByVerse(tajNext);
+        setQpcV4ByVerse(v4Next);
+      }
     })();
     return () => {
       cancelled = true;
@@ -408,6 +420,7 @@ export function MushafLines({
                   layoutSlug,
                   tajweedByVerse,
                   verseWordOffsets,
+                  qpcV4ByVerse,
                   highlight ?? null,
                 )}
               </span>
@@ -446,6 +459,7 @@ function renderLineText(
   layoutSlug: string,
   tajweedByVerse: Map<string, readonly TajweedAnnotation[]>,
   verseWordOffsets: Map<string, Map<number, number>>,
+  qpcV4ByVerse: Map<string, QpcV4Verse>,
   highlight: { verseKey: string; wordIndex: number } | null,
 ): ReactNode {
   const ARABIC_DIGITS_RE = /^[٠-٩]+$/;
@@ -507,9 +521,21 @@ function renderLineText(
     const an = w.verseKey.split(':')[1] ?? '1';
     const wordChildren: ReactNode[] = [];
 
-    // Apply tajweed coloring within this word for v4 layout
+    // PRIORITY 1 (tajweed layout): if a V4 PUA encoding loaded for this
+    // verse, render the word with its 1-glyph PUA codepoint and the
+    // page-specific COLR/CPAL color font (QPCv4Page<N>). The font
+    // paints tajweed colors directly via its color tables — no CSS
+    // overlay needed. Bit-for-bit Madinah V4 1441H parity.
+    const isTajweed = isTajweedLayout(layoutSlug);
+    const v4Verse = isTajweed ? qpcV4ByVerse.get(w.verseKey) : undefined;
+    const v4Word = v4Verse?.fontFamily
+      ? v4Verse.words.find((vw) => vw.wordIndex === w.wordIndex)
+      : undefined;
+
+    // PRIORITY 2 (fallback): CSS-overlay tajweed coloring on the
+    // Unicode text — used when V4 PUA didn't resolve for this verse.
     let segs: { text: string; rule?: TajweedAnnotation['rule'] }[] = [{ text: w.text }];
-    if (layoutSlug === 'kfgqpc_v4' || layoutSlug === 'tajweed') {
+    if (isTajweed && !v4Word) {
       const verseAnn = tajweedByVerse.get(w.verseKey) ?? [];
       const wordStart = verseWordOffsets.get(w.verseKey)?.get(w.wordIndex) ?? 0;
       const wordEnd = wordStart + w.text.length;
@@ -527,11 +553,25 @@ function renderLineText(
       }
     }
 
+    // V4 PUA path — single glyph in the page-specific COLR font.
+    if (v4Word && v4Verse?.fontFamily) {
+      wordChildren.push(
+        <span
+          key={`${w.wordId.toString()}-v4`}
+          style={{ fontFamily: `"${v4Verse.fontFamily}"`, color: 'inherit' }}
+        >
+          {v4Word.text}
+        </span>,
+      );
+    }
+
     // Within each segment, also split out small-high / small-low
     // silent / pause / sajda / madda marks so they render as discreet
     // superscripts. Comprehensive coverage to match the shared helper
     // in lib/arabic-render.tsx — keeps Uthmani / IndoPak / Nastaliq
     // layouts consistent.
+    // Skipped entirely on the V4 PUA path: the COLR font carries its
+    // own marks at the glyph level, not as combining Unicode.
     const SILENT_MARK_RE = SILENT_MARK_REGEX;
     // U+06E3 small low seen, U+06EA empty-centre low stop, U+06ED
     // small low meem — these are LOW marks. Default .silent-mark
@@ -540,7 +580,9 @@ function renderLineText(
     // the م above and creates the visual overlap the user reported.
     const LOW_MARKS = new Set([0x06e3, 0x06ea, 0x06ed]);
     const ZERO_MARKS = new Set([0x06df, 0x06e0]);
-    for (let si = 0; si < segs.length; si += 1) {
+    // Skip the segment loop entirely if the V4 PUA glyph already
+    // populated wordChildren — re-rendering Unicode would double-paint.
+    for (let si = 0; v4Word === undefined && si < segs.length; si += 1) {
       const s = segs[si];
       if (!s) continue;
       const parts = s.text.split(SILENT_MARK_RE);

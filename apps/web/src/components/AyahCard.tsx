@@ -30,6 +30,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
 import { SILENT_MARK_REGEX } from '../lib/arabic-render.js';
+import { fetchQpcV4, isTajweedLayout, type QpcV4Verse } from '../lib/qpc-v4.js';
 import { sanitizeHtml } from '../lib/sanitize-html.js';
 import { applyTajweed, fetchTajweed, type TajweedAnnotation } from '../lib/tajweed.js';
 
@@ -221,7 +222,7 @@ export function AyahCard({
   // Tajweed annotations — only fetched when the layout slug indicates
   // tajweed coloring (kfgqpc_v4 / tajweed). Other layouts skip the
   // fetch entirely. Used by the CSS-overlay tajweed fallback path.
-  const tajweedActive = layoutSlug === 'kfgqpc_v4' || layoutSlug === 'tajweed';
+  const tajweedActive = isTajweedLayout(layoutSlug);
   const [tajweedAnno, setTajweedAnno] = useState<readonly TajweedAnnotation[] | null>(null);
   useEffect(() => {
     if (!tajweedActive) {
@@ -242,13 +243,8 @@ export function AyahCard({
   // V4 PUA-encoded text + page-specific font. When this loads we render
   // with the canonical KFGQPC V4 Tajweed COLR/CPAL color font (tajweed
   // colors baked into the font, no CSS overlay). Falls back to the
-  // CSS-overlay `tajweedAnno` path if the fetch fails or returns no
-  // page mapping (e.g. hypothetical future re-ingest gaps).
-  interface QpcV4Verse {
-    pageNumber: number | null;
-    fontFamily: string | null;
-    words: readonly { wordIndex: number; text: string }[];
-  }
+  // CSS-overlay `tajweedAnno` path if the fetch returns no page mapping.
+  // The fetch is shared across components via lib/qpc-v4 module cache.
   const [qpcV4, setQpcV4] = useState<QpcV4Verse | null>(null);
   useEffect(() => {
     if (!tajweedActive) {
@@ -257,15 +253,8 @@ export function AyahCard({
     }
     const cancelled = { v: false };
     void (async () => {
-      try {
-        const apiBase = resolveApiBase();
-        const res = await fetch(`${apiBase}/v1/qpc-text/${encodeURIComponent(verseKey)}?layout=v4`);
-        if (!res.ok) return;
-        const body = (await res.json()) as QpcV4Verse;
-        if (!cancelled.v) setQpcV4(body);
-      } catch {
-        /* falls back to CSS-overlay path */
-      }
+      const v = await fetchQpcV4(resolveApiBase(), verseKey);
+      if (!cancelled.v) setQpcV4(v);
     })();
     return () => {
       cancelled.v = true;
