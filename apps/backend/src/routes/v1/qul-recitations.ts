@@ -13,12 +13,19 @@
 import { existsSync } from 'node:fs';
 
 import { QalaamError } from '@qalaam/core';
-
+import Database from 'better-sqlite3';
 
 import { getQul } from '../../lib/data-loader.js';
+import {
+  alignByCharWeight,
+  getCachedAligned,
+  persistAligned,
+  probeMp3DurationMs,
+} from '../../lib/forced-aligner.js';
 import { LICENSE_METADATA } from '../../lib/qul-license-registry.js';
 
 import type { Config } from '../../config.js';
+import type { AlignedSegment } from '../../lib/forced-aligner.js';
 import type { FastifyInstance } from 'fastify';
 
 const ONE_HOUR_S = 60 * 60;
@@ -71,7 +78,20 @@ export async function qulRecitationsRoutes(
         );
       }
       try {
-        const segments = reader().segmentsForAyah(req.params.reciterId, req.params.verseKey);
+        let segments = reader().segmentsForAyah(req.params.reciterId, req.params.verseKey);
+        // Fallback chain for reciters without QUL segment timing
+        // (the 37 EveryAyah-sourced ones): check our generated cache,
+        // and if empty, run the forced-aligner on demand. The first
+        // user pays ~300ms latency for the audio probe + DB write,
+        // then every subsequent user gets cached segments.
+        if (segments.length === 0) {
+          const aligned = await getOrAlignSegments(
+            opts.config.QUL_SQLITE_PATH,
+            req.params.reciterId,
+            req.params.verseKey,
+          );
+          if (aligned.length > 0) segments = aligned;
+        }
         const meta = LICENSE_METADATA.recitersByReciterId.get(req.params.reciterId);
         void reply.header('cache-control', `public, max-age=${ONE_DAY_S.toString()}`);
         return {
@@ -120,4 +140,88 @@ export async function qulRecitationsRoutes(
       }
     },
   );
+}
+
+// In-flight aligner promises so concurrent requests for the same
+// (reciter, verse) only kick off ONE audio-probe + DB write. Subsequent
+// callers await the same promise.
+const inFlight = new Map<string, Promise<readonly AlignedSegment[]>>();
+
+async function getOrAlignSegments(
+  dbPath: string,
+  reciterId: string,
+  verseKey: string,
+): Promise<readonly AlignedSegment[]> {
+  // 1) Cache hit?
+  const cached = getCachedAligned(dbPath, reciterId, verseKey);
+  if (cached.length > 0) return cached;
+
+  // 2) De-dupe concurrent first hits.
+  const key = `${reciterId}|${verseKey}`;
+  const existing = inFlight.get(key);
+  if (existing) return existing;
+
+  const promise = (async (): Promise<readonly AlignedSegment[]> => {
+    // 3) Find the audio URL + verse text in qul.sqlite. We open a fresh
+    // readonly handle here because the qul-recitations reader doesn't
+    // expose these tables directly. Per ADR-0020 the URL only
+    // surfaces if the reciter is licensed.
+    let db: Database.Database;
+    try {
+      db = new Database(dbPath, { readonly: true, fileMustExist: true });
+    } catch {
+      return [];
+    }
+    let audioUrl = '';
+    let verseText = '';
+    try {
+      const audioRow = db
+        .prepare<[string, string], { audio_url: string }>(
+          `SELECT audio_url FROM qalaam_v1_qul_recitations_audio
+           WHERE reciter_id = ? AND verse_key = ?`,
+        )
+        .get(reciterId, verseKey);
+      const verseRow = db
+        .prepare<
+          [string],
+          { text_uthmani: string }
+        >(`SELECT text_uthmani FROM qalaam_v1_verses WHERE verse_key = ?`)
+        .get(verseKey);
+      audioUrl = audioRow?.audio_url ?? '';
+      verseText = verseRow?.text_uthmani ?? '';
+    } finally {
+      db.close();
+    }
+    if (!audioUrl || !verseText) return [];
+
+    // 4) Probe the MP3 for duration. Hits the upstream CDN; cap with a
+    // 6s timeout so a slow/dead host can't stall the request.
+    let durationMs: number | null = null;
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => {
+        ctrl.abort();
+      }, 6_000);
+      try {
+        durationMs = await probeMp3DurationMs(audioUrl);
+      } finally {
+        clearTimeout(t);
+      }
+    } catch {
+      durationMs = null;
+    }
+    if (!durationMs || durationMs <= 0) return [];
+
+    // 5) Char-weighted apportionment + cache.
+    const segments = alignByCharWeight(reciterId, verseKey, verseText, durationMs);
+    persistAligned(dbPath, segments);
+    return segments;
+  })();
+
+  inFlight.set(key, promise);
+  try {
+    return await promise;
+  } finally {
+    inFlight.delete(key);
+  }
 }

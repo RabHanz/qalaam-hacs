@@ -42,6 +42,7 @@ function openReadOnly(path: string): DB {
   return cachedDb;
 }
 
+// eslint-disable-next-line @typescript-eslint/require-await -- fastify register signature requires Promise<void> for symmetry; body does not await.
 export async function recitationsRoutes(
   fastify: FastifyInstance,
   opts: { config: Config },
@@ -57,14 +58,47 @@ export async function recitationsRoutes(
           name_english: string;
           style: 'murattal' | 'mujawwad' | 'muallim';
           riwayah: string;
-          segment_coverage: number;
         }
       >(
-        `SELECT reciter_id, name_arabic, name_english, style, riwayah, segment_coverage
+        `SELECT reciter_id, name_arabic, name_english, style, riwayah
          FROM qalaam_v1_qul_recitations_reciters
          ORDER BY name_english ASC`,
       )
       .all();
+
+    // Compute REAL segment coverage = number of distinct verses in
+    // qalaam_v1_qul_recitations_segments per reciter. The
+    // `segment_coverage` column on the reciters table was set to the
+    // audio-coverage value (6,236 for everyone) during ingest, so it
+    // can't be trusted. This subquery runs once per /v1/reciters
+    // request and is cached for an hour by Fastify's reply header.
+    const segCoverage = new Map<string, number>(
+      db
+        .prepare<[], { reciter_id: string; cnt: number }>(
+          `SELECT reciter_id, COUNT(DISTINCT verse_key) AS cnt
+           FROM qalaam_v1_qul_recitations_segments
+           GROUP BY reciter_id`,
+        )
+        .all()
+        .map((r) => [r.reciter_id, r.cnt]),
+    );
+    // Aligned (heuristic) segments table — also counts toward coverage
+    // because the player can highlight from it. Best-effort: the table
+    // may not exist yet on a fresh DB.
+    try {
+      const aligned = db
+        .prepare<[], { reciter_id: string; cnt: number }>(
+          `SELECT reciter_id, COUNT(DISTINCT verse_key) AS cnt
+           FROM qalaam_v1_recitations_segments_aligned
+           GROUP BY reciter_id`,
+        )
+        .all();
+      for (const r of aligned) {
+        segCoverage.set(r.reciter_id, (segCoverage.get(r.reciter_id) ?? 0) + r.cnt);
+      }
+    } catch {
+      /* aligned table not yet created — fine */
+    }
 
     return rows.flatMap((r): readonly ReciterPayload[] => {
       const lic = LICENSE_METADATA.recitersByReciterId.get(r.reciter_id);
@@ -76,7 +110,7 @@ export async function recitationsRoutes(
           name: { en: r.name_english, ar: r.name_arabic },
           style: r.style,
           riwayah: r.riwayah,
-          segmentCoverage: r.segment_coverage,
+          segmentCoverage: segCoverage.get(r.reciter_id) ?? 0,
           attribution: lic.attributionText,
           license: lic.license,
         },
@@ -87,6 +121,7 @@ export async function recitationsRoutes(
   const handler = async (
     _request: unknown,
     reply: { header: (k: string, v: string) => unknown },
+    // eslint-disable-next-line @typescript-eslint/require-await -- fastify route handlers must be async; body is sync.
   ): Promise<{ reciters: readonly ReciterPayload[]; api_version: string }> => {
     void reply.header('cache-control', 'public, max-age=3600');
     return { reciters: listReciters(), api_version: '0.0.2' };
