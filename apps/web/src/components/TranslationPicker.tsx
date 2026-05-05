@@ -12,6 +12,7 @@
  * caption — the user always knows what they're reading.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
+
 import type { ReactNode } from 'react';
 
 interface Translation {
@@ -66,15 +67,38 @@ export function TranslationPicker({ translations, value, onChange }: Props): Rea
   const [filter, setFilter] = useState('');
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Esc closes; focus on open
+  // Esc closes; focus on open. While open, lock body scroll so the page
+  // behind doesn't bleed through on touch (the iOS rubber-band /
+  // overscroll behavior the user reported as "scroll locked"). The
+  // scrollable list inside the sheet keeps its own touch-momentum scroll.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') setOpen(false);
     };
     document.addEventListener('keydown', onKey);
-    requestAnimationFrame(() => inputRef.current?.focus());
-    return () => document.removeEventListener('keydown', onKey);
+    // Defer focus to after the sheet animates in — focusing during the
+    // CSS transition causes iOS Safari to re-layout, jumping the sheet.
+    // Don't auto-focus the input on small screens — opening the keyboard
+    // immediately covers half the picker. Desktop still gets the focus.
+    const isMobile =
+      typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches;
+    if (!isMobile) {
+      requestAnimationFrame(() => inputRef.current?.focus());
+    }
+    // Body scroll lock — preserve the current scroll position so we can
+    // restore it on close (otherwise iOS jumps to the top).
+    const prevOverflow = document.body.style.overflow;
+    const prevPaddingRight = document.body.style.paddingRight;
+    // Compensate for the scrollbar so the page doesn't shift on desktop.
+    const sbWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = 'hidden';
+    if (sbWidth > 0) document.body.style.paddingRight = `${sbWidth.toString()}px`;
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+      document.body.style.paddingRight = prevPaddingRight;
+    };
   }, [open]);
 
   const grouped = useMemo(() => {
@@ -106,9 +130,7 @@ export function TranslationPicker({ translations, value, onChange }: Props): Rea
         const items2 = matchLang
           ? items
           : items.filter(
-              (t) =>
-                t.name.toLowerCase().includes(q) ||
-                t.translator.toLowerCase().includes(q),
+              (t) => t.name.toLowerCase().includes(q) || t.translator.toLowerCase().includes(q),
             );
         return items2.length > 0 ? { lang, items: items2 } : null;
       })
@@ -117,27 +139,26 @@ export function TranslationPicker({ translations, value, onChange }: Props): Rea
 
   const active = translations.find((t) => t.slug === value);
   const triggerLabel =
-    value === 'none'
-      ? 'Arabic only'
-      : active
-        ? `${active.name.replace(/^The /, '')}`
-        : 'Translation…';
-  const triggerLang =
-    value === 'none' ? '' : active ? active.language.toUpperCase() : '';
+    value === 'none' ? 'Arabic only' : active ? active.name.replace(/^The /, '') : 'Translation…';
+  const triggerLang = value === 'none' ? '' : active ? active.language.toUpperCase() : '';
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpen(true);
+        }}
         title={active?.translator ?? 'Pick a translation'}
-        className={`shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] sm:text-xs smallcaps tracking-wider transition-colors border ${
+        // Larger tap target on mobile (≥44px tall via py-2 + line-height),
+        // touch-action: manipulation removes the 300ms tap delay.
+        className={`smallcaps inline-flex shrink-0 touch-manipulation items-center gap-1.5 rounded-full border px-4 py-2 text-xs tracking-wider transition-colors sm:px-3 sm:py-1 sm:text-xs ${
           value !== 'none'
             ? 'bg-leaf text-paper border-leaf'
             : 'border-hairline text-ink hover:bg-paper-200/60'
         }`}
       >
-        <span>{triggerLabel}</span>
+        <span className="max-w-[10rem] truncate sm:max-w-none">{triggerLabel}</span>
         {triggerLang ? (
           <span
             className={`text-[9px] tracking-widest opacity-70 ${
@@ -147,58 +168,96 @@ export function TranslationPicker({ translations, value, onChange }: Props): Rea
             {triggerLang}
           </span>
         ) : null}
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.4"
+          aria-hidden
+        >
           <path d="M6 9l6 6 6-6" strokeLinecap="round" />
         </svg>
       </button>
 
       {open ? (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+          className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
           role="dialog"
           aria-modal="true"
+          // touch-none on the wrapper would block scroll INSIDE the sheet
+          // too; instead we only block touchmove on the backdrop below.
         >
           <button
             type="button"
             aria-label="Close"
-            onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-ink-900/40 backdrop-blur-sm"
+            onClick={() => {
+              setOpen(false);
+            }}
+            // touchmove on the backdrop scrolls nothing — keeps the iOS
+            // rubber-band off when the user drags above the sheet.
+            onTouchMove={(e) => {
+              e.preventDefault();
+            }}
+            className="bg-ink-900/40 absolute inset-0 backdrop-blur-sm"
           />
           <div
-            className="relative w-full sm:max-w-md sm:rounded-2xl bg-paper border-t sm:border border-hairline shadow-2xl rounded-t-2xl sheet-rise"
-            style={{ maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
+            className="bg-paper border-hairline sheet-rise relative w-full rounded-t-2xl border-t shadow-2xl sm:max-w-md sm:rounded-2xl sm:border"
+            style={{
+              maxHeight: '92dvh',
+              display: 'flex',
+              flexDirection: 'column',
+              // Honor iOS safe-area so the bottom of the sheet doesn't
+              // sit under the home-indicator.
+              paddingBottom: 'env(safe-area-inset-bottom)',
+            }}
           >
-            <div className="sm:hidden pt-3 pb-1 flex justify-center">
-              <div className="h-1 w-10 rounded-full bg-paper-300/60" aria-hidden />
+            <div className="flex justify-center pb-1 pt-3 sm:hidden">
+              {/* Drag handle — hint that the sheet is dismissible. */}
+              <div className="bg-paper-300/80 h-1.5 w-12 rounded-full" aria-hidden />
             </div>
 
-            <header className="px-5 sm:px-6 pt-3 sm:pt-6 pb-3 flex items-baseline justify-between">
+            <header className="flex items-baseline justify-between px-5 pb-3 pt-3 sm:px-6 sm:pt-6">
               <div>
                 <p className="smallcaps text-leaf text-[11px] tracking-widest">Translation</p>
-                <h2 className="font-display text-xl sm:text-2xl text-ink-strong">
-                  {translations.length.toString()} renderings · {grouped.length.toString()} languages
+                <h2 className="font-display text-ink-strong text-xl sm:text-2xl">
+                  {translations.length.toString()} renderings · {grouped.length.toString()}{' '}
+                  languages
                 </h2>
               </div>
               <button
                 type="button"
                 aria-label="Close"
-                onClick={() => setOpen(false)}
-                className="text-ink-muted hover:text-ink p-1 -mr-1"
+                onClick={() => {
+                  setOpen(false);
+                }}
+                className="text-ink-muted hover:text-ink -mr-1 p-1"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden
+                >
                   <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
                 </svg>
               </button>
             </header>
 
-            <div className="px-5 sm:px-6 pb-3">
+            <div className="px-5 pb-3 sm:px-6">
               <input
                 ref={inputRef}
                 type="search"
                 value={filter}
-                onChange={(e) => setFilter(e.target.value)}
+                onChange={(e) => {
+                  setFilter(e.target.value);
+                }}
                 placeholder="Language or translator…"
-                className="w-full rounded-full border border-hairline bg-paper-100 px-4 py-2 text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:border-leaf"
+                className="border-hairline bg-paper-100 text-ink placeholder:text-ink-muted focus:border-leaf w-full rounded-full border px-4 py-2 text-sm focus:outline-none"
               />
               <button
                 type="button"
@@ -206,7 +265,7 @@ export function TranslationPicker({ translations, value, onChange }: Props): Rea
                   onChange('none');
                   setOpen(false);
                 }}
-                className={`mt-3 w-full text-left rounded-full px-4 py-2 text-sm border transition-colors ${
+                className={`mt-3 w-full rounded-full border px-4 py-2 text-left text-sm transition-colors ${
                   value === 'none'
                     ? 'bg-leaf text-paper border-leaf'
                     : 'border-hairline text-ink hover:bg-paper-100'
@@ -216,17 +275,30 @@ export function TranslationPicker({ translations, value, onChange }: Props): Rea
               </button>
             </div>
 
-            <div className="overflow-y-auto px-3 sm:px-4 pb-6 flex-1">
+            <div
+              className="flex-1 overflow-y-auto px-3 pb-6 sm:px-4"
+              // Keep momentum scroll inside the sheet, prevent it from
+              // bleeding into the body. -webkit-overflow-scrolling for
+              // older iOS Safari; overscroll-contain for everything else.
+              style={{
+                WebkitOverflowScrolling: 'touch',
+                overscrollBehavior: 'contain',
+              }}
+            >
               {filtered.map(({ lang, items }) => {
                 const meta = LANG_NAMES[lang];
                 return (
                   <div key={lang} className="mb-5">
-                    <div className="flex items-baseline justify-between px-2 mb-1.5">
+                    <div className="mb-1.5 flex items-baseline justify-between px-2">
                       <p className="smallcaps text-leaf text-[10px] tracking-widest">
                         {meta?.en ?? lang.toUpperCase()}
                       </p>
                       {meta?.native && meta.native !== meta.en ? (
-                        <p className="text-xs text-ink-muted" lang={lang} dir={lang === 'ar' || lang === 'ur' || lang === 'fa' ? 'rtl' : 'ltr'}>
+                        <p
+                          className="text-ink-muted text-xs"
+                          lang={lang}
+                          dir={lang === 'ar' || lang === 'ur' || lang === 'fa' ? 'rtl' : 'ltr'}
+                        >
                           {meta.native}
                         </p>
                       ) : null}
@@ -234,6 +306,9 @@ export function TranslationPicker({ translations, value, onChange }: Props): Rea
                     <ul className="space-y-1">
                       {items.map((t) => {
                         const active = t.slug === value;
+                        const cleanName = t.name.replace(/^The /, '');
+                        const showsTranslator =
+                          t.translator && t.translator.toLowerCase() !== cleanName.toLowerCase();
                         return (
                           <li key={t.slug}>
                             <button
@@ -242,16 +317,43 @@ export function TranslationPicker({ translations, value, onChange }: Props): Rea
                                 onChange(t.slug);
                                 setOpen(false);
                               }}
-                              className={`w-full text-left flex items-baseline justify-between gap-3 px-3 py-2.5 rounded-md transition-colors ${
-                                active ? 'bg-leaf/15 text-leaf' : 'hover:bg-paper-100'
+                              // ≥44px tall on mobile via py-3 + line-height.
+                              // Stack name + translator vertically so neither
+                              // truncates awkwardly on narrow viewports.
+                              className={`flex w-full touch-manipulation items-start justify-between gap-3 rounded-md px-3 py-3 text-left transition-colors sm:py-2.5 ${
+                                active
+                                  ? 'bg-leaf/15 text-leaf'
+                                  : 'hover:bg-paper-100 active:bg-paper-100'
                               }`}
                             >
-                              <span className="font-display text-sm truncate">
-                                {t.name.replace(/^The /, '')}
+                              <span className="min-w-0 flex-1">
+                                <span className="font-display block text-[15px] leading-snug sm:text-sm">
+                                  {cleanName}
+                                </span>
+                                {showsTranslator ? (
+                                  <span className="smallcaps text-ink-muted mt-0.5 block truncate text-[11px] tracking-widest sm:text-[10px]">
+                                    {t.translator}
+                                  </span>
+                                ) : null}
                               </span>
-                              <span className="text-[10px] smallcaps text-ink-muted tracking-widest shrink-0 truncate max-w-[40%]">
-                                {t.translator}
-                              </span>
+                              {active ? (
+                                <svg
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2.5"
+                                  aria-hidden
+                                  className="mt-1 shrink-0"
+                                >
+                                  <path
+                                    d="M5 13l4 4L19 7"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              ) : null}
                             </button>
                           </li>
                         );
@@ -261,7 +363,7 @@ export function TranslationPicker({ translations, value, onChange }: Props): Rea
                 );
               })}
               {filtered.length === 0 ? (
-                <p className="text-center text-sm text-ink-muted italic py-8">No match.</p>
+                <p className="text-ink-muted py-8 text-center text-sm italic">No match.</p>
               ) : null}
             </div>
           </div>
