@@ -61,6 +61,9 @@ interface ReciterItem {
   readonly slug: string;
   readonly name: { en: string; ar: string };
   readonly style?: string;
+  /** Word-level segment coverage. 0 = audio only (no live highlight);
+   *  >0 = the number of verses with timing data. */
+  readonly segmentCoverage?: number;
 }
 
 interface LayoutItem {
@@ -418,19 +421,47 @@ export function ReadSurfaceClient({
           </ChipRow>
 
           <ChipRow label="Reciter">
-            {reciters.map((r) => (
-              <Chip
-                key={r.slug}
-                active={reciter === r.slug}
-                onClick={() => {
-                  pickReciter(r.slug);
-                }}
-                title={`${r.name.en}${r.style ? ` · ${r.style}` : ''}`}
-              >
-                {r.name.en.replace(/^.* /, '').replace(/^al-/, '')}
-              </Chip>
-            ))}
+            {reciters.map((r) => {
+              const segmented = (r.segmentCoverage ?? 0) > 0;
+              const titleSuffix = segmented
+                ? ' · word-level highlight'
+                : ' · audio only (no per-word highlight)';
+              return (
+                <Chip
+                  key={r.slug}
+                  active={reciter === r.slug}
+                  onClick={() => {
+                    pickReciter(r.slug);
+                  }}
+                  title={`${r.name.en}${r.style ? ` · ${r.style}` : ''}${titleSuffix}`}
+                >
+                  <span className="inline-flex items-center gap-1">
+                    {r.name.en.replace(/^.* /, '').replace(/^al-/, '')}
+                    {segmented ? (
+                      <span
+                        aria-hidden
+                        title="Word-level highlight available"
+                        className="bg-leaf inline-block h-1.5 w-1.5 rounded-full"
+                      />
+                    ) : null}
+                  </span>
+                </Chip>
+              );
+            })}
           </ChipRow>
+          {(() => {
+            const active = reciters.find((r) => r.slug === reciter);
+            if (!active) return null;
+            const segmented = (active.segmentCoverage ?? 0) > 0;
+            if (segmented) return null;
+            return (
+              <p className="text-ink-muted px-1 text-[11px] italic">
+                <span className="text-leaf">Note:</span> {active.name.en} streams audio only —
+                word-level highlight needs a reciter with timing data (look for the leaf-gold dot in
+                the chip-row).
+              </p>
+            );
+          })()}
 
           <ChipRow label="View">
             <Chip

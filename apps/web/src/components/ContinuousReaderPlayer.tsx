@@ -264,13 +264,11 @@ export function ContinuousReaderPlayer({
           title: `Surah ${s} · Ayah ${a}`,
           artist: reciterName ?? 'Qalaam',
           album: 'The Quran',
-          // 192x192 leaf-gold ornament PNG to keep brand consistent in
-          // the lock-screen chrome. The path is relative to /public so
-          // it works in both SaaS and self-hosted modes.
-          artwork: [
-            { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-            { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
-          ],
+          // Lock-screen artwork is intentionally omitted until /public has
+          // the assets — Chrome's mediaSession is happy with an empty
+          // artwork array (it falls back to favicon). Adding paths that
+          // 404 floods the dev console with icon-192 / icon-512 noise.
+          artwork: [],
         });
       } catch {
         /* ignore — older Safari can throw on artwork URLs */
