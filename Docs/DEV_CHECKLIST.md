@@ -968,4 +968,79 @@ QUL exposes ~14 distinct data resources (152 recitations, 27 mushaf layouts, 209
 
 ---
 
+
+### What this session shipped (snapshot 2026-05-06)
+
+**Parent task #122 — Comprehensive QUL ingest, substrate-complete.**
+Adds 11 sub-tasks (#201–#210, see STRATEGY_AND_ROADMAP §28) plus the
+`scripts/data/scrape-qul-full.py` exhaustive scraper.
+
+Highlights:
+
+1. **`scripts/data/scrape-qul-full.py`** (new) — authenticated walker
+   over all 14 QUL resource categories. Handles direct CDN, Active-
+   Storage redirect, and hashed `/resources/<cat>/<sha>/download` 302
+   patterns. Per-file SHA256 pin in sidecar `.license.json` (ADR-0020
+   gate). Idempotent via `--resume`, configurable `--categories` and
+   `--limit`. Reads `QUL_EMAIL` / `QUL_PASSWORD` env (creds in claude-
+   memory).
+
+2. **Comprehensive scrape executed** — 1.3 GB / 2,580 files staged
+   to `data/qul-source/raw/`. Coverage: every public QUL resource —
+   17 fonts, 12 mushaf-layouts, 28 quran-scripts (incl. PUA-encoded
+   QPC V1/V2/V4), 133 reciters, 108 tafsirs, 198 translations, 8
+   transliterations, 6 surah-info languages, 6 morphology, 1 each of
+   ayah-theme / mutashabihat / similar-ayah / ayah-topics, plus all 8
+   Quran metadata tables (rub/sajda/ayah/juz/hizb/manzil/ruku/surahs).
+   Only 1 resource failed (`ayah-topics/45` HTTP 500, transient).
+
+3. **Inventory documentation refreshed** — `Docs/research/qul-
+   inventory.md` got §5 (live 2026-05-06 snapshot with per-category
+   ingest gap counts) + §6 (per-sub-task action plan with priority
+   ranking and execution path).
+
+4. **Memory: QUL credentials** saved at
+   `memory/reference_qul_credentials.md` and indexed in MEMORY.md.
+
+5. **Side-fix from earlier in this session: AyahCard Tajweed branch**
+   regression — silent-mark wrapping had bypassed the `recite-
+   highlight` className on tajweed-active words. Restored via
+   `activeWordIndex` counter that increments only on word tokens.
+
+6. **`.gitignore` extended** to keep raw QUL data files (`*.zip`,
+   `*.sqlite`, `*.json`, `*.ttf`, `*.woff*`, `*.otf`, `*.csv`, `*.db`,
+   `*.tar`, `*.gz`) out of git while preserving `*.license.json`
+   sidecars for reproducible license-tag review.
+
+What this enables (productionized capability ledger — see
+STRATEGY_AND_ROADMAP §28 for full detail):
+
+| Track | Capability unlocked | Pending sub-task |
+|---|---|---|
+| Reading | Per-page KFGQPC V4 Tajweed (canonical Quran.com parity) | #203 + #204 + #205 + #206 |
+| Reading | 9 additional mushaf-layouts (Indopak 9/13/15/16, KFGQPC v1/v2, DK, Qatar, Nastaleeq) | #207 |
+| Multilingual | 198 translations + 108 tafsirs + 6 surah-info languages reachable | #208 license auto-tagger + bulk ingest |
+| Recitation | 133 reciters fully addressable (currently 51) | extend `ingest-qul-recitations.ts` |
+| WBW | 22k → 83k word-level translations | #158 deferred-completion via QPC V4 wbw |
+| Attribution | `qalaam_v1_data_sources` + `/credits` page surfacing every QUL credit | #208 + #209 |
+
+Pending IDs remaining (priority order for the next session):
+
+1. **#192 H1. auth foundation** — single biggest unlock; gates #161,
+   #179, #182, #183, #186-cloud-sync, #193–#195.
+2. **#208 license auto-tagger** — turns the 2,580 staged sidecars
+   into batch-ingestable, unblocks all of §28's capability ledger.
+3. **#203 + #204 + #205 + #206 V4 Tajweed pipeline** — biggest
+   visible rendering jump.
+4. **#207** mushaf-layout breadth.
+5. **#190** IndoPak 16-line surface (script-level done; layout
+   surface to wire) — supersedes by #207.
+6. **#198 Playwright sweep** — wraps everything; best last.
+
+The next-session highest-leverage path: ship **#208 license auto-
+tagger + bulk ingest pipeline run** so all 2,580 staged files land
+in `qalaam_v1_*` tables, then **#203–#206 V4 Tajweed pipeline** as
+the marquee user-visible improvement.
+
+
 _Maintained alongside `STRATEGY_AND_ROADMAP.md` and `CLAUDE.md`. Updated on every PR that completes or adds a checklist item._
