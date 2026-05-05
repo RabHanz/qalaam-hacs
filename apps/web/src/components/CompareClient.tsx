@@ -73,6 +73,26 @@ export function CompareClient({ verseKey, verseText, reciters }: Props): ReactNo
   const [solo, setSolo] = useState<string | null>(null);
   const audioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
 
+  // Stable, identity-preserving ref callbacks per slug. Without
+  // memoization React passes a fresh callback on every render, which
+  // forces it to detach + reattach the ref — and in some browser
+  // builds (notably Chrome's autoplay-policy hardened path) that
+  // detach interrupts playback, manifesting as "audio cuts and
+  // resets after ~1 second." Cache one closure per slug for the
+  // component's lifetime.
+  const refCallbacks = useRef<Map<string, (el: HTMLAudioElement | null) => void>>(new Map());
+  function refFor(slug: string): (el: HTMLAudioElement | null) => void {
+    let cb = refCallbacks.current.get(slug);
+    if (!cb) {
+      cb = (el: HTMLAudioElement | null): void => {
+        if (el) audioRefs.current.set(slug, el);
+        else audioRefs.current.delete(slug);
+      };
+      refCallbacks.current.set(slug, cb);
+    }
+    return cb;
+  }
+
   // Persist picked reciters whenever they change.
   useEffect(() => {
     try {
@@ -82,44 +102,73 @@ export function CompareClient({ verseKey, verseText, reciters }: Props): ReactNo
     }
   }, [picked]);
 
-  // Resolve audio URLs whenever the picked set / verseKey changes.
+  // Resolve audio URLs additively — once a slug's URL is known we never
+  // blank it back to null on re-render. Earlier code reset rows to
+  // {audioUrl:null, loading:true} on every dep change which forced the
+  // <audio> element's src to flip to "" mid-playback, cutting audio
+  // ~1s in. The merge below preserves resolved URLs when picked / solo
+  // changes.
   useEffect(() => {
     const cancelled = { v: false };
-    setActiveIdx(null);
-    void (async () => {
-      const next: RowState[] = picked.map((slug) => {
+    setRows((prev) => {
+      const knownUrls = new Map(prev.map((r) => [r.slug, r.audioUrl] as const));
+      return picked.map((slug) => {
         const r = reciters.find((x) => x.slug === slug);
+        const cached = knownUrls.get(slug) ?? null;
         return {
           slug,
           name: r?.name ?? slug,
-          audioUrl: null,
-          loading: true,
+          audioUrl: cached,
+          loading: cached === null,
         };
       });
-      setRows(next);
+    });
+    void (async () => {
+      const toResolve = picked.filter(
+        (slug) => !rows.some((r) => r.slug === slug && r.audioUrl !== null),
+      );
       const resolved = await Promise.all(
-        picked.map(async (slug) => {
+        toResolve.map(async (slug) => {
           try {
             const res = await fetch(
               `${apiBase}/v1/audio/by_verse/${encodeURIComponent(verseKey)}/${slug}`,
             );
-            if (!res.ok) return null;
+            if (!res.ok) return [slug, null] as const;
             const body = (await res.json()) as { audioUrl: string };
-            return body.audioUrl;
+            return [slug, body.audioUrl] as const;
           } catch {
-            return null;
+            return [slug, null] as const;
           }
         }),
       );
       if (cancelled.v) return;
+      const map = new Map(resolved);
       setRows((prev) =>
-        prev.map((r, i) => ({ ...r, audioUrl: resolved[i] ?? null, loading: false })),
+        prev.map((r) =>
+          map.has(r.slug)
+            ? { ...r, audioUrl: map.get(r.slug) ?? r.audioUrl, loading: false }
+            : { ...r, loading: false },
+        ),
       );
     })();
     return () => {
       cancelled.v = true;
     };
+    // Deliberately omit `rows` from deps — including it would create
+    // a feedback loop (effect updates rows → effect re-fires).
   }, [picked, verseKey, apiBase, reciters]);
+
+  // Single source of truth for "which row is playing": whenever
+  // activeIdx OR solo changes, pause every audio element that isn't
+  // the active one. The onPlay handler updates activeIdx; this effect
+  // does the muting. Detangles manual ▶ from programmatic playIndex —
+  // before, both were calling .pause() on others, racing each other.
+  useEffect(() => {
+    const activeSlug = activeIdx !== null ? rows[activeIdx]?.slug : null;
+    audioRefs.current.forEach((a, slug) => {
+      if (slug !== activeSlug && !a.paused) a.pause();
+    });
+  }, [activeIdx, solo, rows]);
 
   function togglePick(slug: string): void {
     setPicked((cur) => {
@@ -137,30 +186,26 @@ export function CompareClient({ verseKey, verseText, reciters }: Props): ReactNo
     });
   }, []);
 
-  // Start playing whichever row is at index `idx`. Pauses everyone else
-  // first so we never have two streams audible. Returns true if
-  // playback actually started.
+  // Start playing whichever row is at index `idx`. The "pause every
+  // other row" step is owned by the [activeIdx] effect above, so this
+  // function only needs to resolve + play the target. Returns true if
+  // playback was kicked off.
   const playIndex = useCallback(
     (idx: number) => {
       if (idx < 0 || idx >= rows.length) return false;
       const row = rows[idx];
       if (!row?.audioUrl) return false;
-      // Pause + rewind every other row so the queue stays clean.
-      audioRefs.current.forEach((a, slug) => {
-        if (slug !== row.slug) {
-          a.pause();
-        }
-      });
       const a = audioRefs.current.get(row.slug);
       if (!a) return false;
-      a.currentTime = 0;
-      void Promise.resolve(a.play())
-        .then(() => {
-          setActiveIdx(idx);
-        })
-        .catch(() => {
-          /* iOS autoplay block → user can tap the row's native ▶ */
-        });
+      // Only rewind if this row isn't already mid-playback. Manual
+      // resume should preserve the user's seek position.
+      if (a.paused || a.ended) a.currentTime = 0;
+      // Set activeIdx eagerly so the [activeIdx] effect pauses others
+      // immediately; .play()'s promise can lag on iOS autoplay-policy.
+      setActiveIdx(idx);
+      void Promise.resolve(a.play()).catch(() => {
+        /* iOS autoplay block — user can tap the row's native ▶ */
+      });
       return true;
     },
     [rows],
@@ -355,10 +400,7 @@ export function CompareClient({ verseKey, verseText, reciters }: Props): ReactNo
                   </header>
                   {row.audioUrl ? (
                     <audio
-                      ref={(el) => {
-                        if (el) audioRefs.current.set(row.slug, el);
-                        else audioRefs.current.delete(row.slug);
-                      }}
+                      ref={refFor(row.slug)}
                       src={row.audioUrl}
                       controls
                       preload="metadata"
@@ -367,12 +409,11 @@ export function CompareClient({ verseKey, verseText, reciters }: Props): ReactNo
                         handleEnded(row.slug);
                       }}
                       onPlay={() => {
-                        // If the user manually pressed play on a row,
-                        // pause the others so we never overlap streams.
-                        audioRefs.current.forEach((a, s) => {
-                          if (s !== row.slug) a.pause();
-                        });
-                        setActiveIdx(i);
+                        // Manual ▶ on this row → just record the active
+                        // index. The [activeIdx] effect pauses every
+                        // other row in one place, so manual + auto
+                        // never race each other on .pause() / .play().
+                        if (activeIdx !== i) setActiveIdx(i);
                       }}
                     />
                   ) : row.loading ? (
