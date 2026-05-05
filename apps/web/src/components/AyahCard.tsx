@@ -27,14 +27,20 @@
  * this verse + slug; falls back gracefully when not.
  */
 import { useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
+
+import type { ReactNode } from 'react';
 
 interface AyahCardProps {
   readonly verseKey: string;
   readonly arabic: string;
   readonly translation: string | null;
+  /** Optional phonetic transliteration text in the user's chosen
+   *  edition (en.transliteration, tr.transliteration, ru.transliteration).
+   *  Rendered between the Arabic and the translation in a distinct
+   *  italic register so it reads as a phonetic bridge, not a gloss. */
+  readonly transliteration?: string | null;
   readonly tafsirSlug?: string | null;
   readonly reciterSlug: string;
   /** Optional, ignored — always resolves to the same-origin /api proxy on
@@ -50,7 +56,11 @@ interface AyahCardProps {
 }
 
 function arabicNumeral(n: number): string {
-  return n.toString().split('').map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d).join('');
+  return n
+    .toString()
+    .split('')
+    .map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d)
+    .join('');
 }
 
 function PlayIcon({ playing }: { playing: boolean }): ReactNode {
@@ -68,7 +78,15 @@ function PlayIcon({ playing }: { playing: boolean }): ReactNode {
 
 function WbwIcon(): ReactNode {
   return (
-    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      aria-hidden
+    >
       <line x1="4" y1="7" x2="20" y2="7" strokeLinecap="round" />
       <line x1="4" y1="12" x2="14" y2="12" strokeLinecap="round" />
       <line x1="4" y1="17" x2="17" y2="17" strokeLinecap="round" />
@@ -78,7 +96,15 @@ function WbwIcon(): ReactNode {
 
 function BookmarkIcon({ filled }: { filled: boolean }): ReactNode {
   return (
-    <svg width={14} height={14} viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.6" aria-hidden>
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 24 24"
+      fill={filled ? 'currentColor' : 'none'}
+      stroke="currentColor"
+      strokeWidth="1.6"
+      aria-hidden
+    >
       <path d="M6 4h12v18l-6-4-6 4z" strokeLinejoin="round" />
     </svg>
   );
@@ -86,7 +112,15 @@ function BookmarkIcon({ filled }: { filled: boolean }): ReactNode {
 
 function ShareIcon(): ReactNode {
   return (
-    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      aria-hidden
+    >
       <circle cx="6" cy="12" r="2.5" />
       <circle cx="18" cy="6" r="2.5" />
       <circle cx="18" cy="18" r="2.5" />
@@ -98,7 +132,16 @@ function ShareIcon(): ReactNode {
 
 function SpinnerIcon(): ReactNode {
   return (
-    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden className="animate-spin">
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      aria-hidden
+      className="animate-spin"
+    >
       <circle cx="12" cy="12" r="9" opacity="0.25" />
       <path d="M21 12a9 9 0 0 0-9-9" strokeLinecap="round" />
     </svg>
@@ -107,7 +150,15 @@ function SpinnerIcon(): ReactNode {
 
 function TafsirIcon(): ReactNode {
   return (
-    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      aria-hidden
+    >
       <path d="M5 4h11l3 3v13H5z" strokeLinejoin="round" />
       <line x1="9" y1="10" x2="15" y2="10" strokeLinecap="round" />
       <line x1="9" y1="14" x2="15" y2="14" strokeLinecap="round" />
@@ -126,6 +177,7 @@ export function AyahCard({
   verseKey,
   arabic,
   translation,
+  transliteration,
   tafsirSlug,
   reciterSlug,
   highlightWordIndex,
@@ -142,7 +194,12 @@ export function AyahCard({
   const [wbw, setWbw] = useState<readonly WbwToken[] | null>(null);
   const [wbwLoading, setWbwLoading] = useState(false);
   const [tafsirOpen, setTafsirOpen] = useState(false);
-  const [tafsir, setTafsir] = useState<{ text: string; lang: string; scholar: string | null; loading: boolean } | null>(null);
+  const [tafsir, setTafsir] = useState<{
+    text: string;
+    lang: string;
+    scholar: string | null;
+    loading: boolean;
+  } | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioLoading, setAudioLoading] = useState(false);
@@ -184,27 +241,31 @@ export function AyahCard({
       setSelfHighlightIdx(null);
     }
     window.addEventListener('qalaam:audio-claim', onClaim);
-    return () => window.removeEventListener('qalaam:audio-claim', onClaim);
+    return () => {
+      window.removeEventListener('qalaam:audio-claim', onClaim);
+    };
   }, [verseKey]);
 
   // Pre-load segments when reciter or verse changes so word-highlight
   // is ready to fire as soon as the user taps Listen.
   useEffect(() => {
-    let cancelled = false;
+    const cancelled = { v: false };
     void (async () => {
       try {
         const r = await fetch(
           `${apiBase}/v1/recitations/${reciterSlug}/segments/${encodeURIComponent(verseKey)}`,
         );
-        if (!r.ok || cancelled) return;
-        const body = (await r.json()) as { data: { wordIndex: number; startMs: number; endMs: number }[] };
+        if (!r.ok || cancelled.v) return;
+        const body = (await r.json()) as {
+          data?: { wordIndex: number; startMs: number; endMs: number }[];
+        };
         segmentsRef.current = body.data ?? [];
       } catch {
         segmentsRef.current = [];
       }
     })();
     return () => {
-      cancelled = true;
+      cancelled.v = true;
     };
   }, [verseKey, reciterSlug, apiBase]);
 
@@ -249,7 +310,9 @@ export function AyahCard({
       raf = requestAnimationFrame(tick);
     }
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+    };
   }, [playing]);
 
   // Restore bookmark state
@@ -296,23 +359,25 @@ export function AyahCard({
     try {
       const surah = verseKey.split(':')[0] ?? '';
       const raw = window.localStorage.getItem('qalaam-last-played-verse');
-      const map = (raw ? (JSON.parse(raw) as Record<string, string>) : {}) ?? {};
+      const map: Record<string, string> = raw ? (JSON.parse(raw) as Record<string, string>) : {};
       map[surah] = verseKey;
       window.localStorage.setItem('qalaam-last-played-verse', JSON.stringify(map));
     } catch {
       /* ignore */
     }
     if (audioUrl) {
-      // We already have the URL — play right now (synchronous gesture chain)
-      const p = a.play();
-      if (p && typeof p.then === 'function') {
-        p.then(
-          () => setPlaying(true),
-          () => setPlaying(false),
-        );
-      } else {
-        setPlaying(true);
-      }
+      // We already have the URL — play right now (synchronous gesture chain).
+      // Older audio engines returned undefined; modern browsers return a
+      // Promise. We void the promise to keep eslint happy and handle states
+      // through the onPlay/onPause/onEnded handlers.
+      void Promise.resolve(a.play()).then(
+        () => {
+          setPlaying(true);
+        },
+        () => {
+          setPlaying(false);
+        },
+      );
       return;
     }
     // First click: lazy-fetch URL, then play when canplay fires.
@@ -344,15 +409,14 @@ export function AyahCard({
     playIntentRef.current = false;
     const a = audioRef.current;
     if (!a) return;
-    const p = a.play();
-    if (p && typeof p.then === 'function') {
-      p.then(
-        () => setPlaying(true),
-        () => setPlaying(false),
-      );
-    } else {
-      setPlaying(true);
-    }
+    void Promise.resolve(a.play()).then(
+      () => {
+        setPlaying(true);
+      },
+      () => {
+        setPlaying(false);
+      },
+    );
   }
 
   async function toggleWbw(): Promise<void> {
@@ -395,7 +459,11 @@ export function AyahCard({
         setTafsir({ text: '', lang: 'en', scholar: null, loading: false });
         return;
       }
-      const body = (await res.json()) as { text: string; language?: string; scholar?: string | null };
+      const body = (await res.json()) as {
+        text?: string;
+        language?: string;
+        scholar?: string | null;
+      };
       setTafsir({
         text: body.text ?? '',
         lang: body.language ?? 'en',
@@ -410,9 +478,11 @@ export function AyahCard({
   function copyShareLink(): void {
     try {
       const url = `${window.location.origin}/read/${verseKey.split(':')[0] ?? '1'}#${verseKey}`;
-      void navigator.clipboard?.writeText(url);
+      void navigator.clipboard.writeText(url);
       setShareCopied(true);
-      setTimeout(() => setShareCopied(false), 1800);
+      setTimeout(() => {
+        setShareCopied(false);
+      }, 1800);
     } catch {
       /* ignore */
     }
@@ -421,14 +491,14 @@ export function AyahCard({
   return (
     <article
       id={verseKey}
-      className="paper-card-raised relative overflow-hidden p-4 sm:p-7 md:p-10 reveal scroll-mt-24"
+      className="paper-card-raised reveal relative scroll-mt-24 overflow-hidden p-4 sm:p-7 md:p-10"
     >
       {/* Ayah header row */}
-      <header className="flex items-center justify-between gap-2 mb-4">
-        <span className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-hairline text-leaf font-arabic text-sm tabular-nums shrink-0">
+      <header className="mb-4 flex items-center justify-between gap-2">
+        <span className="border-hairline text-leaf font-arabic inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm tabular-nums sm:h-9 sm:w-9">
           {arabicNumeral(ayah)}
         </span>
-        <span className="smallcaps text-ink-muted text-[10px] sm:text-xs tracking-widest tabular-nums">
+        <span className="smallcaps text-ink-muted text-[10px] tabular-nums tracking-widest sm:text-xs">
           {verseKey}
         </span>
       </header>
@@ -439,7 +509,7 @@ export function AyahCard({
       <p
         dir="rtl"
         lang="ar"
-        className="text-ink-strong text-center leading-[1.95] sm:leading-[2.05] mb-5 sm:mb-7 break-words"
+        className="text-ink-strong mb-5 break-words text-center leading-[1.95] sm:mb-7 sm:leading-[2.05]"
         style={{
           fontFamily,
           fontSize: 'clamp(1.35rem, 0.95rem + 1.4vw, 2.1rem)',
@@ -487,13 +557,28 @@ export function AyahCard({
         })()}
       </p>
 
+      {/* Phonetic transliteration — italic, smaller, leaf-tinted so it
+          reads as the bridge between the Arabic above and the gloss below.
+          Centered to mirror the Arabic block; left-aligned would visually
+          divorce it from the verse it's transliterating. */}
+      {transliteration ? (
+        <p
+          dir="ltr"
+          lang="en"
+          className="text-leaf/80 mx-auto mb-3 mt-3 max-w-prose text-center text-sm italic leading-relaxed tracking-wide sm:text-[15px]"
+          style={{ fontFamily: 'var(--font-display, var(--font-body))' }}
+        >
+          {transliteration}
+        </p>
+      ) : null}
+
       {/* Translation — distinctly LTR, sans, smaller, muted-ish to read as gloss.
           Left-aligned (Tailwind text-start) so English prose breaks naturally. */}
       {translation ? (
         <p
           dir="ltr"
           lang="en"
-          className="mt-1 mb-6 max-w-prose mx-auto text-[15px] sm:text-base leading-relaxed text-ink/85 text-start"
+          className="text-ink/85 mx-auto mb-6 mt-1 max-w-prose text-start text-[15px] leading-relaxed sm:text-base"
           style={{ fontFamily: 'var(--font-body)' }}
         >
           {translation}
@@ -502,14 +587,14 @@ export function AyahCard({
 
       {/* WBW expansion */}
       {wbwOpen ? (
-        <div className="mt-2 mb-2 border-t border-hairline pt-5">
-          <p className="smallcaps text-leaf text-[11px] tracking-widest mb-3">Word by word</p>
+        <div className="border-hairline mb-2 mt-2 border-t pt-5">
+          <p className="smallcaps text-leaf mb-3 text-[11px] tracking-widest">Word by word</p>
           {wbwLoading ? (
-            <p className="text-sm text-ink-muted italic">Loading…</p>
+            <p className="text-ink-muted text-sm italic">Loading…</p>
           ) : wbw && wbw.length > 0 ? (
             <ol
               dir="rtl"
-              className="flex flex-wrap-reverse gap-x-3 gap-y-4 justify-center"
+              className="flex flex-wrap-reverse justify-center gap-x-3 gap-y-4"
               style={{ unicodeBidi: 'plaintext' }}
             >
               {wbw.map((w) => (
@@ -517,7 +602,7 @@ export function AyahCard({
                   <p
                     dir="rtl"
                     lang="ar"
-                    className="font-arabic text-xl sm:text-2xl text-ink-strong"
+                    className="font-arabic text-ink-strong text-xl sm:text-2xl"
                     style={{ unicodeBidi: 'plaintext', fontWeight: 600, lineHeight: 1.5 }}
                   >
                     {w.textArabic}
@@ -526,7 +611,7 @@ export function AyahCard({
                     <p
                       dir="ltr"
                       lang="en"
-                      className="text-[10px] text-ink-muted mt-0.5 max-w-[5.5rem] mx-auto leading-snug"
+                      className="text-ink-muted mx-auto mt-0.5 max-w-[5.5rem] text-[10px] leading-snug"
                     >
                       {w.translation}
                     </p>
@@ -535,25 +620,25 @@ export function AyahCard({
               ))}
             </ol>
           ) : (
-            <p className="text-sm text-ink-muted italic">No word splits available for this ayah.</p>
+            <p className="text-ink-muted text-sm italic">No word splits available for this ayah.</p>
           )}
         </div>
       ) : null}
 
       {/* Tafsir expansion */}
       {tafsirOpen ? (
-        <div className="mt-2 mb-2 border-t border-hairline pt-5">
-          <p className="smallcaps text-leaf text-[11px] tracking-widest mb-3">
+        <div className="border-hairline mb-2 mt-2 border-t pt-5">
+          <p className="smallcaps text-leaf mb-3 text-[11px] tracking-widest">
             Tafsir{tafsir?.scholar ? ` · ${tafsir.scholar}` : ''}
           </p>
           {tafsir?.loading ? (
-            <p className="text-sm text-ink-muted italic">Loading…</p>
+            <p className="text-ink-muted text-sm italic">Loading…</p>
           ) : tafsir?.text ? (
             tafsir.lang === 'ar' ? (
               <p
                 dir="rtl"
                 lang="ar"
-                className="font-arabic text-base sm:text-lg text-ink leading-loose max-w-prose mx-auto"
+                className="font-arabic text-ink mx-auto max-w-prose text-base leading-loose sm:text-lg"
                 style={{ unicodeBidi: 'plaintext', fontWeight: 500 }}
               >
                 {tafsir.text}
@@ -562,16 +647,14 @@ export function AyahCard({
               <p
                 dir="ltr"
                 lang={tafsir.lang || 'en'}
-                className="text-sm sm:text-base text-ink leading-relaxed max-w-prose mx-auto"
+                className="text-ink mx-auto max-w-prose text-sm leading-relaxed sm:text-base"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
                 {tafsir.text}
               </p>
             )
           ) : (
-            <p className="text-sm text-ink-muted italic">
-              Tafsir not available for this ayah yet.
-            </p>
+            <p className="text-ink-muted text-sm italic">Tafsir not available for this ayah yet.</p>
           )}
         </div>
       ) : null}
@@ -582,16 +665,19 @@ export function AyahCard({
         src={audioUrl ?? undefined}
         preload="metadata"
         onCanPlay={handleCanPlay}
-        onEnded={() => setPlaying(false)}
-        onPause={() => setPlaying(false)}
-        onPlay={() => setPlaying(true)}
+        onEnded={() => {
+          setPlaying(false);
+        }}
+        onPause={() => {
+          setPlaying(false);
+        }}
+        onPlay={() => {
+          setPlaying(true);
+        }}
       />
 
       {/* Action chip row — wraps on mobile, no horizontal scroll */}
-      <nav
-        aria-label={`Actions for ${verseKey}`}
-        className="mt-3 flex flex-wrap gap-1.5 sm:gap-2"
-      >
+      <nav aria-label={`Actions for ${verseKey}`} className="mt-3 flex flex-wrap gap-1.5 sm:gap-2">
         <ChipButton
           onClick={() => void togglePlay()}
           active={playing || audioLoading}

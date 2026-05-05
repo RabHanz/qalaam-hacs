@@ -20,14 +20,16 @@
  * pins overflow-x on html/body as defense-in-depth).
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
+
 import { AyahCard } from './AyahCard.js';
 import { AyahMushafLines } from './AyahMushafLines.js';
 import { ContinuousReaderPlayer } from './ContinuousReaderPlayer.js';
 import { HairlineDivider } from './Glyph.js';
 import { TranslationPicker } from './TranslationPicker.js';
+
+import type { ReactNode } from 'react';
 
 export interface VerseLite {
   readonly verseKey: string;
@@ -67,6 +69,17 @@ interface LayoutItem {
   readonly subtitle?: string;
 }
 
+interface TransliterationItem {
+  readonly slug: string;
+  readonly name: string;
+  readonly language: string;
+}
+
+// 'off' = no transliteration; otherwise the slug of the active edition.
+// Treated as a plain string since the slug comes from the backend catalog,
+// but kept as a named alias for readability at call sites.
+type TransliterationChoice = string;
+
 interface Props {
   /** Optional, ignored — always resolves to same-origin /api on client. */
   readonly apiBase?: string;
@@ -74,6 +87,7 @@ interface Props {
   readonly translations: readonly TranslationItem[];
   readonly reciters: readonly ReciterItem[];
   readonly layouts: readonly LayoutItem[];
+  readonly transliterations?: readonly TransliterationItem[];
   readonly tafsirSlug: string;
   readonly defaultTranslation: string;
   readonly defaultReciter: string;
@@ -85,6 +99,7 @@ const STORE_R = 'qalaam-reciter';
 const STORE_VIEW = 'qalaam-read-view';
 const STORE_LAYOUT = 'qalaam-read-layout';
 const STORE_SINGLE_STYLE = 'qalaam-single-style';
+const STORE_TLIT = 'qalaam-transliteration';
 
 // Three top-level reading modes:
 //   continuous - vertical scroll of ayah cards
@@ -96,7 +111,11 @@ type ViewMode = 'continuous' | 'single' | 'mushaf';
 type SingleStyle = 'card' | 'mushaf';
 
 function arabicNumeral(n: number): string {
-  return n.toString().split('').map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d).join('');
+  return n
+    .toString()
+    .split('')
+    .map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d)
+    .join('');
 }
 
 export function ReadSurfaceClient({
@@ -104,6 +123,7 @@ export function ReadSurfaceClient({
   translations,
   reciters,
   layouts,
+  transliterations = [],
   tafsirSlug,
   defaultTranslation,
   defaultReciter,
@@ -113,9 +133,7 @@ export function ReadSurfaceClient({
   // Initialize with defaults — guaranteed to match SSR. Refined in useEffect.
   const [translation, setTranslation] = useState<string>(defaultTranslation);
   const [reciter, setReciter] = useState<string>(defaultReciter);
-  const [activeLayoutSlug, setActiveLayoutSlug] = useState<string>(
-    layouts[0]?.slug ?? 'madani_15',
-  );
+  const [activeLayoutSlug, setActiveLayoutSlug] = useState<string>(layouts[0]?.slug ?? 'madani_15');
   const [viewMode, setViewMode] = useState<ViewMode>('continuous');
   const [singleStyle, setSingleStyle] = useState<SingleStyle>('card');
   const [singleIndex, setSingleIndex] = useState(0);
@@ -137,6 +155,15 @@ export function ReadSurfaceClient({
     return m;
   });
   const [translationLoading, setTranslationLoading] = useState(false);
+
+  // Transliteration is opt-in (default 'off') — adds cognitive load when on,
+  // accessibility when needed. State lives next to translation since the
+  // fetch shape is identical: slug + verse-key → text.
+  const [transliteration, setTransliteration] = useState<TransliterationChoice>('off');
+  const [transliterationMap, setTransliterationMap] = useState<Map<string, string>>(
+    () => new Map(),
+  );
+
   const containerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -147,8 +174,7 @@ export function ReadSurfaceClient({
       setSingleDirection(idx > singleIndex ? 'next' : 'prev');
       setSingleIndex(idx);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [highlight, viewMode, verses]);
+  }, [highlight, viewMode, verses, singleIndex]);
 
   // Auto-scroll the active verse into view in continuous mode. The
   // ayah card uses `id={verseKey}` so we can locate it by selector
@@ -171,25 +197,33 @@ export function ReadSurfaceClient({
   useEffect(() => {
     try {
       const url = new URL(window.location.href);
-      const t = url.searchParams.get('t') ?? window.localStorage.getItem(STORE_T) ?? defaultTranslation;
+      const t =
+        url.searchParams.get('t') ?? window.localStorage.getItem(STORE_T) ?? defaultTranslation;
       const r = url.searchParams.get('r') ?? window.localStorage.getItem(STORE_R) ?? defaultReciter;
       const v = (window.localStorage.getItem(STORE_VIEW) as ViewMode | null) ?? 'continuous';
       const lt = window.localStorage.getItem(STORE_LAYOUT);
       const ss = (window.localStorage.getItem(STORE_SINGLE_STYLE) as SingleStyle | null) ?? 'card';
-      const validT = t === 'none' || translations.some((x) => x.slug === t) ? t : defaultTranslation;
+      const validT =
+        t === 'none' || translations.some((x) => x.slug === t) ? t : defaultTranslation;
       const validR = reciters.some((x) => x.slug === r) ? r : defaultReciter;
-      const validL = lt && layouts.some((x) => x.slug === lt) ? lt : layouts[0]?.slug ?? 'madani_15';
+      const validL =
+        lt && layouts.some((x) => x.slug === lt) ? lt : (layouts[0]?.slug ?? 'madani_15');
+      const tlit = window.localStorage.getItem(STORE_TLIT) ?? 'off';
+      const validTlit: TransliterationChoice =
+        tlit === 'off' || transliterations.some((x) => x.slug === tlit) ? tlit : 'off';
       setTranslation(validT);
       setReciter(validR);
       setActiveLayoutSlug(validL);
       setViewMode(v === 'single' ? 'single' : 'continuous');
       setSingleStyle(ss === 'mushaf' ? 'mushaf' : 'card');
+      setTransliteration(validTlit);
     } catch {
       /* ignore */
     }
     setHydrated(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // Run only on mount — we read URL + localStorage once. The deps array
+    // would otherwise pull in every default* value, defeating the purpose.
+  }, [defaultReciter, defaultTranslation, layouts, reciters, translations, transliterations]);
 
   // Persist + URL-sync on user choice changes (only after hydration so we don't
   // double-write on first render)
@@ -197,7 +231,8 @@ export function ReadSurfaceClient({
     if (!hydrated) return;
     try {
       const url = new URL(window.location.href);
-      if (translation === defaultTranslation || translation === 'pickthall') url.searchParams.delete('t');
+      if (translation === defaultTranslation || translation === 'pickthall')
+        url.searchParams.delete('t');
       else url.searchParams.set('t', translation);
       if (reciter === defaultReciter) url.searchParams.delete('r');
       else url.searchParams.set('r', reciter);
@@ -237,13 +272,15 @@ export function ReadSurfaceClient({
       // Already seeded.
       return;
     }
-    let cancelled = false;
+    // Boxed flag so TS doesn't narrow `cancelled` to always-false inside
+    // the IIFE — the cleanup callback mutates it after the closure starts.
+    const cancelled = { v: false };
     setTranslationLoading(true);
     void (async () => {
       const out = new Map<string, string>();
       const CHUNK = 24;
       for (let i = 0; i < verses.length; i += CHUNK) {
-        if (cancelled) return;
+        if (cancelled.v) return;
         const slice = verses.slice(i, i + CHUNK);
         await Promise.all(
           slice.map(async (v) => {
@@ -260,20 +297,65 @@ export function ReadSurfaceClient({
           }),
         );
       }
-      if (!cancelled) {
+      if (!cancelled.v) {
         setTranslationMap(out);
         setTranslationLoading(false);
       }
     })();
     return () => {
-      cancelled = true;
+      cancelled.v = true;
     };
   }, [translation, verses, apiBase]);
 
   const activeTranslation = useMemo(
-    () => (translation !== 'none' ? translations.find((t) => t.slug === translation) ?? null : null),
+    () =>
+      translation !== 'none' ? (translations.find((t) => t.slug === translation) ?? null) : null,
     [translation, translations],
   );
+
+  // Fetch transliteration pack whenever the active edition changes.
+  useEffect(() => {
+    if (transliteration === 'off' || verses.length === 0) {
+      setTransliterationMap(new Map());
+      return;
+    }
+    const cancelled = { v: false };
+    void (async () => {
+      const out = new Map<string, string>();
+      const CHUNK = 24;
+      for (let i = 0; i < verses.length; i += CHUNK) {
+        if (cancelled.v) return;
+        const slice = verses.slice(i, i + CHUNK);
+        await Promise.all(
+          slice.map(async (v) => {
+            try {
+              const res = await fetch(
+                `${apiBase}/v1/transliterations/${transliteration}/by_verse/${encodeURIComponent(v.verseKey)}`,
+              );
+              if (!res.ok) return;
+              const body = (await res.json()) as { text: string };
+              if (body.text) out.set(v.verseKey, body.text);
+            } catch {
+              /* ignore */
+            }
+          }),
+        );
+      }
+      if (!cancelled.v) setTransliterationMap(out);
+    })();
+    return () => {
+      cancelled.v = true;
+    };
+  }, [transliteration, verses, apiBase]);
+
+  function pickTransliteration(next: TransliterationChoice): void {
+    setTransliteration(next);
+    try {
+      window.localStorage.setItem(STORE_TLIT, next);
+    } catch {
+      /* ignore */
+    }
+  }
 
   function pickTranslation(next: string): void {
     setTranslation(next);
@@ -295,7 +377,9 @@ export function ReadSurfaceClient({
       setSingleDirection('prev');
       return i - 1;
     });
-    requestAnimationFrame(() => containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    requestAnimationFrame(() =>
+      containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+    );
   }
   function goNext(): void {
     setSingleIndex((i) => {
@@ -303,7 +387,9 @@ export function ReadSurfaceClient({
       setSingleDirection('next');
       return i + 1;
     });
-    requestAnimationFrame(() => containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    requestAnimationFrame(() =>
+      containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+    );
   }
 
   // Surah number for the mushaf-link
@@ -313,15 +399,17 @@ export function ReadSurfaceClient({
   return (
     <>
       {/* Sticky chip-bar — three rows: translation, reciter, layout/view */}
-      <div className="border-b border-hairline bg-paper-100/95 backdrop-blur-md sticky top-[60px] sm:top-[68px] z-20">
-        <div className="mx-auto max-w-5xl px-3 sm:px-6 py-2.5 space-y-2">
+      <div className="border-hairline bg-paper-100/95 sticky top-[60px] z-20 border-b backdrop-blur-md sm:top-[68px]">
+        <div className="mx-auto max-w-5xl space-y-2 px-3 py-2.5 sm:px-6">
           <ChipRow label="Translation">
             {/* 59 translations across 28 languages — replace inline
                 chip-row with a language-grouped bottom-sheet picker. */}
             <TranslationPicker
               translations={translations}
               value={translation}
-              onChange={(next) => pickTranslation(next)}
+              onChange={(next) => {
+                pickTranslation(next);
+              }}
             />
             {/* Pinned shortcuts: Arabic only + the user's last 2-3
                 preferred translations could live here. For now we
@@ -333,7 +421,9 @@ export function ReadSurfaceClient({
               <Chip
                 key={r.slug}
                 active={reciter === r.slug}
-                onClick={() => pickReciter(r.slug)}
+                onClick={() => {
+                  pickReciter(r.slug);
+                }}
                 title={`${r.name.en}${r.style ? ` · ${r.style}` : ''}`}
               >
                 {r.name.en.replace(/^.* /, '').replace(/^al-/, '')}
@@ -342,20 +432,69 @@ export function ReadSurfaceClient({
           </ChipRow>
 
           <ChipRow label="View">
-            <Chip active={viewMode === 'continuous'} onClick={() => pickView('continuous')}>
+            <Chip
+              active={viewMode === 'continuous'}
+              onClick={() => {
+                pickView('continuous');
+              }}
+            >
               Continuous
             </Chip>
-            <Chip active={viewMode === 'single'} onClick={() => pickView('single')}>
+            <Chip
+              active={viewMode === 'single'}
+              onClick={() => {
+                pickView('single');
+              }}
+            >
               One ayah
             </Chip>
             <Chip
               active={viewMode === 'mushaf'}
-              onClick={() => pickView('mushaf')}
+              onClick={() => {
+                pickView('mushaf');
+              }}
               title="Mushaf — page-faithful line breaks"
             >
               Mushaf
             </Chip>
           </ChipRow>
+
+          {transliterations.length > 0 ? (
+            <ChipRow label="Transliteration">
+              <Chip
+                active={transliteration === 'off'}
+                onClick={() => {
+                  pickTransliteration('off');
+                }}
+                title="Hide phonetic transliteration"
+              >
+                Off
+              </Chip>
+              {transliterations.map((t) => {
+                // Short label per language: "Latin" / "Türkçe" / "Русский".
+                const label =
+                  t.language === 'en'
+                    ? 'Latin'
+                    : t.language === 'tr'
+                      ? 'Türkçe'
+                      : t.language === 'ru'
+                        ? 'Русский'
+                        : t.language;
+                return (
+                  <Chip
+                    key={t.slug}
+                    active={transliteration === t.slug}
+                    onClick={() => {
+                      pickTransliteration(t.slug);
+                    }}
+                    title={t.name}
+                  >
+                    {label}
+                  </Chip>
+                );
+              })}
+            </ChipRow>
+          ) : null}
 
           {layouts.length > 0 ? (
             <ChipRow label="Layout">
@@ -378,7 +517,9 @@ export function ReadSurfaceClient({
                   <Chip
                     key={l.slug}
                     active={isActive}
-                    onClick={() => setActiveLayoutSlug(l.slug)}
+                    onClick={() => {
+                      setActiveLayoutSlug(l.slug);
+                    }}
                     title={l.subtitle ?? ''}
                   >
                     {label}
@@ -392,7 +533,7 @@ export function ReadSurfaceClient({
                   <a
                     href={`/mushaf/${active.urlSlug ?? active.slug}/page-for/${encodeURIComponent(firstVk)}`}
                     title="Open the page-faithful mushaf for this verse"
-                    className="shrink-0 ml-1 rounded-full px-3 py-1 text-[11px] sm:text-xs smallcaps tracking-wider border border-leaf/40 text-leaf hover:bg-leaf/10"
+                    className="smallcaps border-leaf/40 text-leaf hover:bg-leaf/10 ml-1 shrink-0 rounded-full border px-3 py-1 text-[11px] tracking-wider sm:text-xs"
                   >
                     Open page →
                   </a>
@@ -406,10 +547,10 @@ export function ReadSurfaceClient({
       {/* Translator attribution — once per surah, only when translation chosen.
           Dedupe when name === translator (e.g. "Saheeh International"). */}
       {activeTranslation ? (
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 pt-4 sm:pt-6">
-          <p className="text-[11px] sm:text-xs text-ink-muted text-center leading-relaxed">
+        <div className="mx-auto max-w-3xl px-4 pt-4 sm:px-6 sm:pt-6">
+          <p className="text-ink-muted text-center text-[11px] leading-relaxed sm:text-xs">
             <span className="smallcaps tracking-widest">Translation</span>
-            <span className="block sm:inline sm:mx-2 mt-1 sm:mt-0">
+            <span className="mt-1 block sm:mx-2 sm:mt-0 sm:inline">
               <span>{activeTranslation.name}</span>
               {activeTranslation.translator &&
               activeTranslation.translator !== activeTranslation.name ? (
@@ -418,9 +559,7 @@ export function ReadSurfaceClient({
                   <span className="italic">{activeTranslation.translator}</span>
                 </>
               ) : null}
-              {translationLoading ? (
-                <span className="mx-2 opacity-60 italic">loading…</span>
-              ) : null}
+              {translationLoading ? <span className="mx-2 italic opacity-60">loading…</span> : null}
             </span>
           </p>
         </div>
@@ -428,7 +567,7 @@ export function ReadSurfaceClient({
 
       <main
         ref={containerRef as React.RefObject<HTMLElement>}
-        className="mx-auto max-w-3xl px-3 sm:px-6 py-5 sm:py-10 space-y-4 sm:space-y-6"
+        className="mx-auto max-w-3xl space-y-4 px-3 py-5 sm:space-y-6 sm:px-6 sm:py-10"
       >
         {viewMode === 'continuous' ? (
           verses.map((v) => (
@@ -436,14 +575,15 @@ export function ReadSurfaceClient({
               key={`${v.verseKey}-${activeLayoutSlug}`}
               verseKey={v.verseKey}
               arabic={textForLayout(v, activeLayoutSlug)}
-              translation={translation === 'none' ? null : translationMap.get(v.verseKey) ?? null}
+              translation={translation === 'none' ? null : (translationMap.get(v.verseKey) ?? null)}
+              transliteration={
+                transliteration === 'off' ? null : (transliterationMap.get(v.verseKey) ?? null)
+              }
               tafsirSlug={tafsirSlug}
               reciterSlug={reciter}
               apiBase={apiBase}
               layoutSlug={activeLayoutSlug}
-              highlightWordIndex={
-                highlight?.verseKey === v.verseKey ? highlight.wordIndex : null
-              }
+              highlightWordIndex={highlight?.verseKey === v.verseKey ? highlight.wordIndex : null}
             />
           ))
         ) : viewMode === 'mushaf' ? (
@@ -461,9 +601,7 @@ export function ReadSurfaceClient({
                 key={`${v.verseKey}-${activeLayoutSlug}`}
                 verseKey={v.verseKey}
                 layoutSlug={activeLayoutSlug}
-                highlight={
-                  highlight?.verseKey === v.verseKey ? highlight : null
-                }
+                highlight={highlight?.verseKey === v.verseKey ? highlight : null}
               />
             ))}
           </article>
@@ -488,7 +626,7 @@ export function ReadSurfaceClient({
 
         <nav
           aria-label="Surah navigation"
-          className="flex items-baseline justify-between text-sm pt-10 mt-6 border-t border-hairline"
+          className="border-hairline mt-6 flex items-baseline justify-between border-t pt-10 text-sm"
         >
           {surahN > 1 ? (
             <a
@@ -530,11 +668,11 @@ export function ReadSurfaceClient({
 
 function ChipRow({ label, children }: { label: string; children: ReactNode }): ReactNode {
   return (
-    <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto -mx-1 px-1 scrollbar-thin">
-      <span className="smallcaps text-leaf text-[10px] sm:text-[11px] tracking-widest shrink-0 w-[64px] sm:w-[78px]">
+    <div className="scrollbar-thin -mx-1 flex items-center gap-2 overflow-x-auto px-1 sm:gap-3">
+      <span className="smallcaps text-leaf w-[64px] shrink-0 text-[10px] tracking-widest sm:w-[78px] sm:text-[11px]">
         {label}
       </span>
-      <div className="flex items-center gap-1.5 min-w-max">{children}</div>
+      <div className="flex min-w-max items-center gap-1.5">{children}</div>
     </div>
   );
 }
@@ -556,10 +694,8 @@ function Chip({
       onClick={onClick}
       title={title}
       aria-pressed={active}
-      className={`shrink-0 rounded-full px-3 py-1 text-[11px] sm:text-xs smallcaps tracking-wider transition-colors border ${
-        active
-          ? 'bg-leaf text-paper border-leaf'
-          : 'border-hairline text-ink hover:bg-paper-200/60'
+      className={`smallcaps shrink-0 rounded-full border px-3 py-1 text-[11px] tracking-wider transition-colors sm:text-xs ${
+        active ? 'bg-leaf text-paper border-leaf' : 'border-hairline text-ink hover:bg-paper-200/60'
       }`}
     >
       {children}
@@ -617,13 +753,13 @@ function SingleAyahView({
           onClick={onPrev}
           disabled={index === 0}
           aria-label="Previous ayah"
-          className="inline-flex items-center justify-center w-10 h-10 rounded-full text-ink hover:bg-paper-200/60 disabled:opacity-30"
+          className="text-ink hover:bg-paper-200/60 inline-flex h-10 w-10 items-center justify-center rounded-full disabled:opacity-30"
         >
           <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
             <path d="M15 18l-6-6 6-6v12z" />
           </svg>
         </button>
-        <p className="text-xs smallcaps tracking-widest text-ink-muted tabular-nums">
+        <p className="smallcaps text-ink-muted text-xs tabular-nums tracking-widest">
           Ayah {(index + 1).toString()} <span className="opacity-50">/ {total.toString()}</span>
         </p>
         <button
@@ -631,7 +767,7 @@ function SingleAyahView({
           onClick={onNext}
           disabled={index === total - 1}
           aria-label="Next ayah"
-          className="inline-flex items-center justify-center w-10 h-10 rounded-full text-ink hover:bg-paper-200/60 disabled:opacity-30"
+          className="text-ink hover:bg-paper-200/60 inline-flex h-10 w-10 items-center justify-center rounded-full disabled:opacity-30"
         >
           <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
             <path d="M9 6l6 6-6 6V6z" />
@@ -644,7 +780,7 @@ function SingleAyahView({
       <div
         key={`${v.verseKey}-${style}-${layoutSlug}`}
         className={`${slideClass} ${swipe.dragging ? 'swipe-drag' : 'swipe-spring-back'} touch-pan-y select-none`}
-        style={{ ['--swipe-x' as string]: swipe.dragging ? `${swipe.dx}px` : '0px' }}
+        style={{ ['--swipe-x' as string]: swipe.dragging ? `${String(swipe.dx)}px` : '0px' }}
         onTouchStart={swipe.onTouchStart}
         onTouchMove={swipe.onTouchMove}
         onTouchEnd={swipe.onTouchEnd}
@@ -665,13 +801,11 @@ function SingleAyahView({
             />
             {translation !== 'none' && translationMap.get(v.verseKey) ? (
               <div className="paper-card p-5 sm:p-7">
-                <p className="smallcaps text-leaf text-[10px] tracking-widest mb-2">
-                  Translation
-                </p>
+                <p className="smallcaps text-leaf mb-2 text-[10px] tracking-widest">Translation</p>
                 <p
                   dir="ltr"
                   lang="en"
-                  className="text-[15px] sm:text-base leading-relaxed text-ink/90 max-w-prose mx-auto"
+                  className="text-ink/90 mx-auto max-w-prose text-[15px] leading-relaxed sm:text-base"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   {translationMap.get(v.verseKey)}
@@ -683,21 +817,19 @@ function SingleAyahView({
           <AyahCard
             verseKey={v.verseKey}
             arabic={textForLayout(v, layoutSlug)}
-            translation={translation === 'none' ? null : translationMap.get(v.verseKey) ?? null}
+            translation={translation === 'none' ? null : (translationMap.get(v.verseKey) ?? null)}
             tafsirSlug={tafsirSlug}
             reciterSlug={reciterSlug}
             apiBase={apiBase}
             layoutSlug={layoutSlug}
-            highlightWordIndex={
-              highlight?.verseKey === v.verseKey ? highlight.wordIndex : null
-            }
+            highlightWordIndex={highlight?.verseKey === v.verseKey ? highlight.wordIndex : null}
           />
         )}
       </div>
 
       <HairlineDivider />
 
-      <div className="flex justify-between text-xs smallcaps">
+      <div className="smallcaps flex justify-between text-xs">
         <button
           type="button"
           onClick={onPrev}
@@ -706,7 +838,9 @@ function SingleAyahView({
         >
           ← {verses[Math.max(0, index - 1)]?.verseKey ?? ''}
         </button>
-        <span className="text-ink-muted tabular-nums">{surahN.toString()}:{(index + 1).toString()}</span>
+        <span className="text-ink-muted tabular-nums">
+          {surahN.toString()}:{(index + 1).toString()}
+        </span>
         <button
           type="button"
           onClick={onNext}
@@ -717,7 +851,7 @@ function SingleAyahView({
         </button>
       </div>
 
-      <p className="text-[10px] smallcaps text-ink-muted/70 tracking-widest text-center pt-2">
+      <p className="smallcaps text-ink-muted/70 pt-2 text-center text-[10px] tracking-widest">
         Swipe ← for next · Swipe → for previous
       </p>
     </div>
@@ -796,7 +930,9 @@ function useSwipePager({
   return {
     dragging,
     dx,
-    onTouchStart: (e) => begin(e.touches[0]?.clientX ?? 0, e.touches[0]?.clientY ?? 0),
+    onTouchStart: (e) => {
+      begin(e.touches[0]?.clientX ?? 0, e.touches[0]?.clientY ?? 0);
+    },
     onTouchMove: (e) => {
       const consumed = move(e.touches[0]?.clientX ?? 0, e.touches[0]?.clientY ?? 0);
       if (consumed && e.cancelable) e.preventDefault();

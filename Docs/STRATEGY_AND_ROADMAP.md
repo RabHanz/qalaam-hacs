@@ -2686,6 +2686,13 @@ initialized` + `tools/list` + `tools/call` (single + batch). Tool
 9. **Image-mushaf overlay** — `mushaf-layout-12.sqlite/6/{N}.png|json`
    we already have + ayah-detection scripts.
 10. **More mushaf layouts** — IndoPak 16-line, Qatar 15-line, DigitalKhatt.
-11. **Transliteration ingest** (9 editions) — accessibility surface.
+11. ✅ **Transliteration ingest** — 3 alquran.cloud editions ingested
+    (en.transliteration, tr.transliteration, ru.transliteration) into
+    dedicated `qalaam_v1_transliterations` + `qalaam_v1_transliteration_meta`.
+    Backend `/v1/transliterations` catalog + per-verse route. /read
+    chip-row "Transliteration" (Off / Latin / Türkçe / Русский) +
+    AyahCard phonetic-bridge rendering between Arabic and translation.
+    3 × 6,236 = 18,708 rows. Future work: scrape additional Latin scholar
+    transliterations (Lane, Pelly) once licensing clears.
 12. **Mobile** — Kotlin / Swift apps borrowing from quran_android +
     QuranEngine patterns.

@@ -32,6 +32,7 @@ import { recitationsRoutes } from './routes/v1/recitations.js';
 import { tajweedRoutes } from './routes/v1/tajweed.js';
 import { topicsRoutes } from './routes/v1/topics.js';
 import { translationsRoutes } from './routes/v1/translations.js';
+import { transliterationsRoutes } from './routes/v1/transliterations.js';
 import { versesRoutes } from './routes/v1/verses.js';
 
 export async function build(config: Config = loadConfig()): Promise<FastifyInstance> {
@@ -78,6 +79,7 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   await app.register(hifdhStateRoutes);
   await app.register(nowPlayingRoutes);
   await app.register(translationsRoutes);
+  await app.register(transliterationsRoutes);
   await app.register(tajweedRoutes);
   await app.register(morphologyRoutes);
   await app.register(topicsRoutes);
