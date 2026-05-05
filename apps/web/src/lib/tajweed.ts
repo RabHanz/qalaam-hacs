@@ -96,9 +96,8 @@ export async function fetchTajweed(
       return [];
     }
     const body = (await res.json()) as { annotations: readonly TajweedAnnotation[] };
-    const list = body.annotations ?? [];
-    cache.set(verseKey, list);
-    return list;
+    cache.set(verseKey, body.annotations);
+    return body.annotations;
   } catch {
     cache.set(verseKey, []);
     return [];

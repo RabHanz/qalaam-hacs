@@ -70,7 +70,6 @@ function arabicWordsFor(dbPath: string, verseKey: string, lang: string): readonl
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/require-await
 export async function qulWbwRoutes(
   fastify: FastifyInstance,
   opts: { config: Config },
@@ -114,7 +113,13 @@ export async function qulWbwRoutes(
         { enableMorphology: includeMorphology },
       );
       const lang = req.query.lang ?? 'en';
-      let words: readonly { verseKey: string; wordIndex: number; textArabic: string; translation: string | null; languageCode: string }[] = reader.wordsForAyah(req.params.verseKey, lang);
+      let words: readonly {
+        verseKey: string;
+        wordIndex: number;
+        textArabic: string;
+        translation: string | null;
+        languageCode: string;
+      }[] = reader.wordsForAyah(req.params.verseKey, lang);
       if (words.length === 0) {
         // Fallback: render Arabic word splits from scripts_words even when
         // QUL's wbw-translation pack lacks a gloss for this ayah.

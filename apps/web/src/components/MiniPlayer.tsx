@@ -13,9 +13,10 @@
  * for the scrubber), 72px on desktop. Big touch targets (min 44px).
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
+
+import type { ReactNode } from 'react';
 
 interface ReciterItem {
   readonly slug: string;
@@ -32,7 +33,11 @@ interface MiniPlayerProps {
 }
 
 function arabicNumeral(n: number): string {
-  return n.toString().split('').map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d).join('');
+  return n
+    .toString()
+    .split('')
+    .map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d)
+    .join('');
 }
 
 function format(seconds: number): string {
@@ -87,7 +92,7 @@ export function MiniPlayer({
         if (wordIndex >= 0) {
           const next = { verseKey, wordIndex };
           const prev = lastHlRef.current;
-          if (!prev || prev.verseKey !== next.verseKey || prev.wordIndex !== next.wordIndex) {
+          if (prev?.verseKey !== next.verseKey || prev.wordIndex !== next.wordIndex) {
             lastHlRef.current = next;
             window.dispatchEvent(new CustomEvent('qalaam:highlight', { detail: next }));
           }
@@ -96,14 +101,19 @@ export function MiniPlayer({
       raf = requestAnimationFrame(tick);
     }
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+    };
   }, [playing, verseKey]);
 
   // Resolve audio URL + segments whenever (verseKey, reciter) changes,
   // and broadcast the current word so any listener (e.g. an AyahCard
   // on the same page) can paint the matching word.
   useEffect(() => {
-    let cancelled = false;
+    // Object cell: lets the cleanup closure flip the cancellation flag
+    // in a way eslint flow analysis can see (a let-rebinding looks
+    // unmutated to it).
+    const cancel = { v: false };
     setAudioUrl(null);
     setPosition(0);
     segmentsRef.current = [];
@@ -111,21 +121,25 @@ export function MiniPlayer({
       try {
         const [res, segRes] = await Promise.all([
           fetch(`${apiBase}/v1/audio/by_verse/${encodeURIComponent(verseKey)}/${reciterSlug}`),
-          fetch(`${apiBase}/v1/recitations/${reciterSlug}/segments/${encodeURIComponent(verseKey)}`),
+          fetch(
+            `${apiBase}/v1/recitations/${reciterSlug}/segments/${encodeURIComponent(verseKey)}`,
+          ),
         ]);
-        if (!res.ok || cancelled) return;
+        if (!res.ok) return;
         const body = (await res.json()) as { audioUrl: string };
-        if (!cancelled) setAudioUrl(body.audioUrl);
+        if (!cancel.v) setAudioUrl(body.audioUrl);
         if (segRes.ok) {
-          const segBody = (await segRes.json()) as { data: { wordIndex: number; startMs: number; endMs: number }[] };
-          segmentsRef.current = segBody.data ?? [];
+          const segBody = (await segRes.json()) as {
+            data: { wordIndex: number; startMs: number; endMs: number }[];
+          };
+          segmentsRef.current = segBody.data;
         }
       } catch {
         /* ignore */
       }
     })();
     return () => {
-      cancelled = true;
+      cancel.v = true;
     };
   }, [verseKey, reciterSlug, apiBase]);
 
@@ -137,13 +151,14 @@ export function MiniPlayer({
     if (!audioUrl || !shouldResumeRef.current || !audioRef.current) return;
     const a = audioRef.current;
     shouldResumeRef.current = false;
-    const p = a.play();
-    if (p && typeof p.then === 'function') {
-      p.then(
-        () => setPlaying(true),
-        () => setPlaying(false),
-      );
-    }
+    void a.play().then(
+      () => {
+        setPlaying(true);
+      },
+      () => {
+        setPlaying(false);
+      },
+    );
   }, [audioUrl]);
 
   const advance = useCallback(
@@ -173,15 +188,14 @@ export function MiniPlayer({
       shouldResumeRef.current = true;
       return;
     }
-    const p = a.play();
-    if (p && typeof p.then === 'function') {
-      p.then(
-        () => setPlaying(true),
-        () => setPlaying(false),
-      );
-    } else {
-      setPlaying(true);
-    }
+    void a.play().then(
+      () => {
+        setPlaying(true);
+      },
+      () => {
+        setPlaying(false);
+      },
+    );
   }
 
   function onSeek(e: React.ChangeEvent<HTMLInputElement>): void {
@@ -211,17 +225,19 @@ export function MiniPlayer({
         }}
       />
       <div
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-hairline bg-paper-100/95 backdrop-blur-md"
+        className="border-hairline bg-paper-100/95 fixed inset-x-0 bottom-0 z-30 border-t backdrop-blur-md"
         role="region"
         aria-label="Audio player"
       >
-        <div className="mx-auto max-w-5xl px-3 sm:px-6 py-2 sm:py-3">
+        <div className="mx-auto max-w-5xl px-3 py-2 sm:px-6 sm:py-3">
           <div className="flex items-center gap-2 sm:gap-4">
             <button
               type="button"
               aria-label="Previous verse"
-              onClick={() => advance(-1, playing)}
-              className="shrink-0 inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full text-ink hover:bg-paper-200/60"
+              onClick={() => {
+                advance(-1, playing);
+              }}
+              className="text-ink hover:bg-paper-200/60 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full sm:h-10 sm:w-10"
             >
               <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                 <path d="M6 6h2v12H6zm3.5 6L20 6v12z" />
@@ -232,7 +248,7 @@ export function MiniPlayer({
               type="button"
               aria-label={playing ? 'Pause' : 'Play'}
               onClick={togglePlay}
-              className="shrink-0 inline-flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-leaf text-paper hover:opacity-90"
+              className="bg-leaf text-paper inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:opacity-90 sm:h-12 sm:w-12"
             >
               {playing ? (
                 <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -249,34 +265,34 @@ export function MiniPlayer({
             <button
               type="button"
               aria-label="Next verse"
-              onClick={() => advance(1, playing)}
-              className="shrink-0 inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full text-ink hover:bg-paper-200/60"
+              onClick={() => {
+                advance(1, playing);
+              }}
+              className="text-ink hover:bg-paper-200/60 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full sm:h-10 sm:w-10"
             >
               <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                 <path d="M16 6h2v12h-2zM4 6l10.5 6L4 18z" />
               </svg>
             </button>
 
-            <div className="min-w-0 flex-1 hidden sm:block">
-              <p className="font-display text-sm leading-tight truncate text-ink-strong">
+            <div className="hidden min-w-0 flex-1 sm:block">
+              <p className="font-display text-ink-strong truncate text-sm leading-tight">
                 {reciterMeta?.name.en ?? reciterSlug}
-                <span className="mx-2 text-ink-muted">·</span>
-                <span className="font-mono tabular-nums text-ink-muted">{verseKey}</span>
+                <span className="text-ink-muted mx-2">·</span>
+                <span className="text-ink-muted font-mono tabular-nums">{verseKey}</span>
               </p>
-              <p className="text-[11px] smallcaps text-ink-muted tracking-widest mt-0.5">
+              <p className="smallcaps text-ink-muted mt-0.5 text-[11px] tracking-widest">
                 {format(position)} <span className="opacity-50">/</span> {format(duration)}
               </p>
             </div>
 
             <div className="min-w-0 flex-1 sm:hidden">
-              <p className="text-[11px] smallcaps text-ink-muted tracking-widest tabular-nums">
+              <p className="smallcaps text-ink-muted text-[11px] tabular-nums tracking-widest">
                 {arabicNumeral(Number.parseInt(verseKey.split(':')[1] ?? '0', 10))}
                 <span className="mx-1">·</span>
                 {format(position)} / {format(duration)}
               </p>
-              <p className="font-mono tabular-nums text-xs text-ink truncate">
-                {verseKey}
-              </p>
+              <p className="text-ink truncate font-mono text-xs tabular-nums">{verseKey}</p>
             </div>
 
             <input
@@ -287,7 +303,7 @@ export function MiniPlayer({
               step={0.1}
               value={position}
               onChange={onSeek}
-              className="hidden sm:block flex-1 accent-leaf"
+              className="accent-leaf hidden flex-1 sm:block"
             />
           </div>
 
@@ -299,7 +315,7 @@ export function MiniPlayer({
             step={0.1}
             value={position}
             onChange={onSeek}
-            className="block sm:hidden w-full mt-2 accent-leaf"
+            className="accent-leaf mt-2 block w-full sm:hidden"
           />
         </div>
       </div>

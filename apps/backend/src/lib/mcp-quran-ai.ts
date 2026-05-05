@@ -50,10 +50,13 @@ let nextId = 1;
 let initInFlight: Promise<void> | null = null;
 let groundingNonce: string | null = null;
 
-async function postRpc<T>(req: JsonRpcRequest, includeSession: boolean): Promise<JsonRpcResponse<T>> {
+async function postRpc<T>(
+  req: JsonRpcRequest,
+  includeSession: boolean,
+): Promise<JsonRpcResponse<T>> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'Accept': 'application/json, text/event-stream',
+    Accept: 'application/json, text/event-stream',
   };
   if (includeSession && sessionId) headers['mcp-session-id'] = sessionId;
   const res = await fetch(ENDPOINT, {
@@ -72,7 +75,7 @@ async function postRpc<T>(req: JsonRpcRequest, includeSession: boolean): Promise
   // SSE stream — extract the FIRST `data: …` line.
   if (ct.includes('text/event-stream')) {
     const m = /^data:\s*(.+)$/m.exec(raw);
-    if (!m || !m[1]) throw new Error('MCP empty SSE');
+    if (!m?.[1]) throw new Error('MCP empty SSE');
     return JSON.parse(m[1]) as JsonRpcResponse<T>;
   }
   return JSON.parse(raw) as JsonRpcResponse<T>;
@@ -101,10 +104,7 @@ async function ensureInitialized(): Promise<void> {
     if (initRes.error) throw new Error(`MCP init: ${initRes.error.message}`);
     // Notify server we're ready (per MCP spec).
     try {
-      await postRpc(
-        { jsonrpc: '2.0', id: nextId++, method: 'notifications/initialized' },
-        true,
-      );
+      await postRpc({ jsonrpc: '2.0', id: nextId++, method: 'notifications/initialized' }, true);
     } catch {
       /* notification can fail silently */
     }
@@ -119,7 +119,7 @@ async function ensureInitialized(): Promise<void> {
         },
         true,
       );
-      const text = g.result?.content?.[0]?.text;
+      const text = g.result?.content[0]?.text;
       if (text) {
         const m = /grounding_nonce[":\s]+([a-z0-9-]+)/i.exec(text);
         if (m?.[1]) groundingNonce = m[1];
@@ -142,9 +142,9 @@ export async function mcpQuranTool(
 ): Promise<unknown> {
   await ensureInitialized();
   const argsWithNonce: Record<string, unknown> = { ...args };
-  if (groundingNonce) argsWithNonce['grounding_nonce'] = groundingNonce;
+  if (groundingNonce) argsWithNonce.grounding_nonce = groundingNonce;
 
-  const callOnce = async (): Promise<JsonRpcResponse<unknown>> => {
+  const callOnce = async (): Promise<JsonRpcResponse> => {
     return postRpc(
       {
         jsonrpc: '2.0',

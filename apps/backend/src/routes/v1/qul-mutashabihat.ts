@@ -29,7 +29,6 @@ function assertVerseKey(s: string): string {
   return s;
 }
 
-// eslint-disable-next-line @typescript-eslint/require-await
 export async function qulMutashabihatRoutes(
   fastify: FastifyInstance,
   opts: { config: Config },

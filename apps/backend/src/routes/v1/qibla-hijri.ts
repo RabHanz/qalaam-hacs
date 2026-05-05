@@ -15,7 +15,6 @@ import {
 
 import type { FastifyInstance } from 'fastify';
 
-// eslint-disable-next-line @typescript-eslint/require-await -- fastify register signature requires Promise<void>; body does not await.
 export async function qiblaHijriRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get<{ Querystring: { lat: string; lon: string } }>(
     '/v1/qibla',

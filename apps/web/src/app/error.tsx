@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect } from 'react';
-import type { ReactNode } from 'react';
 
 import { ErrorState } from '../components/ErrorState.js';
+
+import type { ReactNode } from 'react';
 
 export default function GlobalError({
   error,
@@ -14,7 +15,7 @@ export default function GlobalError({
 }): ReactNode {
   useEffect(() => {
     // In production this would report to Sentry; v0.1 logs only.
-    // eslint-disable-next-line no-console
+
     console.error('app:error-boundary', error);
   }, [error]);
 

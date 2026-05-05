@@ -23,7 +23,6 @@ import type { FastifyInstance } from 'fastify';
 
 const SEVEN_DAYS_S = 60 * 60 * 24 * 7;
 
-// eslint-disable-next-line @typescript-eslint/require-await
 export async function qulMetadataRoutes(
   fastify: FastifyInstance,
   opts: { config: Config },

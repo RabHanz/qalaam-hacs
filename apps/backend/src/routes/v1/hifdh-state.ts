@@ -10,9 +10,9 @@
  * all-zero state — a fresh user sees an inviting practice in progress,
  * not "you broke your streak."
  */
-import type { FastifyInstance } from 'fastify';
-
 import { getDemoHifdhState } from '../../lib/hifdh-store.js';
+
+import type { FastifyInstance } from 'fastify';
 
 interface AggregateView {
   readonly user_id: string;
@@ -29,12 +29,11 @@ interface AggregateView {
 }
 
 export async function hifdhStateRoutes(fastify: FastifyInstance): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/require-await
   fastify.get<{ Querystring: { user_id?: string } }>(
     '/v1/hifdh/state',
     {
       schema: {
-        description: "At-a-glance Hifdh summary — surfaced as HA sensors and /hifdh.",
+        description: 'At-a-glance Hifdh summary — surfaced as HA sensors and /hifdh.',
         tags: ['hifdh'],
         querystring: {
           type: 'object',

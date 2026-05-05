@@ -32,7 +32,10 @@ export const loggerPlugin = fp(async function (fastify, opts: { config: Config }
   fastify.log = baseLogger as unknown as typeof fastify.log;
 
   fastify.addHook('onRequest', async (request) => {
-    const id = (request.headers['x-request-id'] as string) ?? randomUUID();
+    // request.headers[k] is `string | string[] | undefined`; coerce to
+    // single string then fall back to a generated UUID if absent.
+    const hdr = request.headers['x-request-id'];
+    const id = (typeof hdr === 'string' ? hdr : undefined) ?? randomUUID();
     request.requestId = id;
     request.log = baseLogger.child({ reqId: id }) as unknown as typeof request.log;
   });

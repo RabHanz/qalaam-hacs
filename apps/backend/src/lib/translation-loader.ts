@@ -16,14 +16,14 @@
  *
  * Per ADR-0002.
  */
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import Database from 'better-sqlite3';
-import type { Database as DB } from 'better-sqlite3';
-
 import { type VerseKey, parseVerseKey } from '@qalaam/core';
+import Database from 'better-sqlite3';
+
+import type { Database as DB } from 'better-sqlite3';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const FIXTURES_ROOT = join(HERE, '..', '..', 'fixtures');
@@ -48,18 +48,32 @@ export interface TafsirMeta {
   readonly delivery: string;
 }
 
-interface VerseTextMap { readonly [verseKey: string]: string }
+type VerseTextMap = Readonly<Record<string, string>>;
 
-interface TranslationFile { slug: string; language: string; verses: VerseTextMap }
-interface TafsirFile     { slug: string; language: string; verses: VerseTextMap }
+interface TranslationFile {
+  slug: string;
+  language: string;
+  verses: VerseTextMap;
+}
+interface TafsirFile {
+  slug: string;
+  language: string;
+  verses: VerseTextMap;
+}
 
-let cachedTranslations: { meta: readonly TranslationMeta[]; bySlug: Map<string, TranslationFile> } | undefined;
+let cachedTranslations:
+  | { meta: readonly TranslationMeta[]; bySlug: Map<string, TranslationFile> }
+  | undefined;
 let cachedTafsirs: { meta: readonly TafsirMeta[]; bySlug: Map<string, TafsirFile> } | undefined;
 
 function loadTranslations(): NonNullable<typeof cachedTranslations> {
   if (cachedTranslations) return cachedTranslations;
   const dir = join(FIXTURES_ROOT, 'translations');
-  const meta = (JSON.parse(readFileSync(join(dir, 'index.json'), 'utf-8')) as { translations: TranslationMeta[] }).translations;
+  const meta = (
+    JSON.parse(readFileSync(join(dir, 'index.json'), 'utf-8')) as {
+      translations: TranslationMeta[];
+    }
+  ).translations;
   const bySlug = new Map<string, TranslationFile>();
   for (const f of readdirSync(dir)) {
     if (f === 'index.json' || !f.endsWith('.json')) continue;
@@ -73,7 +87,9 @@ function loadTranslations(): NonNullable<typeof cachedTranslations> {
 function loadTafsirs(): NonNullable<typeof cachedTafsirs> {
   if (cachedTafsirs) return cachedTafsirs;
   const dir = join(FIXTURES_ROOT, 'tafsirs');
-  const meta = (JSON.parse(readFileSync(join(dir, 'index.json'), 'utf-8')) as { tafsirs: TafsirMeta[] }).tafsirs;
+  const meta = (
+    JSON.parse(readFileSync(join(dir, 'index.json'), 'utf-8')) as { tafsirs: TafsirMeta[] }
+  ).tafsirs;
   const bySlug = new Map<string, TafsirFile>();
   for (const f of readdirSync(dir)) {
     if (f === 'index.json' || !f.endsWith('.json')) continue;
@@ -122,14 +138,16 @@ function listFromDb(): readonly TranslationMeta[] {
          FROM qalaam_v1_translation_meta ORDER BY language, name`,
       )
       .all();
-    cachedDbMeta = rows.map((r): TranslationMeta => ({
-      id: `qul-${r.slug}`,
-      slug: r.slug,
-      language: r.language,
-      name: r.name,
-      translator: r.translator,
-      license: r.license_tag,
-    }));
+    cachedDbMeta = rows.map(
+      (r): TranslationMeta => ({
+        id: `qul-${r.slug}`,
+        slug: r.slug,
+        language: r.language,
+        name: r.name,
+        translator: r.translator,
+        license: r.license_tag,
+      }),
+    );
     return cachedDbMeta;
   } catch {
     return [];
@@ -153,9 +171,10 @@ export function getTranslationVerse(slug: string, key: VerseKey): string | undef
   if (db) {
     try {
       const row = db
-        .prepare<[string, string], { text: string }>(
-          'SELECT text FROM qalaam_v1_translations WHERE slug = ? AND verse_key = ?',
-        )
+        .prepare<
+          [string, string],
+          { text: string }
+        >('SELECT text FROM qalaam_v1_translations WHERE slug = ? AND verse_key = ?')
         .get(slug, key);
       if (row?.text) return row.text;
     } catch {
@@ -189,15 +208,17 @@ function listTafsirsFromDb(): readonly TafsirMeta[] {
          FROM qalaam_v1_tafsir_meta ORDER BY language, name`,
       )
       .all();
-    cachedTafsirMeta = rows.map((r): TafsirMeta => ({
-      id: `qul-tafsir-${r.slug}`,
-      slug: r.slug,
-      language: r.language,
-      name: r.name,
-      scholar: r.scholar,
-      license: r.license_tag,
-      delivery: 'sqlite',
-    }));
+    cachedTafsirMeta = rows.map(
+      (r): TafsirMeta => ({
+        id: `qul-tafsir-${r.slug}`,
+        slug: r.slug,
+        language: r.language,
+        name: r.name,
+        scholar: r.scholar,
+        license: r.license_tag,
+        delivery: 'sqlite',
+      }),
+    );
     return cachedTafsirMeta;
   } catch {
     return [];
@@ -215,9 +236,10 @@ export function getTafsirVerse(slug: string, key: VerseKey): string | undefined 
   if (db) {
     try {
       const row = db
-        .prepare<[string, string], { text: string }>(
-          'SELECT text FROM qalaam_v1_tafsirs WHERE slug = ? AND verse_key = ?',
-        )
+        .prepare<
+          [string, string],
+          { text: string }
+        >('SELECT text FROM qalaam_v1_tafsirs WHERE slug = ? AND verse_key = ?')
         .get(slug, key);
       if (row?.text) return row.text;
     } catch {

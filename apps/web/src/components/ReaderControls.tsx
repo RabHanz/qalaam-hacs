@@ -15,8 +15,8 @@
  * Mobile-first: chip groups scroll horizontally on small screens; sticky header
  * collapses padding below 640px.
  */
-import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 import type { ReactNode } from 'react';
 
@@ -77,8 +77,8 @@ export function ReaderControls({
         /* ignore */
       }
     }
-    // Run only on mount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Run only on mount — the persisted-prefs read is intentionally
+    // a one-shot bootstrap, not a reactive subscription.
   }, []);
 
   function pickTranslation(slug: string): void {
@@ -107,14 +107,14 @@ export function ReaderControls({
   }
 
   return (
-    <div className="border-b border-hairline bg-paper-100/85 backdrop-blur-md sticky top-[60px] sm:top-[68px] z-20">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 py-3 space-y-3">
+    <div className="border-hairline bg-paper-100/85 sticky top-[60px] z-20 border-b backdrop-blur-md sm:top-[68px]">
+      <div className="mx-auto max-w-5xl space-y-3 px-4 py-3 sm:px-6">
         {/* Translation picker */}
-        <div className="flex items-center gap-3 overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 scrollbar-thin">
-          <span className="smallcaps text-leaf text-[11px] tracking-widest shrink-0">
+        <div className="scrollbar-thin -mx-4 flex items-center gap-3 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+          <span className="smallcaps text-leaf shrink-0 text-[11px] tracking-widest">
             Translation
           </span>
-          <div className="flex items-center gap-1.5 min-w-max">
+          <div className="flex min-w-max items-center gap-1.5">
             {[{ slug: 'none', name: 'None — Arabic only', translator: '' }, ...translations].map(
               (t) => {
                 const active = translation === t.slug;
@@ -122,8 +122,10 @@ export function ReaderControls({
                   <button
                     key={t.slug}
                     type="button"
-                    onClick={() => pickTranslation(t.slug)}
-                    className={`shrink-0 rounded-full px-3 py-1 text-xs smallcaps tracking-wider transition-colors border ${
+                    onClick={() => {
+                      pickTranslation(t.slug);
+                    }}
+                    className={`smallcaps shrink-0 rounded-full border px-3 py-1 text-xs tracking-wider transition-colors ${
                       active
                         ? 'bg-leaf text-paper border-leaf'
                         : 'border-hairline text-ink hover:bg-paper-200/60'
@@ -139,19 +141,19 @@ export function ReaderControls({
         </div>
 
         {/* Reciter picker */}
-        <div className="flex items-center gap-3 overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 scrollbar-thin">
-          <span className="smallcaps text-leaf text-[11px] tracking-widest shrink-0">
-            Reciter
-          </span>
-          <div className="flex items-center gap-1.5 min-w-max">
+        <div className="scrollbar-thin -mx-4 flex items-center gap-3 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+          <span className="smallcaps text-leaf shrink-0 text-[11px] tracking-widest">Reciter</span>
+          <div className="flex min-w-max items-center gap-1.5">
             {reciters.map((r) => {
               const active = reciter === r.slug;
               return (
                 <button
                   key={r.slug}
                   type="button"
-                  onClick={() => pickReciter(r.slug)}
-                  className={`shrink-0 rounded-full px-3 py-1 text-xs smallcaps tracking-wider transition-colors border ${
+                  onClick={() => {
+                    pickReciter(r.slug);
+                  }}
+                  className={`smallcaps shrink-0 rounded-full border px-3 py-1 text-xs tracking-wider transition-colors ${
                     active
                       ? 'bg-leaf text-paper border-leaf'
                       : 'border-hairline text-ink hover:bg-paper-200/60'
@@ -169,7 +171,10 @@ export function ReaderControls({
   );
 }
 
-export function getActiveTranslation(searchParams: URLSearchParams, defaultSlug = 'pickthall'): string {
+export function getActiveTranslation(
+  searchParams: URLSearchParams,
+  defaultSlug = 'pickthall',
+): string {
   const t = searchParams.get('t');
   if (t === 'none') return 'none';
   return t ?? defaultSlug;

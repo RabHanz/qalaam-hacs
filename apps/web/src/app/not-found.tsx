@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import type { ReactNode } from 'react';
 
 import { EmptyState } from '../components/EmptyState.js';
+
+import type { ReactNode } from 'react';
 
 export default function NotFound(): ReactNode {
   return (

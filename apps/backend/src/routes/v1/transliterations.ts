@@ -44,7 +44,6 @@ interface MetaRow {
   verse_count: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/require-await -- fastify register signature requires Promise<void>; body does not await.
 export async function transliterationsRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get(
     '/v1/transliterations',

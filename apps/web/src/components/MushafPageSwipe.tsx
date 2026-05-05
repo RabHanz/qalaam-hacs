@@ -17,6 +17,7 @@
  */
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
+
 import type { ReactNode } from 'react';
 
 interface Props {
@@ -80,8 +81,10 @@ export function MushafPageSwipe({ layout, pageNumber, totalPages, children }: Pr
   return (
     <div
       className={`${dragging ? 'swipe-drag' : 'swipe-spring-back'} touch-pan-y select-none`}
-      style={{ ['--swipe-x' as string]: dragging ? `${dx}px` : '0px' }}
-      onTouchStart={(e) => begin(e.touches[0]?.clientX ?? 0, e.touches[0]?.clientY ?? 0)}
+      style={{ ['--swipe-x' as string]: dragging ? `${dx.toString()}px` : '0px' }}
+      onTouchStart={(e) => {
+        begin(e.touches[0]?.clientX ?? 0, e.touches[0]?.clientY ?? 0);
+      }}
       onTouchMove={(e) => {
         const consumed = move(e.touches[0]?.clientX ?? 0, e.touches[0]?.clientY ?? 0);
         if (consumed && e.cancelable) e.preventDefault();

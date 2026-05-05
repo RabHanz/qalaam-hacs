@@ -8,7 +8,7 @@
  */
 import { QalaamError, type VerseKey } from '@qalaam/core';
 
-const DEFAULT_BASE = process.env['PUBLIC_API_URL'] ?? 'http://localhost:4111';
+const DEFAULT_BASE = process.env.PUBLIC_API_URL ?? 'http://localhost:4111';
 
 export interface VerseResponse {
   readonly verseKey: VerseKey;
@@ -30,18 +30,28 @@ export interface SurahVersesResponse {
 }
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
+  // Spread init separately to avoid spreading a `headers` array (eslint
+  // no-misused-spread) — RequestInit['headers'] is a union including
+  // arrays, but at this site it's only ever a Record, never indexed.
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    ...(init?.headers as Record<string, string> | undefined),
+  };
   const res = await fetch(`${DEFAULT_BASE}${path}`, {
     ...init,
     next: { revalidate: 86400 }, // align with backend cache-control
-    headers: { Accept: 'application/json', ...(init?.headers ?? {}) },
+    headers,
   });
   if (!res.ok) {
     let detail = '';
     try {
       const body = (await res.json()) as { code?: string; detail?: string };
       detail = body.detail ?? '';
+      // body.code is opaque from the wire; cast to the union type the
+      // throw site expects. The cast is intentional — narrowing-by-
+      // membership-check would force us to ship the union runtime.
       throw new QalaamError(
-        (body.code as never) ?? 'qalaam.data.not-loaded',
+        (body.code as QalaamError['code'] | undefined) ?? 'qalaam.data.not-loaded',
         `${path} → ${res.status.toString()}: ${detail}`,
       );
     } catch (err) {

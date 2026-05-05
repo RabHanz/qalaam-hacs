@@ -445,7 +445,6 @@ function dispatch(req: JsonRpcRequest): JsonRpcResponse | null {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/require-await -- fastify register signature requires Promise<void> for symmetry with the rest of the route modules; body does not await.
 export async function mcpServerRoutes(fastify: FastifyInstance): Promise<void> {
   /**
    * GET /mcp — discovery endpoint. Some MCP clients probe this for

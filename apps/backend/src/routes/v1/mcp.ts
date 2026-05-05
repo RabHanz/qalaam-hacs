@@ -12,9 +12,9 @@
  * blindly. Tool args are validated; rate-limited at the Fastify
  * plugin layer (600/min).
  */
-import type { FastifyInstance } from 'fastify';
-
 import { mcpListTools, mcpQuranTool } from '../../lib/mcp-quran-ai.js';
+
+import type { FastifyInstance } from 'fastify';
 
 const ALLOWED_TOOLS = new Set<string>([
   'fetch_quran',
@@ -32,8 +32,7 @@ export async function mcpRoutes(fastify: FastifyInstance): Promise<void> {
     '/v1/mcp/tools',
     {
       schema: {
-        description:
-          'List MCP tools available from upstream mcp.quran.ai. Useful for discovery.',
+        description: 'List MCP tools available from upstream mcp.quran.ai. Useful for discovery.',
         tags: ['mcp'],
       },
     },
@@ -65,8 +64,7 @@ export async function mcpRoutes(fastify: FastifyInstance): Promise<void> {
     '/v1/mcp/call/:toolName',
     {
       schema: {
-        description:
-          'Invoke an MCP tool on mcp.quran.ai. Allowed tools listed in ALLOWED_TOOLS.',
+        description: 'Invoke an MCP tool on mcp.quran.ai. Allowed tools listed in ALLOWED_TOOLS.',
         tags: ['mcp'],
         params: {
           type: 'object',
@@ -78,11 +76,9 @@ export async function mcpRoutes(fastify: FastifyInstance): Promise<void> {
     async (req, reply) => {
       const { toolName } = req.params;
       if (!ALLOWED_TOOLS.has(toolName)) {
-        return reply
-          .code(403)
-          .send({ error: 'qalaam.mcp.tool-not-allowed', tool: toolName });
+        return reply.code(403).send({ error: 'qalaam.mcp.tool-not-allowed', tool: toolName });
       }
-      const args = req.body?.args ?? {};
+      const args = req.body.args ?? {};
       try {
         const result = await mcpQuranTool(toolName, args);
         return { tool: toolName, result };

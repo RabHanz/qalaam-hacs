@@ -6,19 +6,20 @@
  * Arabic name + numeral on the left. Locked lessons rendered with leaf
  * lozenge prefix; available lessons get a hairline-bordered hover state.
  */
-import Link from 'next/link';
-import type { ReactNode } from 'react';
 
 import {
-  LEVEL_META,
-  type CurriculumLevel,
   lessonsByLevel,
+  LEVEL_META,
   levelDurationMinutes,
+  type CurriculumLevel,
 } from '@qalaam/curriculum';
+import Link from 'next/link';
 
 import { EmptyState } from '../../../components/EmptyState.js';
 import { LozengeGlyph, RosetteGlyph } from '../../../components/Glyph.js';
 import { SiteNav } from '../../../components/SiteNav.js';
+
+import type { ReactNode } from 'react';
 
 interface PageProps {
   readonly params: Promise<{ level: string }>;
@@ -37,7 +38,11 @@ const LEVEL_ARABIC: Record<CurriculumLevel, string> = {
 };
 
 function arabicNumeral(n: number): string {
-  return n.toString().split('').map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d).join('');
+  return n
+    .toString()
+    .split('')
+    .map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d)
+    .join('');
 }
 
 export default async function LearnLevelPage({ params }: PageProps): Promise<ReactNode> {
@@ -65,20 +70,20 @@ export default async function LearnLevelPage({ params }: PageProps): Promise<Rea
     <>
       <SiteNav />
 
-      <header className="border-b border-hairline">
-        <div className="mx-auto flex max-w-6xl items-end justify-between gap-6 px-6 py-12 flex-wrap">
+      <header className="border-hairline border-b">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-end justify-between gap-6 px-6 py-12">
           <div>
-            <Link href="/learn" className="smallcaps text-ink-muted text-xs hover:text-leaf">
+            <Link href="/learn" className="smallcaps text-ink-muted hover:text-leaf text-xs">
               ← All levels
             </Link>
-            <p className="smallcaps text-leaf text-xs mt-4">Level {arabicNumeral(n)}</p>
-            <h1 className="font-display mt-2 text-5xl md:text-6xl font-light tracking-tight text-ink-strong">
+            <p className="smallcaps text-leaf mt-4 text-xs">Level {arabicNumeral(n)}</p>
+            <h1 className="font-display text-ink-strong mt-2 text-5xl font-light tracking-tight md:text-6xl">
               {meta.title}
             </h1>
-            <p className="mt-3 max-w-2xl text-base text-ink-muted leading-relaxed">
+            <p className="text-ink-muted mt-3 max-w-2xl text-base leading-relaxed">
               {meta.description}
             </p>
-            <p className="mt-4 text-xs smallcaps text-ink-muted">
+            <p className="smallcaps text-ink-muted mt-4 text-xs">
               {lessons.length.toString()} lessons · ≈ {hours.toString()} hours
               {meta.isPro ? ' · Pro tier' : ' · Free'}
             </p>
@@ -86,7 +91,7 @@ export default async function LearnLevelPage({ params }: PageProps): Promise<Rea
           <div className="text-right">
             <p
               dir="rtl"
-              className="font-arabic text-7xl md:text-8xl text-ink-strong"
+              className="font-arabic text-ink-strong text-7xl md:text-8xl"
               style={{ lineHeight: 1, unicodeBidi: 'plaintext' }}
             >
               {LEVEL_ARABIC[n]}
@@ -96,7 +101,7 @@ export default async function LearnLevelPage({ params }: PageProps): Promise<Rea
       </header>
 
       <section className="mx-auto max-w-6xl px-6 py-12">
-        <ol className="paper-card-raised divide-y divide-hairline">
+        <ol className="paper-card-raised divide-hairline divide-y">
           {lessons.map((lesson, i) => {
             const status = statuses[i];
             const available = status === 'available';
@@ -106,22 +111,22 @@ export default async function LearnLevelPage({ params }: PageProps): Promise<Rea
                 {available ? (
                   <Link
                     href={`/learn/${n.toString()}/${lesson.slug}`}
-                    className="grid grid-cols-12 gap-4 px-6 py-5 md:px-10 md:py-6 hover:bg-paper-100 transition-colors"
+                    className="hover:bg-paper-100 grid grid-cols-12 gap-4 px-6 py-5 transition-colors md:px-10 md:py-6"
                   >
-                    <span className="col-span-1 smallcaps text-leaf text-xs tabular-nums self-center">
+                    <span className="smallcaps text-leaf col-span-1 self-center text-xs tabular-nums">
                       {(i + 1).toString().padStart(2, '0')}
                     </span>
-                    <span className="col-span-7 md:col-span-8 self-center">
-                      <span className="font-display text-lg md:text-xl text-ink-strong">
+                    <span className="col-span-7 self-center md:col-span-8">
+                      <span className="font-display text-ink-strong text-lg md:text-xl">
                         {lesson.title.en}
                       </span>
                       {lesson.tajweedRule ? (
-                        <span className="smallcaps ml-3 text-xs text-leaf">
+                        <span className="smallcaps text-leaf ml-3 text-xs">
                           {lesson.tajweedRule}
                         </span>
                       ) : null}
                     </span>
-                    <span className="col-span-3 md:col-span-2 self-center text-right">
+                    <span className="col-span-3 self-center text-right md:col-span-2">
                       <span className="smallcaps text-ink-muted text-xs">
                         {lesson.estimatedMinutes.toString()} min
                       </span>
@@ -130,7 +135,7 @@ export default async function LearnLevelPage({ params }: PageProps): Promise<Rea
                       {ar ? (
                         <span
                           dir="rtl"
-                          className="font-arabic text-2xl text-ink-strong"
+                          className="font-arabic text-ink-strong text-2xl"
                           style={{ lineHeight: 1, unicodeBidi: 'plaintext' }}
                         >
                           {ar}
@@ -141,18 +146,18 @@ export default async function LearnLevelPage({ params }: PageProps): Promise<Rea
                     </span>
                   </Link>
                 ) : (
-                  <div className="grid grid-cols-12 gap-4 px-6 py-5 md:px-10 md:py-6 opacity-50">
-                    <span className="col-span-1 smallcaps text-ink-muted text-xs tabular-nums self-center">
+                  <div className="grid grid-cols-12 gap-4 px-6 py-5 opacity-50 md:px-10 md:py-6">
+                    <span className="smallcaps text-ink-muted col-span-1 self-center text-xs tabular-nums">
                       {(i + 1).toString().padStart(2, '0')}
                     </span>
-                    <span className="col-span-7 md:col-span-8 self-center">
+                    <span className="col-span-7 self-center md:col-span-8">
                       <LozengeGlyph
                         size={10}
-                        className="inline-block text-ink-muted mr-2 align-middle"
+                        className="text-ink-muted mr-2 inline-block align-middle"
                       />
-                      <span className="font-display text-lg text-ink">{lesson.title.en}</span>
+                      <span className="font-display text-ink text-lg">{lesson.title.en}</span>
                     </span>
-                    <span className="col-span-3 md:col-span-2 self-center text-right">
+                    <span className="col-span-3 self-center text-right md:col-span-2">
                       <span className="smallcaps text-ink-muted text-xs">
                         {lesson.estimatedMinutes.toString()} min
                       </span>
@@ -161,7 +166,7 @@ export default async function LearnLevelPage({ params }: PageProps): Promise<Rea
                       {ar ? (
                         <span
                           dir="rtl"
-                          className="font-arabic text-2xl text-ink-muted"
+                          className="font-arabic text-ink-muted text-2xl"
                           style={{ lineHeight: 1, unicodeBidi: 'plaintext' }}
                         >
                           {ar}
@@ -175,10 +180,9 @@ export default async function LearnLevelPage({ params }: PageProps): Promise<Rea
           })}
         </ol>
 
-        <p className="mt-8 text-xs text-ink-muted italic max-w-prose">
-          Lessons unlock in order. Locked lessons aren't withheld — they're
-          waiting for the foundation underneath them. Complete the lesson
-          above and the next opens.
+        <p className="text-ink-muted mt-8 max-w-prose text-xs italic">
+          Lessons unlock in order. Locked lessons aren't withheld — they're waiting for the
+          foundation underneath them. Complete the lesson above and the next opens.
         </p>
       </section>
     </>

@@ -87,7 +87,6 @@ function buildFtsQuery(q: string): string {
   return tokens.map((t, i) => (i === last ? `"${t}"*` : `"${t}"`)).join(' ');
 }
 
-// eslint-disable-next-line @typescript-eslint/require-await -- fastify register signature requires Promise<void>; body does not await.
 export async function searchRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get<{ Querystring: { q?: string; lang?: string; limit?: string } }>(
     '/v1/search',

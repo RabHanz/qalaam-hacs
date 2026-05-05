@@ -6,15 +6,16 @@
  * and lesson metadata. Makhraj diagrams render inline; other lessons
  * fall back to a "body coming v0.5" hairline-bordered placeholder.
  */
-import Link from 'next/link';
-import type { ReactNode } from 'react';
 
 import { lessonById } from '@qalaam/curriculum';
 import { MakhrajDiagram } from '@qalaam/ui-learn';
+import Link from 'next/link';
 
 import { EmptyState } from '../../../../components/EmptyState.js';
 import { HairlineDivider, LanternGlyph, RosetteGlyph } from '../../../../components/Glyph.js';
 import { SiteNav } from '../../../../components/SiteNav.js';
+
+import type { ReactNode } from 'react';
 
 interface PageProps {
   readonly params: Promise<{ level: string; slug: string }>;
@@ -59,31 +60,31 @@ export default async function LearnLessonPage({ params }: PageProps): Promise<Re
     <>
       <SiteNav />
 
-      <header className="border-b border-hairline">
+      <header className="border-hairline border-b">
         <div className="mx-auto max-w-6xl px-6 py-10">
           <Link
             href={`/learn/${level}`}
-            className="smallcaps text-ink-muted text-xs hover:text-leaf"
+            className="smallcaps text-ink-muted hover:text-leaf text-xs"
           >
             ← Level {level}
           </Link>
-          <div className="mt-6 flex items-end justify-between gap-6 flex-wrap">
+          <div className="mt-6 flex flex-wrap items-end justify-between gap-6">
             <div className="min-w-0 flex-1">
               <p className="smallcaps text-leaf text-xs">
                 {LESSON_KIND_LABEL[lesson.kind] ?? lesson.kind} · Lesson{' '}
                 {lesson.order.toString().padStart(2, '0')}
               </p>
-              <h1 className="font-display mt-3 text-4xl md:text-5xl font-light tracking-tight text-ink-strong">
+              <h1 className="font-display text-ink-strong mt-3 text-4xl font-light tracking-tight md:text-5xl">
                 {lesson.title.en}
               </h1>
               {lesson.tajweedRule ? (
-                <p className="smallcaps text-ink-muted text-xs mt-2">{lesson.tajweedRule}</p>
+                <p className="smallcaps text-ink-muted mt-2 text-xs">{lesson.tajweedRule}</p>
               ) : null}
             </div>
             {lesson.title.ar ? (
               <p
                 dir="rtl"
-                className="font-arabic text-6xl md:text-7xl text-ink-strong"
+                className="font-arabic text-ink-strong text-6xl md:text-7xl"
                 style={{ lineHeight: 1, unicodeBidi: 'plaintext' }}
               >
                 {lesson.title.ar}
@@ -93,8 +94,8 @@ export default async function LearnLessonPage({ params }: PageProps): Promise<Re
         </div>
       </header>
 
-      <article className="mx-auto max-w-6xl px-6 py-12 grid grid-cols-12 gap-10">
-        <main className="col-span-12 md:col-span-8 reveal">
+      <article className="mx-auto grid max-w-6xl grid-cols-12 gap-10 px-6 py-12">
+        <main className="reveal col-span-12 md:col-span-8">
           <div className="paper-card-raised p-10 md:p-14">
             {isMakhraj && zone !== undefined ? (
               <div className="flex justify-center">
@@ -102,19 +103,19 @@ export default async function LearnLessonPage({ params }: PageProps): Promise<Re
               </div>
             ) : (
               <>
-                <div className="flex items-start gap-3 mb-4">
+                <div className="mb-4 flex items-start gap-3">
                   <LanternGlyph size={18} className="text-leaf mt-1 shrink-0" />
                   <p className="smallcaps text-leaf text-xs">Lesson body</p>
                 </div>
-                <p className="font-display text-xl text-ink leading-relaxed max-w-prose">
-                  This lesson's body — Markdown narrative with embedded
-                  recitation prompts and mushaf snippets — arrives in v0.5.
+                <p className="font-display text-ink max-w-prose text-xl leading-relaxed">
+                  This lesson's body — Markdown narrative with embedded recitation prompts and
+                  mushaf snippets — arrives in v0.5.
                 </p>
                 <HairlineDivider />
-                <p className="text-sm text-ink-muted leading-relaxed max-w-prose">
-                  In the meantime, the <span className="text-leaf">prerequisite chain</span>{' '}
-                  on the right shows where this lesson sits in the path. When
-                  you're ready to recite a passage that uses this rule, head to{' '}
+                <p className="text-ink-muted max-w-prose text-sm leading-relaxed">
+                  In the meantime, the <span className="text-leaf">prerequisite chain</span> on the
+                  right shows where this lesson sits in the path. When you're ready to recite a
+                  passage that uses this rule, head to{' '}
                   <Link
                     href={
                       lesson.verseRange
@@ -132,30 +133,30 @@ export default async function LearnLessonPage({ params }: PageProps): Promise<Re
           </div>
         </main>
 
-        <aside className="col-span-12 md:col-span-4 reveal reveal-2">
-          <div className="paper-card p-8 sticky top-24">
+        <aside className="reveal reveal-2 col-span-12 md:col-span-4">
+          <div className="paper-card sticky top-24 p-8">
             <p className="smallcaps text-leaf text-xs">About this lesson</p>
             <dl className="mt-4 space-y-4">
               <div className="grid grid-cols-2 gap-2">
                 <dt className="smallcaps text-ink-muted text-xs">Duration</dt>
-                <dd className="text-sm text-ink tabular-nums text-right">
+                <dd className="text-ink text-right text-sm tabular-nums">
                   {lesson.estimatedMinutes.toString()} min
                 </dd>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <dt className="smallcaps text-ink-muted text-xs">Level</dt>
-                <dd className="text-sm text-ink text-right">{lesson.level.toString()}</dd>
+                <dd className="text-ink text-right text-sm">{lesson.level.toString()}</dd>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <dt className="smallcaps text-ink-muted text-xs">Kind</dt>
-                <dd className="text-sm text-ink text-right">
+                <dd className="text-ink text-right text-sm">
                   {LESSON_KIND_LABEL[lesson.kind] ?? lesson.kind}
                 </dd>
               </div>
               {lesson.verseRange ? (
                 <div className="grid grid-cols-2 gap-2">
                   <dt className="smallcaps text-ink-muted text-xs">Verse range</dt>
-                  <dd className="text-sm text-ink text-right tabular-nums">
+                  <dd className="text-ink text-right text-sm tabular-nums">
                     {lesson.verseRange.startVerseKey} → {lesson.verseRange.endVerseKey}
                   </dd>
                 </div>
@@ -166,15 +167,15 @@ export default async function LearnLessonPage({ params }: PageProps): Promise<Re
 
             <p className="smallcaps text-leaf text-xs">Prerequisites</p>
             {lesson.prerequisiteLessonIds.length === 0 ? (
-              <p className="mt-3 text-sm text-ink-muted italic">
+              <p className="text-ink-muted mt-3 text-sm italic">
                 None — this is a starting lesson.
               </p>
             ) : (
               <ul className="mt-3 space-y-2">
                 {lesson.prerequisiteLessonIds.map((pid) => (
-                  <li key={pid} className="flex items-start gap-2 text-sm text-ink">
+                  <li key={pid} className="text-ink flex items-start gap-2 text-sm">
                     <RosetteGlyph size={12} className="text-leaf mt-1.5 shrink-0" />
-                    <span className="font-mono text-xs text-ink-muted">{pid}</span>
+                    <span className="text-ink-muted font-mono text-xs">{pid}</span>
                   </li>
                 ))}
               </ul>

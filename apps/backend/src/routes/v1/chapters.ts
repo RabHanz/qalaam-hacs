@@ -14,7 +14,6 @@ import { fixtureSurah } from '../../lib/fixture-loader.js';
 import type { Config } from '../../config.js';
 import type { FastifyInstance } from 'fastify';
 
-// eslint-disable-next-line @typescript-eslint/require-await -- Fastify plugin signature.
 export async function chaptersRoutes(
   fastify: FastifyInstance,
   opts: { config: Config },
@@ -60,7 +59,7 @@ export async function chaptersRoutes(
       // For v0.1 we simply hydrate one verse at a time — performant enough (<10ms per).
       for (let ayah = 1; ayah <= 286; ayah += 1) {
         const key = `${surahNumber.toString()}:${ayah.toString()}`;
-         
+
         const verse = qul.getVerse(key as never);
         if (!verse) break;
         verses.push(verse);

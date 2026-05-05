@@ -16,7 +16,6 @@ import { fixtureVerse } from '../../lib/fixture-loader.js';
 import type { Config } from '../../config.js';
 import type { FastifyInstance } from 'fastify';
 
-// eslint-disable-next-line @typescript-eslint/require-await -- Fastify plugin signature.
 export async function versesRoutes(
   fastify: FastifyInstance,
   opts: { config: Config },

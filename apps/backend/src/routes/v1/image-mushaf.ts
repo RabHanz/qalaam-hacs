@@ -55,7 +55,6 @@ const LAYOUT_REGISTRY: Record<string, { layoutId: string; imageFolder: string }>
   },
 };
 
-// eslint-disable-next-line @typescript-eslint/require-await -- fastify register signature requires Promise<void>; body does not await.
 export async function imageMushafRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get<{ Params: { layout: string; page: string } }>(
     '/v1/image-mushaf/:layout/:page',

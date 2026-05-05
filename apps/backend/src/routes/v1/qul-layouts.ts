@@ -17,8 +17,6 @@ import { existsSync } from 'node:fs';
 
 import { QalaamError } from '@qalaam/core';
 
-
-
 import { getQul } from '../../lib/data-loader.js';
 import { LICENSE_METADATA } from '../../lib/qul-license-registry.js';
 
@@ -73,7 +71,6 @@ function assertLayout(slug: string): MushafLayoutSlug {
   return resolved;
 }
 
-// eslint-disable-next-line @typescript-eslint/require-await
 export async function qulLayoutsRoutes(
   fastify: FastifyInstance,
   opts: { config: Config },
@@ -115,15 +112,43 @@ export async function qulLayoutsRoutes(
         subtitle: '15 lines · KFGQPC v4 with tajweed colors',
         sourceLabel: 'King Fahd Glorious Quran Printing Complex',
       },
-      indopak_15: { name: 'Indo-Pak Mushaf', subtitle: '15 lines · Nastaleeq', sourceLabel: 'Community-built' },
+      indopak_15: {
+        name: 'Indo-Pak Mushaf',
+        subtitle: '15 lines · Nastaleeq',
+        sourceLabel: 'Community-built',
+      },
       indopak_16: { name: 'Indo-Pak Mushaf', subtitle: '16 lines', sourceLabel: 'Community-built' },
-      qatar_15: { name: 'Qatar Mushaf', subtitle: '15 lines', sourceLabel: 'Qatar Religious Affairs' },
-      nastaleeq_15: { name: 'Nastaleeq Mushaf', subtitle: '15 lines', sourceLabel: 'Community-built' },
-      digitalkhatt_v1: { name: 'DigitalKhatt v1', subtitle: 'OpenType-shaped Uthmani', sourceLabel: 'DigitalKhatt' },
-      digitalkhatt_v2: { name: 'DigitalKhatt v2', subtitle: 'OpenType-shaped Uthmani', sourceLabel: 'DigitalKhatt' },
-      ligature_svg: { name: 'Ligature SVG', subtitle: 'Per-glyph SVG mushaf', sourceLabel: 'Community-built' },
+      qatar_15: {
+        name: 'Qatar Mushaf',
+        subtitle: '15 lines',
+        sourceLabel: 'Qatar Religious Affairs',
+      },
+      nastaleeq_15: {
+        name: 'Nastaleeq Mushaf',
+        subtitle: '15 lines',
+        sourceLabel: 'Community-built',
+      },
+      digitalkhatt_v1: {
+        name: 'DigitalKhatt v1',
+        subtitle: 'OpenType-shaped Uthmani',
+        sourceLabel: 'DigitalKhatt',
+      },
+      digitalkhatt_v2: {
+        name: 'DigitalKhatt v2',
+        subtitle: 'OpenType-shaped Uthmani',
+        sourceLabel: 'DigitalKhatt',
+      },
+      ligature_svg: {
+        name: 'Ligature SVG',
+        subtitle: 'Per-glyph SVG mushaf',
+        sourceLabel: 'Community-built',
+      },
       madani_16: { name: 'Madinah Mushaf · 16 lines', subtitle: '16 lines', sourceLabel: 'KFGQPC' },
-      indopak_9: { name: 'Indo-Pak Mushaf', subtitle: '9 lines (large print)', sourceLabel: 'Community-built' },
+      indopak_9: {
+        name: 'Indo-Pak Mushaf',
+        subtitle: '9 lines (large print)',
+        sourceLabel: 'Community-built',
+      },
       indopak_13: { name: 'Indo-Pak Mushaf', subtitle: '13 lines', sourceLabel: 'Community-built' },
     };
     const available = Array.from(KNOWN_LAYOUTS)

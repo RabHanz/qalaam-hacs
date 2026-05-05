@@ -37,7 +37,6 @@ const ALL_HIGH_LAT_RULES: readonly HighLatitudeRule[] = [
   'twilight-angle',
 ];
 
-// eslint-disable-next-line @typescript-eslint/require-await -- fastify register signature requires Promise<void>; body does not await.
 export async function prayerTimesRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get('/v1/prayer-times/methods', { schema: { tags: ['prayer-times'] } }, (_req, reply) => {
     void reply.header('cache-control', 'public, max-age=86400');

@@ -77,7 +77,6 @@ interface ApiWord {
   readonly tokens: readonly ApiToken[];
 }
 
-// eslint-disable-next-line @typescript-eslint/require-await -- fastify register signature requires Promise<void> for symmetry; body is sync.
 export async function morphologyRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get<{ Params: { verseKey: string } }>(
     '/v1/morphology/:verseKey',

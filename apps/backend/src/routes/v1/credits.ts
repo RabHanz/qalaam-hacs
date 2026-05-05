@@ -143,7 +143,6 @@ function loadCreditsFromSidecars(rootDir: string): CreditsResponse {
 
 let cached: CreditsResponse | null = null;
 
-// eslint-disable-next-line @typescript-eslint/require-await -- Fastify plugin signature requires async even for sync init.
 export async function creditsRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get(
     '/v1/credits',

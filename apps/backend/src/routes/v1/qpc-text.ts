@@ -58,7 +58,6 @@ interface QpcWordRow {
   page_number: number | null;
 }
 
-// eslint-disable-next-line @typescript-eslint/require-await -- Fastify plugin signature.
 export async function qpcTextRoutes(
   fastify: FastifyInstance,
   opts: { config: Config },

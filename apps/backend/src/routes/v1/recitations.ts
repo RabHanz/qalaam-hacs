@@ -42,8 +42,6 @@ function openReadOnly(path: string): DB {
   return cachedDb;
 }
 
- 
-// eslint-disable-next-line @typescript-eslint/require-await -- Fastify plugin signature.
 export async function recitationsRoutes(
   fastify: FastifyInstance,
   opts: { config: Config },
@@ -122,7 +120,6 @@ export async function recitationsRoutes(
   const handler = async (
     _request: unknown,
     reply: { header: (k: string, v: string) => unknown },
-    // eslint-disable-next-line @typescript-eslint/require-await -- fastify route handlers must be async; body is sync.
   ): Promise<{ reciters: readonly ReciterPayload[]; api_version: string }> => {
     void reply.header('cache-control', 'public, max-age=3600');
     return { reciters: listReciters(), api_version: '0.0.2' };

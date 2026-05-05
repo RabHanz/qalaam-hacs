@@ -9,9 +9,10 @@
  * smallcaps caption + hairline divider, topic chips inline-flow.
  */
 import { useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
+
+import type { ReactNode } from 'react';
 
 interface TopicTag {
   readonly slug: string;
@@ -29,19 +30,21 @@ export function TopicsByVersePane({ verseKey }: Props): ReactNode {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
+    const cancel = { v: false };
     void (async () => {
       try {
-        const res = await fetch(`${resolveApiBase()}/v1/topics/by-verse/${encodeURIComponent(verseKey)}`);
+        const res = await fetch(
+          `${resolveApiBase()}/v1/topics/by-verse/${encodeURIComponent(verseKey)}`,
+        );
         if (!res.ok) throw new Error(`HTTP ${res.status.toString()}`);
         const body = (await res.json()) as { topics: readonly TopicTag[] };
-        if (!cancelled) setTopics(body.topics);
+        if (!cancel.v) setTopics(body.topics);
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'unknown');
+        if (!cancel.v) setError(err instanceof Error ? err.message : 'unknown');
       }
     })();
     return () => {
-      cancelled = true;
+      cancel.v = true;
     };
   }, [verseKey]);
 
@@ -50,7 +53,7 @@ export function TopicsByVersePane({ verseKey }: Props): ReactNode {
     return (
       <div className="paper-card p-5">
         <p className="smallcaps text-leaf text-xs">Topics</p>
-        <p className="text-xs text-ink-muted italic mt-2">Loading…</p>
+        <p className="text-ink-muted mt-2 text-xs italic">Loading…</p>
       </div>
     );
   }
@@ -61,21 +64,21 @@ export function TopicsByVersePane({ verseKey }: Props): ReactNode {
   return (
     <div className="paper-card p-5">
       <p className="smallcaps text-leaf text-xs">Topics · مَوَاضِيع</p>
-      <div className="rule-hairline mt-2 mb-3" />
-      <ul className="flex flex-wrap gap-1.5 list-none p-0 m-0">
+      <div className="rule-hairline mb-3 mt-2" />
+      <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0">
         {topics.map((t) => (
           <li key={t.slug}>
             <a
               href={`/topics/${t.slug}`}
               title={t.summary ?? t.nameEn}
-              className="inline-flex items-center rounded-full px-3 py-1 text-[11px] smallcaps tracking-wider border border-hairline text-ink hover:bg-paper-100 hover:border-leaf/40 hover:text-leaf transition-colors"
+              className="smallcaps border-hairline text-ink hover:bg-paper-100 hover:border-leaf/40 hover:text-leaf inline-flex items-center rounded-full border px-3 py-1 text-[11px] tracking-wider transition-colors"
             >
               {t.nameEn.replace(/ · .*$/, '')}
             </a>
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-[10px] text-ink-muted italic">
+      <p className="text-ink-muted mt-3 text-[10px] italic">
         Tap any topic to read every verse on that subject.
       </p>
     </div>

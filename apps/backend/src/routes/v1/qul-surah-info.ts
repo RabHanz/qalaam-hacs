@@ -10,7 +10,6 @@ import { existsSync } from 'node:fs';
 
 import { QalaamError } from '@qalaam/core';
 
-
 import { getQul } from '../../lib/data-loader.js';
 import { LICENSE_METADATA } from '../../lib/qul-license-registry.js';
 
@@ -19,7 +18,6 @@ import type { FastifyInstance } from 'fastify';
 
 const SEVEN_DAYS_S = 60 * 60 * 24 * 7;
 
-// eslint-disable-next-line @typescript-eslint/require-await
 export async function qulSurahInfoRoutes(
   fastify: FastifyInstance,
   opts: { config: Config },

@@ -7,8 +7,9 @@
  *
  * Per strategy §9 + §15.6 of DEV_CHECKLIST.md.
  */
-import { LEVEL_META, LESSONS, lessonById, lessonsByLevel } from '@qalaam/curriculum';
 import { QalaamError } from '@qalaam/core';
+import { LESSONS, LEVEL_META, lessonById, lessonsByLevel } from '@qalaam/curriculum';
+
 import type { FastifyInstance } from 'fastify';
 
 interface UserProgress {
@@ -94,7 +95,7 @@ export async function curriculumRoutes(fastify: FastifyInstance): Promise<void> 
     '/v1/curriculum/progress',
     {
       schema: {
-        description: "Per-user lesson completion set.",
+        description: 'Per-user lesson completion set.',
         tags: ['curriculum'],
       },
     },
@@ -113,7 +114,7 @@ export async function curriculumRoutes(fastify: FastifyInstance): Promise<void> 
     '/v1/curriculum/progress',
     {
       schema: {
-        description: "Mark a lesson complete.",
+        description: 'Mark a lesson complete.',
         tags: ['curriculum'],
         body: {
           type: 'object',
@@ -131,11 +132,9 @@ export async function curriculumRoutes(fastify: FastifyInstance): Promise<void> 
       try {
         lessonById(lessonId);
       } catch {
-        throw new QalaamError(
-          'qalaam.data.not-loaded',
-          `Unknown lesson '${lessonId}'.`,
-          { outcomeImpacted: 'O-19' },
-        );
+        throw new QalaamError('qalaam.data.not-loaded', `Unknown lesson '${lessonId}'.`, {
+          outcomeImpacted: 'O-19',
+        });
       }
       const p = ensure(userId);
       p.completedLessonIds.add(lessonId);

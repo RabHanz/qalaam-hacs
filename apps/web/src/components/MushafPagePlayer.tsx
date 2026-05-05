@@ -7,10 +7,12 @@
  * sticky-bottom continuous player that lives on /read.
  */
 import { useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
+
 import { ContinuousReaderPlayer } from './ContinuousReaderPlayer.js';
+
+import type { ReactNode } from 'react';
 
 interface PageLine {
   readonly lineType: 'ayah' | 'surah_name' | 'basmallah';
@@ -33,17 +35,17 @@ export function MushafPagePlayer({ lines, initialSurah }: Props): ReactNode {
   const [reciters, setReciters] = useState<readonly ReciterApi[]>([]);
 
   useEffect(() => {
-    let cancelled = false;
+    const cancel = { v: false };
     void (async () => {
       try {
         const res = await fetch(`${resolveApiBase()}/v1/reciters`);
         if (!res.ok) return;
         const body = (await res.json()) as { reciters: ReciterApi[] };
-        if (!cancelled) setReciters(body.reciters);
+        if (!cancel.v) setReciters(body.reciters);
         try {
           const stored = window.localStorage.getItem('qalaam-reciter');
           if (stored && body.reciters.some((r) => r.slug === stored)) {
-            if (!cancelled) setReciter(stored);
+            if (!cancel.v) setReciter(stored);
           }
         } catch {
           /* ignore */
@@ -53,7 +55,7 @@ export function MushafPagePlayer({ lines, initialSurah }: Props): ReactNode {
       }
     })();
     return () => {
-      cancelled = true;
+      cancel.v = true;
     };
   }, []);
 

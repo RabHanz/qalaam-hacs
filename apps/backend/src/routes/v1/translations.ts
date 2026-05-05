@@ -18,7 +18,6 @@ import {
 
 import type { FastifyInstance } from 'fastify';
 
-// eslint-disable-next-line @typescript-eslint/require-await -- Fastify plugin signature.
 export async function translationsRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get(
     '/v1/translations',

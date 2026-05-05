@@ -8,9 +8,7 @@ import { z } from 'zod';
 
 const ConfigSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  LOG_LEVEL: z
-    .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
-    .default('info'),
+  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   PORT: z.coerce.number().int().positive().default(4000),
   PUBLIC_API_URL: z.string().url().default('http://localhost:4000'),
   PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
@@ -34,7 +32,6 @@ export type Config = z.infer<typeof ConfigSchema>;
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const parsed = ConfigSchema.safeParse(env);
   if (!parsed.success) {
-    // eslint-disable-next-line no-console
     console.error('Invalid environment configuration:', parsed.error.flatten().fieldErrors);
     throw new Error('Refusing to start: invalid env. See errors above.');
   }

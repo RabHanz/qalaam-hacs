@@ -32,7 +32,6 @@ const ONE_HOUR_S = 60 * 60;
 const ONE_DAY_S = 60 * 60 * 24;
 const VERSE_KEY_RE = /^[1-9][0-9]?[0-9]?:[1-9][0-9]?[0-9]?$/;
 
-// eslint-disable-next-line @typescript-eslint/require-await
 export async function qulRecitationsRoutes(
   fastify: FastifyInstance,
   opts: { config: Config },

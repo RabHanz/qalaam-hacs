@@ -16,10 +16,12 @@
  * line breaks, same end-of-ayah rosette, same proportional sizing.
  */
 import { useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
+
 import { MushafLines } from './MushafLines.js';
+
+import type { ReactNode } from 'react';
 
 interface LayoutWord {
   readonly wordId: number;
@@ -66,15 +68,16 @@ export function AyahMushafLines({ verseKey, layoutSlug, highlight }: Props): Rea
   }>({ loading: true, error: null, lines: [], pageNumber: null });
 
   useEffect(() => {
-    let cancelled = false;
+    // Object-cell pattern: the cleanup closure flips `cancel.v` async,
+    // which a `let cancelled = false` rebind can't represent without
+    // tripping no-inferrable-types vs no-unnecessary-condition cross-fire.
+    const cancel = { v: false };
     setState({ loading: true, error: null, lines: [], pageNumber: null });
 
     const cacheKey = `${layoutSlug}|${verseKey}`;
     const cached = pageCache.get(cacheKey);
     if (cached) {
-      const filtered = cached.lines.filter((l) =>
-        l.words.some((w) => w.verseKey === verseKey),
-      );
+      const filtered = cached.lines.filter((l) => l.words.some((w) => w.verseKey === verseKey));
       setState({ loading: false, error: null, lines: filtered, pageNumber: cached.pageNumber });
       return;
     }
@@ -110,11 +113,11 @@ export function AyahMushafLines({ verseKey, layoutSlug, highlight }: Props): Rea
             words: l.words.filter((w) => w.verseKey === verseKey),
           }));
 
-        if (!cancelled) {
+        if (!cancel.v) {
           setState({ loading: false, error: null, lines: filtered, pageNumber });
         }
       } catch (err) {
-        if (!cancelled) {
+        if (!cancel.v) {
           setState({
             loading: false,
             error: err instanceof Error ? err.message : 'unknown error',
@@ -126,22 +129,22 @@ export function AyahMushafLines({ verseKey, layoutSlug, highlight }: Props): Rea
     })();
 
     return () => {
-      cancelled = true;
+      cancel.v = true;
     };
   }, [apiBase, verseKey, layoutSlug]);
 
   if (state.loading) {
     return (
-      <div className="paper-card p-6 sm:p-8 text-center">
-        <p className="smallcaps text-leaf text-[11px] tracking-widest mb-2">Mushaf line</p>
-        <p className="text-sm text-ink-muted italic">Loading layout…</p>
+      <div className="paper-card p-6 text-center sm:p-8">
+        <p className="smallcaps text-leaf mb-2 text-[11px] tracking-widest">Mushaf line</p>
+        <p className="text-ink-muted text-sm italic">Loading layout…</p>
       </div>
     );
   }
   if (state.error) {
     return (
       <div className="paper-card p-6 sm:p-8">
-        <p className="text-sm text-ink-muted italic">
+        <p className="text-ink-muted text-sm italic">
           Could not render mushaf for this ayah ({state.error}).
         </p>
       </div>
@@ -149,10 +152,8 @@ export function AyahMushafLines({ verseKey, layoutSlug, highlight }: Props): Rea
   }
   if (state.lines.length === 0) {
     return (
-      <div className="paper-card p-6 sm:p-8 text-center">
-        <p className="text-sm text-ink-muted italic">
-          No mushaf lines available for {verseKey}.
-        </p>
+      <div className="paper-card p-6 text-center sm:p-8">
+        <p className="text-ink-muted text-sm italic">No mushaf lines available for {verseKey}.</p>
       </div>
     );
   }
@@ -161,20 +162,25 @@ export function AyahMushafLines({ verseKey, layoutSlug, highlight }: Props): Rea
       className="paper-card-raised p-5 sm:p-8 md:p-10"
       aria-label={`Mushaf rendering of ayah ${verseKey}`}
     >
-      <header className="flex items-baseline justify-between mb-4">
-        <p className="smallcaps text-leaf text-[10px] sm:text-[11px] tracking-widest">
+      <header className="mb-4 flex items-baseline justify-between">
+        <p className="smallcaps text-leaf text-[10px] tracking-widest sm:text-[11px]">
           Mushaf line
         </p>
         {state.pageNumber !== null ? (
           <a
             href={`/mushaf/${layoutSlug}/${state.pageNumber.toString()}`}
-            className="text-[11px] sm:text-xs smallcaps tracking-widest text-ink-muted hover:text-leaf"
+            className="smallcaps text-ink-muted hover:text-leaf text-[11px] tracking-widest sm:text-xs"
           >
             Page {state.pageNumber.toString()} →
           </a>
         ) : null}
       </header>
-      <MushafLines lines={state.lines} layoutSlug={layoutSlug} sharedSize highlight={highlight ?? null} />
+      <MushafLines
+        lines={state.lines}
+        layoutSlug={layoutSlug}
+        sharedSize
+        highlight={highlight ?? null}
+      />
     </article>
   );
 }

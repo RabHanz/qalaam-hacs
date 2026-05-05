@@ -14,9 +14,10 @@
  * the active option. Three glyph icons (sun / system-circle / crescent).
  */
 import { useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
 
 import { CrescentGlyph } from './Glyph.js';
+
+import type { ReactNode } from 'react';
 
 type Theme = 'light' | 'system' | 'dark';
 
@@ -28,8 +29,7 @@ function applyTheme(theme: Theme): void {
     // Follow OS preference at this moment. We then re-apply on each
     // mediaquery change (wired below).
     const prefersDark =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-color-scheme: dark)').matches;
+      typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
     if (prefersDark) {
       root.setAttribute('data-theme', 'dark');
     } else {
@@ -49,7 +49,14 @@ function readStoredTheme(): Theme {
 
 function SunGlyph({ size = 14, className }: { size?: number; className?: string }): ReactNode {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden className={className}>
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+      className={className}
+    >
       <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.5" />
       {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
         <line
@@ -70,7 +77,14 @@ function SunGlyph({ size = 14, className }: { size?: number; className?: string 
 
 function SystemGlyph({ size = 14, className }: { size?: number; className?: string }): ReactNode {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden className={className}>
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+      className={className}
+    >
       <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
       <path d="M12 3 A 9 9 0 0 1 12 21 Z" fill="currentColor" />
     </svg>
@@ -119,7 +133,7 @@ export function ThemeToggle(): ReactNode {
     <div
       role="radiogroup"
       aria-label="Theme"
-      className="inline-flex items-center rounded-full border border-hairline bg-paper-100/70 p-0.5 shrink-0"
+      className="border-hairline bg-paper-100/70 inline-flex shrink-0 items-center rounded-full border p-0.5"
     >
       {options.map((opt) => {
         const active = theme === opt.value;
@@ -132,11 +146,11 @@ export function ThemeToggle(): ReactNode {
             aria-checked={active}
             aria-label={opt.label}
             title={opt.label}
-            onClick={() => pick(opt.value)}
-            className={`inline-flex items-center justify-center rounded-full p-1 sm:p-1.5 transition-colors ${
-              active
-                ? 'bg-surface text-leaf shadow-sm'
-                : 'text-ink-muted hover:text-ink'
+            onClick={() => {
+              pick(opt.value);
+            }}
+            className={`inline-flex items-center justify-center rounded-full p-1 transition-colors sm:p-1.5 ${
+              active ? 'bg-surface text-leaf shadow-sm' : 'text-ink-muted hover:text-ink'
             }`}
           >
             <Icon size={12} className="sm:hidden" />

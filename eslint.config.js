@@ -126,6 +126,26 @@ export default tseslint.config(
     },
   },
 
+  // Fastify plugins + route handlers: the plugin signature is
+  // `(fastify, opts) => Promise<void>`, even when the body is synchronous
+  // (every route registration is `fastify.get(...)` which returns sync).
+  // Same for `app.setErrorHandler(async ...)` — the handler must be async
+  // even if it only returns a reply. Sprinkling
+  // `eslint-disable-next-line @typescript-eslint/require-await` across
+  // every route file is noise; scoping the rule off where Fastify
+  // mandates the shape is cleaner.
+  {
+    files: [
+      '**/apps/backend/src/server.ts',
+      '**/apps/backend/src/plugins/**/*.ts',
+      '**/apps/backend/src/routes/**/*.ts',
+      '**/apps/backend/src/lib/mcp-quran-ai.ts',
+    ],
+    rules: {
+      '@typescript-eslint/require-await': 'off',
+    },
+  },
+
   // Apply prettier last to disable rules that conflict with formatting
   prettier,
 );
