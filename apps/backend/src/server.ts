@@ -29,6 +29,7 @@ import { recitationsRoutes } from './routes/v1/recitations.js';
 import { mcpRoutes } from './routes/v1/mcp.js';
 import { morphologyRoutes } from './routes/v1/morphology.js';
 import { tajweedRoutes } from './routes/v1/tajweed.js';
+import { topicsRoutes } from './routes/v1/topics.js';
 import { translationsRoutes } from './routes/v1/translations.js';
 import { versesRoutes } from './routes/v1/verses.js';
 
@@ -78,6 +79,7 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   await app.register(translationsRoutes);
   await app.register(tajweedRoutes);
   await app.register(morphologyRoutes);
+  await app.register(topicsRoutes);
   await app.register(mcpRoutes);
   await app.register(curriculumRoutes);
   await app.register(qulMetadataRoutes, { config });

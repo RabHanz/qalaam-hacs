@@ -17,6 +17,7 @@ import { LoadingState } from '../../../../components/LoadingState.js';
 import { MorphologyPane } from '../../../../components/MorphologyPane.js';
 import { MutashabihatWatchlistPane } from '../../../../components/MutashabihatWatchlistPane.js';
 import { SiteNav } from '../../../../components/SiteNav.js';
+import { TopicsByVersePane } from '../../../../components/TopicsByVersePane.js';
 import { WordByWordPane } from '../../../../components/WordByWordPane.js';
 import { qalaamClient } from '../../../../lib/qalaam-client.js';
 
@@ -225,6 +226,9 @@ async function StudyBody({
       {/* SIDEBAR — mutashabihat watchlist as marginalia */}
       <aside className="lg:col-span-3 reveal reveal-2">
         <div className="lg:sticky lg:top-24 space-y-4">
+          <Suspense fallback={null}>
+            <TopicsByVersePane verseKey={verseKey} />
+          </Suspense>
           <Suspense fallback={null}>
             <MutashabihatWatchlistPane verseKey={verseKey} limit={5} />
           </Suspense>

@@ -2529,7 +2529,7 @@ ADR refs: ADR-0005 (on-device ASR), ADR-0007 (reciter licensing).
 
 | Category | QUL total | Qalaam | Status |
 |---|---|---|---|
-| Recitations | 152 (62 segmented) | 14 | 〰️ |
+| Recitations | 152 (62 segmented) | **51** (14 segmented + 37 audio-only via EveryAyah CDN) ✅ | 〰️ |
 | Translations | 209 + 16 WBW | **59 across 28 languages** ✅ | 〰️ |
 | Tafsirs | 115 | **7** (Muyassar, Ibn Kathir, Jalalayn, Qurtubi, Baghawi, Miqbas, Waseet — all AR) ✅ | 〰️ |
 | Mushaf Layouts | 27 | 3 | ❌ |
@@ -2538,7 +2538,7 @@ ADR refs: ADR-0005 (on-device ASR), ADR-0007 (reciter licensing).
 | Quran Metadata | 8 | 6 + 15-row sajda | ✅ |
 | Transliteration | 9 | 0 | ❌ |
 | Surah Info | 9 langs | 4 (en/ml/ta/ur) | 〰️ |
-| **Topics & Concepts** | **2,512** | 0 | ❌ |
+| **Topics & Concepts** | **2,512** | **53 curated topics across 8 categories with 803 verse mappings** (foundational taxonomy modeled on classical Islamic subject indexes — Mawdoo3, Hidayah Online, Bayan al-Quran themes) ✅ | 〰️ |
 | **Grammar & Morphology** | **77,429 entries** | **128,219 tokens × 4,832 lemmas × 1,642 roots × 45 POS tags** ✅ (via Quranic Arabic Corpus v0.4 / Kais Dukes / GPL — superset of QUL's coverage) | ✅ |
 | Mutashabihat | 5,277 | 814 clusters + 19,385 pairs | ✅ |
 | Similar Ayahs | 4,001 | 3,552 | ✅ |
@@ -2575,9 +2575,10 @@ ADR refs: ADR-0005 (on-device ASR), ADR-0007 (reciter licensing).
    `/v1/mcp/tools` · `/v1/mcp/call/:tool` · `/v1/mcp/search-tafsir`.
 4. ✅ **Morphology ingest + word-by-word /study** — 128K tokens; new
    /concordance/root/:root surface.
-5. **Topics + Themes (3,500+ entries)** — semantic cross-reference UX
-   on /study (sidebar of related verses).
-6. **Reciters depth-pull** — 14 → 50+ (segmented coverage prioritized).
+5. ✅ **Topics + Themes** — 53 curated topics × 803 verse mappings; backend
+   `/v1/topics*` + frontend `/topics` browse + `/topics/:slug` detail
+   + `<TopicsByVersePane/>` sidebar on /study.
+6. ✅ **Reciters depth-pull** — 14 → **51** (37 added via EveryAyah CDN).
 7. **Self-hosted ASR worker** — Tarteel Whisper ONNX behind /recite WS.
 8. **`qalaam-mcp` server** — emit our family-aware tools (hifdh-state,
    mutashabihat clusters, family bookmarks).
