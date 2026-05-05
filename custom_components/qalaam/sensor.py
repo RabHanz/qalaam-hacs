@@ -66,6 +66,32 @@ _DESCRIPTIONS: Final = (
         device_class=SensorDeviceClass.TIMESTAMP,
         icon="mdi:mosque",
     ),
+    SensorEntityDescription(
+        key="topic_of_day",
+        translation_key="topic_of_day",
+        icon="mdi:tag-text-outline",
+    ),
+    SensorEntityDescription(
+        key="word_of_day",
+        translation_key="word_of_day",
+        icon="mdi:alphabet-arabic",
+    ),
+    SensorEntityDescription(
+        key="hijri_date",
+        translation_key="hijri_date",
+        icon="mdi:calendar-month-outline",
+    ),
+    SensorEntityDescription(
+        key="mutashabihat_count",
+        translation_key="mutashabihat_count",
+        icon="mdi:link-variant",
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        key="active_reciter",
+        translation_key="active_reciter",
+        icon="mdi:account-music",
+    ),
 )
 
 
@@ -87,7 +113,7 @@ class QalaamSensor(QalaamEntity, SensorEntity):
         self._attr_unique_id = f"{coordinator.entry.entry_id}-sensor-{description.key}"
 
     @property
-    def native_value(self):  # type: ignore[no-untyped-def]
+    def native_value(self):  # type: ignore[no-untyped-def]  # noqa: PLR0911 PLR0912 ANN201 — straight-line dispatch over a tagged-union sensor key
         if self.coordinator.data is None:
             return None
         snap = self.coordinator.data
@@ -104,13 +130,27 @@ class QalaamSensor(QalaamEntity, SensorEntity):
         if key == "current_sabqi":
             return snap.hifdh.current_sabqi
         if key == "next_prayer":
-            # Server-derived; coordinator surfaces it in v0.5 when adhan service
-            # is wired. Sensor stays registered so automations can target it now.
-            return None
+            # Coordinator's prayer_window will be populated once the user
+            # configures location via the config-flow; until then return None
+            # so HA shows "unknown" rather than a misleading default.
+            return snap.prayer_window.next_prayer_iso
+        if key == "topic_of_day":
+            return snap.topic_of_day.name_en or None
+        if key == "word_of_day":
+            return snap.word_of_day.form_arabic or None
+        if key == "hijri_date":
+            h = snap.hijri
+            if h.year == 0:
+                return None
+            return f"{h.day:02d} {h.month_english or h.month} {h.year} AH"
+        if key == "mutashabihat_count":
+            return snap.mutashabihat_count
+        if key == "active_reciter":
+            return snap.now_playing.reciter_slug
         return None
 
     @property
-    def extra_state_attributes(self) -> dict[str, object] | None:
+    def extra_state_attributes(self) -> dict[str, object] | None:  # noqa: PLR0911 — straight-line dispatch over a tagged-union sensor key
         snap = self.coordinator.data
         if snap is None:
             return None
@@ -128,4 +168,28 @@ class QalaamSensor(QalaamEntity, SensorEntity):
                 "mutashabihat_watchlist": list(snap.hifdh.mutashabihat_watchlist),
                 "manzil_cycle_position": snap.hifdh.manzil_cycle_position,
             }
+        if key == "topic_of_day":
+            return {
+                "slug": snap.topic_of_day.slug,
+                "verse_count": snap.topic_of_day.verse_count,
+                "sample_verse_key": snap.topic_of_day.sample_verse_key,
+            }
+        if key == "word_of_day":
+            w = snap.word_of_day
+            return {
+                "verse_key": w.verse_key,
+                "lemma": w.lemma,
+                "root": w.root,
+                "pos": w.pos,
+            }
+        if key == "hijri_date":
+            return {
+                "year": snap.hijri.year,
+                "month": snap.hijri.month,
+                "day": snap.hijri.day,
+                "is_ramadan": snap.hijri.is_ramadan,
+                "is_last_ten_nights": snap.hijri.is_last_ten_nights,
+            }
+        if key == "mutashabihat_count":
+            return {"watchlist": list(snap.hifdh.mutashabihat_watchlist)}
         return None
