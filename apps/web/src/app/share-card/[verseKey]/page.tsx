@@ -21,6 +21,7 @@
 import { notFound } from 'next/navigation';
 
 import { ShareCardSurface } from '../../../components/ShareCardSurface.js';
+import { sanitizeMorphologyWords } from '../../../lib/morphology-display.js';
 
 import type { ReactNode } from 'react';
 
@@ -190,7 +191,7 @@ export default async function ShareCardPage({
       tafsir={tafsir?.text ?? null}
       tafsirScholar={tafsir?.scholar ?? null}
       tajweedAnnotations={tajweed?.annotations ?? null}
-      morphology={morphology?.words ?? null}
+      morphology={morphology?.words ? sanitizeMorphologyWords(morphology.words) : null}
       format={format}
       variant={variant}
       layoutSlug={layoutSlug}

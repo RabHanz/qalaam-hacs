@@ -245,7 +245,7 @@ function VerseColumn({ verseKey, tokens, covered, accent }: ColProps): ReactNode
         <p
           dir="rtl"
           lang="ar"
-          className="font-arabic flex flex-wrap-reverse gap-x-2 gap-y-3 text-right leading-loose"
+          className="font-arabic flex flex-wrap gap-x-2 gap-y-3 text-right leading-loose"
           style={{
             unicodeBidi: 'plaintext',
             fontFamily: '"UthmanicHafs", "Amiri Quran", "Noto Naskh Arabic", serif',

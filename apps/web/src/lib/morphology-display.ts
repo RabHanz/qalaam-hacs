@@ -235,3 +235,28 @@ export function tokenRoleLabel(t: MorphologyToken): string | null {
   if (t.isSuffix) return 'suffix';
   return null;
 }
+
+/**
+ * Strip the Buckwalter "@" silent-letter marker from a form_arabic
+ * string. The QUL morphology dump leaks `@` for tokens that contain
+ * an unwritten/silent letter (e.g. `أُو@لَٰٓئِكَ`, `وا@`). The backend
+ * already filters this on the way out (see apps/backend/src/routes/v1/
+ * morphology.ts), but we apply the same strip on the frontend display
+ * layer as a defence in depth — any HTTP-cached response from before
+ * the backend fix still renders cleanly.
+ */
+export function cleanArabicForm(s: string): string {
+  return s.replace(/@/g, '');
+}
+
+/** Apply `cleanArabicForm` across an entire morphology word list,
+ *  returning a NEW array with sanitised tokens. Use this at the edge
+ *  of any consumer that hands data off to a renderer. */
+export function sanitizeMorphologyWords(
+  words: readonly MorphologyWord[],
+): readonly MorphologyWord[] {
+  return words.map((w) => ({
+    ...w,
+    tokens: w.tokens.map((t) => ({ ...t, form: cleanArabicForm(t.form) })),
+  }));
+}

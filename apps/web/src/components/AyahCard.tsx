@@ -666,7 +666,7 @@ export function AyahCard({
           ) : wbw && wbw.length > 0 ? (
             <ol
               dir="rtl"
-              className="flex flex-wrap-reverse justify-center gap-x-3 gap-y-4"
+              className="flex flex-wrap justify-center gap-x-3 gap-y-4"
               style={{ unicodeBidi: 'plaintext' }}
             >
               {wbw.map((w) => (

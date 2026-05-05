@@ -20,7 +20,13 @@
 import { useEffect, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
-import { POS_LABEL, featureChipLabel, lemmaDisplay, posClass } from '../lib/morphology-display.js';
+import {
+  POS_LABEL,
+  featureChipLabel,
+  lemmaDisplay,
+  posClass,
+  sanitizeMorphologyWords,
+} from '../lib/morphology-display.js';
 
 import type { ReactNode } from 'react';
 
@@ -82,7 +88,16 @@ export function MorphologyPane({ verseKey }: Props): ReactNode {
           throw new Error(`HTTP ${res.status.toString()}`);
         }
         const body = (await res.json()) as ApiResponse;
-        if (!cancelled.v) setData(body);
+        // Defence in depth: even though the backend strips the
+        // Buckwalter "@" silent-letter marker from form_arabic, an
+        // HTTP-cached response from before the backend fix may still
+        // contain `@`. Sanitise here so the rendered DOM is always
+        // clean Arabic.
+        const sanitised: ApiResponse = {
+          ...body,
+          words: sanitizeMorphologyWords(body.words) as ApiResponse['words'],
+        };
+        if (!cancelled.v) setData(sanitised);
       } catch (err) {
         if (!cancelled.v) setError(err instanceof Error ? err.message : 'unknown');
       } finally {
