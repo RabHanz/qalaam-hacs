@@ -23,10 +23,12 @@
  * KFGQPC font files.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
+import { SILENT_MARK_REGEX } from '../lib/arabic-render.js';
 import { applyTajweed, fetchTajweed, type TajweedAnnotation } from '../lib/tajweed.js';
+
+import type { ReactNode } from 'react';
 
 interface LayoutWord {
   readonly wordId: number;
@@ -141,6 +143,7 @@ export function MushafLines({
           next.set(vk, ann);
         }),
       );
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- mutated by the cleanup closure on unmount.
       if (!cancelled) setTajweedByVerse(next);
     })();
     return () => {
@@ -153,7 +156,8 @@ export function MushafLines({
   // Used to convert ayah-level tajweed offsets to word-level slice
   // boundaries.
   const verseWordOffsets = (() => {
-    if (layoutSlug !== 'kfgqpc_v4' && layoutSlug !== 'tajweed') return new Map<string, Map<number, number>>();
+    if (layoutSlug !== 'kfgqpc_v4' && layoutSlug !== 'tajweed')
+      return new Map<string, Map<number, number>>();
     // Group words by verse, ordered by word_index, and accumulate
     // offsets. Words are space-joined when forming the canonical
     // ayah text (matches how cpfair/quran-tajweed's source aligns).
@@ -254,16 +258,27 @@ export function MushafLines({
 
     let ro: ResizeObserver | null = null;
     if (typeof ResizeObserver !== 'undefined') {
-      ro = new ResizeObserver(() => fit());
+      ro = new ResizeObserver(() => {
+        fit();
+      });
       ro.observe(container);
     }
 
-    const docFonts = (document as Document & {
-      fonts?: { ready?: Promise<unknown>; load?: (font: string) => Promise<unknown> };
-    }).fonts;
-    docFonts?.ready?.then(() => {
-      if (!cancelled) fit();
-    });
+    /* eslint-disable @typescript-eslint/no-unnecessary-condition,
+                       @typescript-eslint/no-misused-promises
+        -- document.fonts is in @types/web with non-optional ready / load,
+           but jsdom + older browsers leave it undefined; we keep the
+           defensive optional chains. */
+    const docFonts = (
+      document as Document & {
+        fonts?: { ready?: Promise<unknown>; load?: (font: string) => Promise<unknown> };
+      }
+    ).fonts;
+    if (docFonts && docFonts.ready) {
+      void docFonts.ready.then(() => {
+        if (!cancelled) fit();
+      });
+    }
     // Force-load the active layout's font(s); re-fit after each lands.
     const stack = fontStackFor(layoutSlug);
     const families = stack
@@ -271,13 +286,17 @@ export function MushafLines({
       .map((s) => s.trim().replace(/^"|"$/g, ''))
       .filter((s) => s && !['serif', 'sans-serif', 'system-ui'].includes(s));
     for (const fam of families) {
-      void docFonts
-        ?.load?.(`1em "${fam}"`)
-        .then(() => {
-          if (!cancelled) fit();
-        })
-        .catch(() => undefined);
+      if (docFonts && docFonts.load) {
+        void docFonts
+          .load(`1em "${fam}"`)
+          .then(() => {
+            if (!cancelled) fit();
+          })
+          .catch(() => undefined);
+      }
     }
+    /* eslint-enable @typescript-eslint/no-unnecessary-condition,
+                    @typescript-eslint/no-misused-promises */
 
     const t1 = window.setTimeout(() => {
       if (!cancelled) fit();
@@ -293,16 +312,15 @@ export function MushafLines({
       window.clearTimeout(t2);
       ro?.disconnect();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lines, layoutSlug, sharedSize]);
 
   // Per-layout treatment class. Picks up tajweed colors for v4 + a
   // density tweak for v1 so the user sees a real difference between
   // chips even when the proprietary KFGQPC fonts aren't installed.
   const layoutClass =
-    (layoutSlug === 'kfgqpc_v4' || layoutSlug === 'tajweed')
+    layoutSlug === 'kfgqpc_v4' || layoutSlug === 'tajweed'
       ? 'mushaf-layout-tajweed'
-      : (layoutSlug === 'kfgqpc_v1' || layoutSlug === 'indopak')
+      : layoutSlug === 'kfgqpc_v1' || layoutSlug === 'indopak'
         ? 'mushaf-layout-v1'
         : 'mushaf-layout-v2';
 
@@ -323,7 +341,7 @@ export function MushafLines({
             return (
               <p
                 key={line.lineNumber}
-                className="text-center text-leaf text-base sm:text-lg smallcaps tracking-widest border-y border-hairline py-2"
+                className="text-leaf smallcaps border-hairline border-y py-2 text-center text-base tracking-widest sm:text-lg"
               >
                 Sūrat {line.surah !== null ? arabicDigitN(line.surah) : ''}
               </p>
@@ -335,7 +353,7 @@ export function MushafLines({
                 key={line.lineNumber}
                 dir="rtl"
                 lang="ar"
-                className="text-center text-ink-strong"
+                className="text-ink-strong text-center"
                 style={{
                   fontFamily: 'var(--mushaf-font)',
                   fontSize: `${(fontPx * 1.05).toString()}px`,
@@ -382,7 +400,13 @@ export function MushafLines({
                   direction: 'rtl',
                 }}
               >
-                {renderLineText(line, layoutSlug, tajweedByVerse, verseWordOffsets, highlight ?? null)}
+                {renderLineText(
+                  line,
+                  layoutSlug,
+                  tajweedByVerse,
+                  verseWordOffsets,
+                  highlight ?? null,
+                )}
               </span>
             </div>
           );
@@ -393,7 +417,11 @@ export function MushafLines({
 }
 
 function arabicDigitN(n: number): string {
-  return n.toString().split('').map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d).join('');
+  return n
+    .toString()
+    .split('')
+    .map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d)
+    .join('');
 }
 
 /**
@@ -425,7 +453,10 @@ function renderLineText(
   }
   function ayahDigit(verseKey: string): string {
     const a = verseKey.split(':')[1] ?? '';
-    return a.split('').map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d).join('');
+    return a
+      .split('')
+      .map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d)
+      .join('');
   }
 
   const out: ReactNode[] = [];
@@ -448,13 +479,15 @@ function renderLineText(
           title={`Ayah ${w.verseKey} — ends here`}
           aria-label={`End of ayah ${w.verseKey}`}
           className="ayah-end hover:text-leaf"
-          style={{
-            fontFamily: '"UthmanicHafs", "Amiri Quran", "Noto Naskh Arabic", serif',
-            // Plain inline (not inline-block) keeps the bidi flow
-            // intact. !important via inline overrides the parent
-            // Nastaliq stack so the rosette glyph from UthmanicHafs
-            // can resolve.
-          } as React.CSSProperties}
+          style={
+            {
+              fontFamily: '"UthmanicHafs", "Amiri Quran", "Noto Naskh Arabic", serif',
+              // Plain inline (not inline-block) keeps the bidi flow
+              // intact. !important via inline overrides the parent
+              // Nastaliq stack so the rosette glyph from UthmanicHafs
+              // can resolve.
+            } as React.CSSProperties
+          }
         >
           {ayahDigit(w.verseKey)}
         </a>,
@@ -473,7 +506,7 @@ function renderLineText(
 
     // Apply tajweed coloring within this word for v4 layout
     let segs: { text: string; rule?: TajweedAnnotation['rule'] }[] = [{ text: w.text }];
-    if ((layoutSlug === 'kfgqpc_v4' || layoutSlug === 'tajweed')) {
+    if (layoutSlug === 'kfgqpc_v4' || layoutSlug === 'tajweed') {
       const verseAnn = tajweedByVerse.get(w.verseKey) ?? [];
       const wordStart = verseWordOffsets.get(w.verseKey)?.get(w.wordIndex) ?? 0;
       const wordEnd = wordStart + w.text.length;
@@ -491,9 +524,12 @@ function renderLineText(
       }
     }
 
-    // Within each segment, also split out small-high silent marks
-    // (U+06DF, U+06D6–U+06D8) so they render as discreet superscripts.
-    const SILENT_MARK_RE = /([ۖ-ۘ۟])/;
+    // Within each segment, also split out small-high / small-low
+    // silent / pause / sajda / madda marks so they render as discreet
+    // superscripts. Comprehensive coverage to match the shared helper
+    // in lib/arabic-render.tsx — keeps Uthmani / IndoPak / Nastaliq
+    // layouts consistent.
+    const SILENT_MARK_RE = SILENT_MARK_REGEX;
     for (let si = 0; si < segs.length; si += 1) {
       const s = segs[si];
       if (!s) continue;
@@ -512,7 +548,10 @@ function renderLineText(
           );
         } else if (s.rule) {
           wordChildren.push(
-            <span key={`${w.wordId.toString()}-s${si.toString()}p${pi.toString()}`} className={`tajweed-${s.rule}`}>
+            <span
+              key={`${w.wordId.toString()}-s${si.toString()}p${pi.toString()}`}
+              className={`tajweed-${s.rule}`}
+            >
               {p}
             </span>,
           );
@@ -531,7 +570,7 @@ function renderLineText(
         key={w.wordId.toString()}
         href={`/study/${sn}/${an}#w${w.wordIndex.toString()}`}
         title={`${w.verseKey} · word ${(w.wordIndex + 1).toString()}`}
-        className={`mushaf-word${isHighlighted ? ' recite-highlight' : ''}`}
+        className={`mushaf-word${isHighlighted ? 'recite-highlight' : ''}`}
       >
         {wordChildren}
       </a>,

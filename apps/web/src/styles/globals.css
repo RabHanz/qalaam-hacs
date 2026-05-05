@@ -740,29 +740,41 @@
    * Use a Naskh font that draws the codepoint as a tiny circle, override
    * UthmanicHafs which substitutes a full-size rosette. */
   .silent-mark {
-    /* Force a Naskh-style font that draws U+06D6–U+06DC + U+06DF as
-     * tiny circles instead of the full-size rosettes UthmanicHafs
-     * substitutes. Display: inline-block lets the negative margins
-     * pull adjacent letters back together so the mark doesn't
-     * carve a wide gap into the line. */
+    /* Force a Naskh-style font that draws U+06D6–U+06DC, U+06DF–U+06E5,
+     * U+06E7–U+06E8, U+06EA–U+06ED as tiny circles / dots instead of
+     * the full-size rosettes UthmanicHafs / IndoPak / Nastaliq draw
+     * inline (or, where the layout font lacks the glyph, the .notdef
+     * tofu boxes that overlap base letters like م).
+     *
+     * Inline-block + width 0.55em + negative side margins lets the
+     * mark hug the letter it modifies without carving a gap in the
+     * line. transform: translateY is the most reliable cross-font
+     * baseline shift (vertical-align bugs with display: inline-block
+     * + custom fonts). font-feature-settings: "calt" off prevents
+     * Naskh-family OpenType substitutions from re-enlarging the
+     * mark via contextual alternates. */
     font-family: 'Noto Naskh Arabic', 'Amiri Quran', 'Amiri', serif;
-    font-size: 0.45em;
-    /* Lifting via translate keeps the mark superscript-y without
-     * blowing the line height. baseline-shift via vertical-align is
-     * unreliable across fonts so we use transform. */
+    font-size: 0.4em;
     display: inline-block;
-    transform: translateY(-0.85em);
+    transform: translateY(-0.95em);
     color: var(--color-ink-muted, #6b6b6b);
-    opacity: 0.7;
+    opacity: 0.65;
     font-weight: 400;
     line-height: 0;
-    /* Tight inline gap so the mark hugs the letter it modifies. */
-    margin: 0 -0.18em;
-    /* Don't let the mark steal width that the surrounding glyphs
-     * need for joining. */
-    width: 0.6em;
+    margin: 0 -0.2em;
+    width: 0.55em;
     text-align: center;
     overflow: visible;
+    font-feature-settings:
+      'calt' 0,
+      'liga' 0,
+      'rlig' 0;
+    text-rendering: geometricPrecision;
+    /* Defensive: if the host font's small-high glyph is missing the
+     * browser falls back to .notdef (a tofu box). Forcing color on
+     * the span + the Naskh font-stack above ensures we never see
+     * that box at full size. */
+    font-variant-numeric: normal;
   }
   /* Inside the v4 tajweed layout the rule may also tag the silent
    * mark — keep it neutral regardless of rule color. */

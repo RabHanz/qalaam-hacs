@@ -53,6 +53,21 @@ const VARIANTS: readonly { id: Variant; label: string; hint: string }[] = [
   { id: 'advanced', label: 'Advanced', hint: 'Grammar + tafsir' },
 ];
 
+// Human-readable layout names. Mirrors LayoutSwitcher's LAYOUT_LABELS
+// so the caption under the preview matches what the user sees in /read.
+const LAYOUT_CAPTION: Record<string, string> = {
+  madani_15: 'Madani 15-line',
+  madani_16: 'Madani 16-line',
+  indopak: 'IndoPak',
+  indopak_13: 'IndoPak 13-line',
+  indopak_15: 'IndoPak 15-line',
+  indopak_16: 'IndoPak 16-line',
+  kfgqpc_v1: 'IndoPak (KFGQPC)',
+  kfgqpc_v4: 'KFGQPC v4',
+  tajweed: 'Tajweed',
+  nastaleeq_15: 'Nastaleeq',
+};
+
 type ActionState = 'idle' | 'busy' | 'ok' | 'err';
 
 export function ShareDialog({
@@ -79,6 +94,11 @@ export function ShareDialog({
   const [downloadState, setDownloadState] = useState<ActionState>('idle');
   const [linkState, setLinkState] = useState<ActionState>('idle');
   const [imgState, setImgState] = useState<ActionState>('idle');
+  // Preview-image lifecycle. The preview is the Puppeteer-screenshot
+  // route which can take ~400-900ms cold; we flip from a "Preparing…"
+  // shimmer to a clean caption once it loads. Resets on every URL
+  // change so the prompt re-appears when the user tweaks composition.
+  const [previewLoaded, setPreviewLoaded] = useState(false);
 
   // Reset action states when the user changes any composition control
   useEffect(() => {
@@ -86,6 +106,7 @@ export function ShareDialog({
     setDownloadState('idle');
     setLinkState('idle');
     setImgState('idle');
+    setPreviewLoaded(false);
   }, [format, variant, showTransliteration, showGrammar, showTafsir, fit, scale]);
 
   // Esc + body-scroll-lock
@@ -383,20 +404,57 @@ export function ShareDialog({
         {/* Live preview */}
         <div className="bg-paper-100 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
           <div
-            className="bg-paper-200 mx-auto overflow-hidden rounded-md shadow-sm"
+            className="bg-paper-200 relative mx-auto overflow-hidden rounded-md shadow-sm"
             style={{
               maxWidth: format === 'story' ? 320 : 600,
             }}
           >
+            {/* Shimmer + "Preparing…" prompt — visible while the
+                Puppeteer-rendered card is still loading. Once the
+                <img> fires onLoad we fade it out so it never lingers
+                over the finished card. */}
+            <div
+              aria-hidden={previewLoaded}
+              className={`pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 transition-opacity duration-300 ${
+                previewLoaded ? 'opacity-0' : 'opacity-100'
+              }`}
+              style={{
+                background:
+                  'linear-gradient(135deg, rgba(27,77,90,0.94) 0%, rgba(27,77,90,0.86) 100%)',
+              }}
+            >
+              <div className="h-7 w-7 animate-spin rounded-full border-2 border-[rgba(255,255,255,0.18)] border-t-[var(--color-gold-500,#b6862c)]" />
+              <p className="smallcaps text-paper animate-pulse text-[11px] tracking-[0.22em]">
+                Preparing your card…
+              </p>
+              <p className="text-paper/55 text-[10px] tracking-wider">
+                Composing {format} · {variant}
+              </p>
+            </div>
             <img
               key={cardUrls.path}
               src={cardUrls.path}
               alt={`Shareable card for ${verseKey}`}
               className="block w-full"
               style={{ background: '#1b4d5a' }}
+              onLoad={() => {
+                setPreviewLoaded(true);
+              }}
+              onError={() => {
+                setPreviewLoaded(true);
+              }}
             />
           </div>
-          <p className="text-ink-muted/70 mt-2 text-center text-[10px] italic">{cardUrls.path}</p>
+          {/* Caption: human-readable composition summary, never the
+              raw URL. The URL is still copyable via the "Copy link"
+              action below. */}
+          <p className="text-ink-muted/70 mt-2 text-center text-[10px] italic">
+            {previewLoaded
+              ? `${FORMATS.find((f) => f.id === format)?.label ?? format} · ${
+                  VARIANTS.find((v) => v.id === variant)?.label ?? variant
+                }${layoutSlug ? ` · ${LAYOUT_CAPTION[layoutSlug] ?? layoutSlug.replace(/_/g, ' ')}` : ''}`
+              : 'Rendering — this can take a moment on first preview.'}
+          </p>
         </div>
 
         {/* Action row */}

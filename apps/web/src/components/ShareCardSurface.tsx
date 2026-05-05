@@ -79,6 +79,40 @@ interface Props {
 
 // POS_LABEL imported from lib/morphology-display.ts
 
+/**
+ * Human-readable labels for the share-card pills. Mirrors the
+ * `LAYOUT_LABELS` dict in components/LayoutSwitcher.tsx + the
+ * `VARIANTS` table in components/ShareDialog.tsx so the pills inside
+ * the card match the names users see on /read and in the share sheet.
+ */
+const LAYOUT_LABEL_FOR_CARD: Record<string, string> = {
+  madani_15: 'Madani 15-line',
+  madani_16: 'Madani 16-line',
+  indopak: 'IndoPak',
+  indopak_13: 'IndoPak 13-line',
+  indopak_15: 'IndoPak 15-line',
+  indopak_16: 'IndoPak 16-line',
+  kfgqpc_v1: 'IndoPak (KFGQPC)',
+  kfgqpc_v4: 'KFGQPC v4',
+  tajweed: 'Tajweed',
+  nastaleeq_15: 'Nastaleeq',
+};
+
+const VARIANT_LABEL_FOR_CARD: Record<string, string> = {
+  minimal: 'Verse only',
+  translation: 'With translation',
+  wbw: 'Word-by-word',
+  advanced: 'Advanced',
+};
+
+function layoutLabel(slug: string): string {
+  return LAYOUT_LABEL_FOR_CARD[slug] ?? slug.replace(/_/g, ' ');
+}
+
+function variantLabel(v: string): string {
+  return VARIANT_LABEL_FOR_CARD[v] ?? v;
+}
+
 function arabicTextFor(verse: Verse, layoutSlug: string): string {
   if (layoutSlug === 'kfgqpc_v1' || layoutSlug === 'indopak' || layoutSlug.includes('indopak')) {
     return verse.textIndopak ?? verse.textUthmani;
@@ -263,12 +297,12 @@ export function ShareCardSurface(props: Props): ReactNode {
             >
               {variant !== 'translation' ? (
                 <Pill color="gold" tone="filled">
-                  {variant.toUpperCase()}
+                  {variantLabel(variant)}
                 </Pill>
               ) : null}
               {layoutSlug ? (
                 <Pill color="leaf" tone="ghost">
-                  {layoutSlug.replace(/_/g, ' ')}
+                  {layoutLabel(layoutSlug)}
                 </Pill>
               ) : null}
               <span

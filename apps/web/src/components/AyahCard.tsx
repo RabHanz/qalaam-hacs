@@ -29,6 +29,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
+import { SILENT_MARK_REGEX } from '../lib/arabic-render.js';
 import { sanitizeHtml } from '../lib/sanitize-html.js';
 import { applyTajweed, fetchTajweed, type TajweedAnnotation } from '../lib/tajweed.js';
 
@@ -599,24 +600,24 @@ export function AyahCard({
           // is the verse-end digit (e.g. "١") — render it as a proper
           // rosette anchor in UthmanicHafs (matches the mushaf rendering).
           //
-          // Silent-mark handling — UthmanicHafs draws the small-high
-          // pause / silent-letter marks (U+06D6–U+06D8 sajda/safha
-          // marks, U+06DA, U+06DB, U+06DC, U+06DF Arabic small high
-          // rounded zero, U+06E0–U+06E5, U+06E8) as full-size mid-line
-          // glyphs that look like spurious rosettes inline. The
-          // frontier-app convention (Quran.com, Tarteel, Quranly) is
-          // to render these as discreet superscript marks. We mirror
-          // MushafLines: split each word on those codepoints, wrap
-          // matches in <span class="silent-mark"> so globals.css
-          // shrinks them to ~0.3em and lifts them above the baseline.
+          // Silent-mark handling — UthmanicHafs / IndoPak / Nastaliq
+          // draw the small-high pause / sajda / madda / silent-letter
+          // marks (U+06D6–U+06DC, U+06DF–U+06E5, U+06E7–U+06E8,
+          // U+06EA–U+06ED) as full-size mid-line glyphs that read as
+          // spurious rosettes inline (or, where the font lacks a glyph
+          // — common on IndoPak — as `.notdef` tofu boxes overlapping
+          // base letters like م). The frontier-app convention
+          // (Quran.com, Tarteel, Quranly) is to render these as
+          // discreet superscript marks. We split each word on those
+          // codepoints, wrap matches in <span class="silent-mark"> so
+          // globals.css shrinks them and lifts them above the baseline.
+          // Single source of truth: lib/arabic-render.tsx
+          //   SILENT_MARK_REGEX (excludes U+06DD ayah rosette,
+          //   U+06DE rub-el-hizb, U+06E6 small yeh, U+06E9 sajdah).
           const idx = selfHighlightIdx ?? highlightWordIndex ?? null;
           const words = arabic.split(/\s+/);
           const ARABIC_DIGITS_RE = /^[٠-٩]+$/;
-          // U+06D6–U+06DC + U+06DF (silent / pause / sajda marks).
-          // We deliberately don't include U+06DD (Arabic end-of-ayah
-          // marker) — that one is rendered as the rosette by design
-          // when it follows the ayah digit.
-          const SILENT_MARK_RE = /([ۖۗۘۙۚۛۜ۟۠])/;
+          const SILENT_MARK_RE = SILENT_MARK_REGEX;
           return words.map((word, i, arr) => {
             const isLast = i === arr.length - 1;
             const isDigit = ARABIC_DIGITS_RE.test(word);
