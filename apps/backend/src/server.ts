@@ -59,8 +59,18 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
     credentials: true,
   });
   await app.register(rateLimit, {
-    max: 600,
+    // Per-IP cap. SSR pages routinely fan out 30-50 /v1/* calls per
+    // user navigation (e.g. /read/2 hits translations × 286 verses,
+    // recitations, image-mushaf resolver, surah-info, layouts, …).
+    // 600/min was too tight — a single user reloading 3-4 times during
+    // dev would bust it and surface as "Verse not found" downstream.
+    // 6,000/min still throttles abuse but lets normal traffic through.
+    max: 6_000,
     timeWindow: '1 minute',
+    // localhost gets exempted entirely so dev tooling (Playwright, /
+    // curl audits, multiple browser tabs against the same backend)
+    // never trips the limit.
+    allowList: ['127.0.0.1', '::1'],
   });
   await app.register(swagger, {
     openapi: {

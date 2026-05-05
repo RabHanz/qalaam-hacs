@@ -482,26 +482,21 @@ export function ContinuousReaderPlayer({
     const verseKey = verses[verseIdx].verseKey;
     const segments = bundle.segments;
 
-    // Tail handling — most reciters keep reciting the LAST word past the
-    // segment's nominal endMs (the natural decay of the closing madd,
-    // qalqalah, or pause). If we advance to the rosette the instant
-    // tMs >= lastSeg.endMs, the user sees the highlight jump too early
-    // and the last word never gets its full visual moment.
+    // Tail handling — segment data ends at the last word's nominal endMs,
+    // but the reciter typically continues for another 200-800ms of madd /
+    // qalqalah / pause before the audio actually finishes. We pin the
+    // highlight to the LAST recited word for the rest of the audio
+    // playback; onEnded handles the brief rosette flash + buffer-swap.
     //
-    // Strategy: pin the highlight to the last actual word until we're
-    // within TAIL_GUARD_MS of the audio's known duration, THEN advance
-    // to the rosette/verse-end slot. If we have no duration (rare), fall
-    // back to staying on the last word — onEnded will handle the rosette.
-    const TAIL_GUARD_MS = 250;
+    // Earlier iterations advanced to the rosette mid-recitation (instantly
+    // at endMs, or guarded by 250ms before audio.duration). Both flavors
+    // surfaced as "the last second of recitation runs while highlight is
+    // already on the next slot" — the user's reported regression. Pinning
+    // for the full audio tail eliminates that without losing the rosette
+    // moment (onEnded paints it).
     const lastSeg = segments.length > 0 ? segments[segments.length - 1] : null;
     if (lastSeg && tMs >= lastSeg.endMs) {
-      const dur = a.duration;
-      const durMs = Number.isFinite(dur) && dur > 0 ? dur * 1000 : 0;
-      const closeToEnd = durMs > 0 && tMs >= durMs - TAIL_GUARD_MS;
-      // While the reciter is still on the last word, keep the highlight
-      // there (lastSeg.wordIndex - 1). Only after we're within ~250ms
-      // of the audio's actual end do we advance to the rosette slot.
-      const targetIdx = closeToEnd ? lastSeg.wordIndex : lastSeg.wordIndex - 1;
+      const targetIdx = lastSeg.wordIndex - 1;
       if (targetIdx !== lastWordIdxRef.current || verseKey !== lastVerseKeyRef.current) {
         lastWordIdxRef.current = targetIdx;
         lastVerseKeyRef.current = verseKey;

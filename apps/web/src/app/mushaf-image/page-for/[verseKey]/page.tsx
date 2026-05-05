@@ -42,25 +42,46 @@ export default async function PageForVerse({ params }: PageProps): Promise<React
     );
   }
   const apiBase = process.env.PUBLIC_API_URL ?? 'http://localhost:4111';
-  try {
-    const res = await fetch(
-      `${apiBase}/v1/image-mushaf/${LAYOUT_SLUG}/page-for/${encodeURIComponent(verseKey)}`,
-      { next: { revalidate: 604800 } },
-    );
-    if (res.ok) {
-      const body = (await res.json()) as { page: number };
-      redirect(`/mushaf-image/${body.page.toString()}#${verseKey}`);
+  // Retry once on transient (5xx, network) so a momentary backend hiccup
+  // (rate limit, restart, dropped socket) doesn't surface as "not found".
+  // 404 short-circuits to the empty state — that's a real "not in this
+  // mushaf" answer.
+  let lastStatus = 0;
+  let lastErr = '';
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const res = await fetch(
+        `${apiBase}/v1/image-mushaf/${LAYOUT_SLUG}/page-for/${encodeURIComponent(verseKey)}`,
+        { next: { revalidate: 604800 } },
+      );
+      lastStatus = res.status;
+      if (res.ok) {
+        const body = (await res.json()) as { page: number };
+        redirect(`/mushaf-image/${body.page.toString()}#${verseKey}`);
+      }
+      if (res.status === 404) break; // legit "not in this mushaf"
+      // 5xx or 429 — transient. Brief backoff then retry once.
+      await new Promise((r) => setTimeout(r, 400));
+    } catch (err) {
+      // `redirect()` throws a NEXT_REDIRECT error that must propagate up
+      // to Next's runtime — never swallow it.
+      if ((err as { digest?: string }).digest?.startsWith('NEXT_REDIRECT')) throw err;
+      lastErr = (err as Error).message || 'fetch failed';
+      await new Promise((r) => setTimeout(r, 400));
     }
-  } catch {
-    /* fall through to empty state */
   }
+  const isTransient = lastStatus === 0 || lastStatus >= 500 || lastStatus === 429;
   return (
     <>
       <SiteNav />
       <div className="mx-auto max-w-3xl px-6 py-20">
         <EmptyState
-          title="Verse not found in this mushaf"
-          hint={`Could not resolve ${verseKey} to a page. Run the image-mushaf ingest if you haven't yet.`}
+          title={isTransient ? 'Backend not responding' : 'Verse not in this mushaf'}
+          hint={
+            isTransient
+              ? `Couldn't reach the image-mushaf resolver for ${verseKey} (status ${lastStatus.toString()}${lastErr ? ` — ${lastErr}` : ''}). Try again in a moment.`
+              : `Could not resolve ${verseKey} to a page in the Madani 16-line image overlay. Re-run scripts/data/ingest-image-mushaf-overlays.py if the table is sparse.`
+          }
         />
       </div>
     </>
