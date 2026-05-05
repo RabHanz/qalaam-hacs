@@ -30,6 +30,9 @@ import { useEffect, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
 import { sanitizeHtml } from '../lib/sanitize-html.js';
+import { applyTajweed, fetchTajweed, type TajweedAnnotation } from '../lib/tajweed.js';
+
+import { ShareDialog } from './ShareDialog.js';
 
 import type { ReactNode } from 'react';
 
@@ -201,7 +204,27 @@ export function AyahCard({
     scholar: string | null;
     loading: boolean;
   } | null>(null);
-  const [shareCopied, setShareCopied] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  // Tajweed annotations — only fetched when the layout slug indicates
+  // tajweed coloring (kfgqpc_v4 / tajweed). Other layouts skip the
+  // fetch entirely.
+  const tajweedActive = layoutSlug === 'kfgqpc_v4' || layoutSlug === 'tajweed';
+  const [tajweedAnno, setTajweedAnno] = useState<readonly TajweedAnnotation[] | null>(null);
+  useEffect(() => {
+    if (!tajweedActive) {
+      setTajweedAnno(null);
+      return;
+    }
+    const cancelled = { v: false };
+    void (async () => {
+      const apiBase = resolveApiBase();
+      const list = await fetchTajweed(apiBase, verseKey);
+      if (!cancelled.v) setTajweedAnno(list);
+    })();
+    return () => {
+      cancelled.v = true;
+    };
+  }, [tajweedActive, verseKey]);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioLoading, setAudioLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -476,66 +499,10 @@ export function AyahCard({
     }
   }
 
-  async function copyShareLink(): Promise<void> {
-    const studyUrl = `${window.location.origin}/read/${verseKey.split(':')[0] ?? '1'}#${verseKey}`;
-    const cardUrl = `${window.location.origin}/og/ayah/${encodeURIComponent(verseKey)}`;
-    // Try Web Share API with the rendered card image — gives a native
-    // share sheet on iOS/Android with the visual preview. Falls back
-    // to clipboard copy on desktop or when share is blocked.
-    // navigator.share + canShare guard for files (iOS 15+/Android 12+).
-    // We try image-share first (best UX), fall back to URL-share, then
-    // fall back to clipboard.
-    interface NavWithShare extends Navigator {
-      share?: (d: ShareData & { files?: File[] }) => Promise<void>;
-      canShare?: (d: ShareData & { files?: File[] }) => boolean;
-    }
-    const nav: NavWithShare = navigator as NavWithShare;
-    const tryImageShare = async (): Promise<boolean> => {
-      if (!nav.share) return false;
-      try {
-        const res = await fetch(cardUrl);
-        if (!res.ok) return false;
-        const blob = await res.blob();
-        const file = new File([blob], `qalaam-${verseKey}.png`, { type: 'image/png' });
-        const data = {
-          title: `Quran ${verseKey}`,
-          text: studyUrl,
-          files: [file],
-        };
-        const canShareFn = nav.canShare;
-        if (canShareFn && !canShareFn(data)) return false;
-        await nav.share(data);
-        return true;
-      } catch {
-        return false;
-      }
-    };
-    const tryUrlShare = async (): Promise<boolean> => {
-      if (!nav.share) return false;
-      try {
-        await nav.share({ title: `Quran ${verseKey}`, url: studyUrl });
-        return true;
-      } catch {
-        return false;
-      }
-    };
-    const fallbackCopy = async (): Promise<void> => {
-      try {
-        await navigator.clipboard.writeText(studyUrl);
-        setShareCopied(true);
-        setTimeout(() => {
-          setShareCopied(false);
-        }, 1800);
-      } catch {
-        /* clipboard blocked too — open the OG card in a new tab as
-           last-resort so the user can save it manually */
-        window.open(cardUrl, '_blank', 'noopener,noreferrer');
-      }
-    };
-    if (await tryImageShare()) return;
-    if (await tryUrlShare()) return;
-    await fallbackCopy();
-  }
+  // Share is now handled by the ShareDialog mounted at the bottom of
+  // this component (see <ShareDialog open={shareOpen} ... />). The
+  // chip toggles the modal which holds variant tabs, preview, and
+  // native-share / download / copy actions.
 
   return (
     <article
@@ -571,10 +538,26 @@ export function AyahCard({
         aria-label={`Verse ${verseKey}`}
       >
         {(() => {
-          // Split into words; render each as a span (so the active one
-          // can pick up recite-highlight). The TRAILING word is the
-          // verse-end digit (e.g. "١") — render it as a proper rosette
-          // anchor in UthmanicHafs (matches the mushaf rendering).
+          // Tajweed mode: when the active layout is tajweed and we have
+          // annotations, render the verse as char-range segments with
+          // .tajweed-* classes. Word-level highlight is suppressed in
+          // this mode since char ranges and word boundaries don't align
+          // cleanly — the user gets coloring in exchange for highlight.
+          if (tajweedActive && tajweedAnno && tajweedAnno.length > 0) {
+            const segments = applyTajweed(arabic, tajweedAnno);
+            return segments.map((seg, i) => (
+              <span
+                key={`tj-${i.toString()}`}
+                className={seg.rule ? `tajweed-${seg.rule}` : undefined}
+              >
+                {seg.text}
+              </span>
+            ));
+          }
+          // Default: split into words; render each as a span (so the
+          // active one can pick up recite-highlight). The TRAILING word
+          // is the verse-end digit (e.g. "١") — render it as a proper
+          // rosette anchor in UthmanicHafs (matches the mushaf rendering).
           const idx = selfHighlightIdx ?? highlightWordIndex ?? null;
           const words = arabic.split(/\s+/);
           const ARABIC_DIGITS_RE = /^[٠-٩]+$/;
@@ -759,11 +742,11 @@ export function AyahCard({
         />
         <ChipButton
           onClick={() => {
-            void copyShareLink();
+            setShareOpen(true);
           }}
-          active={shareCopied}
+          active={shareOpen}
           icon={<ShareIcon />}
-          label={shareCopied ? 'Copied' : 'Share'}
+          label="Share"
         />
         <a
           href={`/listen/compare/${encodeURIComponent(verseKey)}`}
@@ -788,6 +771,14 @@ export function AyahCard({
           Compare
         </a>
       </nav>
+      <ShareDialog
+        verseKey={verseKey}
+        layoutSlug={layoutSlug}
+        open={shareOpen}
+        onClose={() => {
+          setShareOpen(false);
+        }}
+      />
     </article>
   );
 }
