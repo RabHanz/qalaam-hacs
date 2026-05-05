@@ -125,6 +125,28 @@ export function MushafLines({
   // remains the fallback for any verse the V4 fetch couldn't resolve.
   const [qpcV4ByVerse, setQpcV4ByVerse] = useState<Map<string, QpcV4Verse>>(new Map());
 
+  // Cross-component active-word channel — `MushafPagePlayer` (rendered as
+  // a server-component sibling on /mushaf/[layout]/[page]) dispatches
+  // `qalaam:current-word` on the window bus. We adopt that as our local
+  // highlight when the prop wasn't passed explicitly — keeps the
+  // word-of-recitation gold paint working even when the page itself
+  // isn't a client component that could thread a state down.
+  const [busHighlight, setBusHighlight] = useState<{
+    verseKey: string;
+    wordIndex: number;
+  } | null>(null);
+  useEffect(() => {
+    function onWord(e: Event): void {
+      const d = (e as CustomEvent<{ verseKey: string; wordIndex: number } | null>).detail;
+      setBusHighlight(d);
+    }
+    window.addEventListener('qalaam:current-word', onWord);
+    return () => {
+      window.removeEventListener('qalaam:current-word', onWord);
+    };
+  }, []);
+  const effectiveHighlight = highlight ?? busHighlight;
+
   // Reset measurement state whenever the lines or layout changes — both
   // affect natural widths and therefore the optimal font-size.
   useEffect(() => {
@@ -421,7 +443,7 @@ export function MushafLines({
                   tajweedByVerse,
                   verseWordOffsets,
                   qpcV4ByVerse,
-                  highlight ?? null,
+                  effectiveHighlight,
                 )}
               </span>
             </div>

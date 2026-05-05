@@ -72,16 +72,18 @@ export function MushafPagePlayer({ lines, initialSurah }: Props): ReactNode {
     }
   }
 
-  // Highlight callback is a no-op here (we don't have word-level
-  // tappable markup to paint inside the mushaf page yet — the
-  // mushaf-word anchors do exist but cross-component highlight
-  // wiring would need extra refactor).
+  // Broadcast active-word events on the window bus so any client
+  // sibling (notably <MushafLines/> rendered server-side as a sibling
+  // of this player) can paint the active word in gold without us
+  // needing to convert the page into a client component.
   return (
     <ContinuousReaderPlayer
       verses={verses}
       reciterSlug={reciter}
       reciterName={reciters.find((r) => r.slug === reciter)?.name.en}
-      onHighlight={() => undefined}
+      onHighlight={(h) => {
+        window.dispatchEvent(new CustomEvent('qalaam:current-word', { detail: h }));
+      }}
       currentSurah={initialSurah}
     />
   );
