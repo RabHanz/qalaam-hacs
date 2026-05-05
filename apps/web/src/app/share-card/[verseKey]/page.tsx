@@ -125,6 +125,10 @@ export default async function ShareCardPage({
   const showGrammar = pickFlag(sp.grammar) || variant === 'advanced';
   const showTafsir = pickFlag(sp.tafsir) || variant === 'advanced';
   const isTajweedLayout = layoutSlug === 'tajweed' || layoutSlug === 'kfgqpc_v4';
+  // Fit-to-content (collapses min-height) + scale multiplier (1, 1.25, 1.5)
+  const fit = pickFlag(sp.fit);
+  const scaleRaw = Number.parseFloat(pickStr(sp.scale, '1'));
+  const scale = Number.isFinite(scaleRaw) ? Math.max(0.8, Math.min(2, scaleRaw)) : 1;
 
   const surah = Number.parseInt(verseKey.split(':')[0] ?? '1', 10);
 
@@ -193,6 +197,8 @@ export default async function ShareCardPage({
       showTransliteration={showTransliteration}
       showGrammar={showGrammar}
       showTafsir={showTafsir}
+      fit={fit}
+      scale={scale}
     />
   );
 }

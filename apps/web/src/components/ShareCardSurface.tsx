@@ -63,6 +63,13 @@ interface Props {
   readonly showTransliteration: boolean;
   readonly showGrammar: boolean;
   readonly showTafsir: boolean;
+  /** When true, the card collapses to its content's natural height
+   *  instead of holding the format's aspect-ratio min-height. Useful
+   *  for sharing minimal verses without an empty bottom half. */
+  readonly fit: boolean;
+  /** Content scale multiplier (1, 1.25, 1.5). Enlarges Arabic + body
+   *  text proportionally without changing the card width. */
+  readonly scale: number;
 }
 
 const POS_LABEL: Record<string, string> = {
@@ -119,6 +126,8 @@ export function ShareCardSurface(props: Props): ReactNode {
     showTransliteration,
     showGrammar,
     showTafsir,
+    fit,
+    scale,
   } = props;
 
   const arabic = arabicTextFor(verse, layoutSlug);
@@ -139,19 +148,25 @@ export function ShareCardSurface(props: Props): ReactNode {
 
   // Format dimensions (CSS pixels). Puppeteer uses
   // deviceScaleFactor=2 to get 2× sharpness in the output PNG.
+  // When `fit` is on, we drop the format's min-height so the card
+  // collapses to its content (avoiding empty bottom space). Otherwise
+  // the canonical aspect ratio is preserved and content is centered
+  // vertically within the available space.
   const dims = (() => {
     if (format === 'square') return { width: 1080, minHeight: 1080 };
     if (format === 'story') return { width: 1080, minHeight: 1920 };
     return { width: 1200, minHeight: 630 };
   })();
+  const effectiveMinHeight = fit ? 0 : dims.minHeight;
 
   return (
     <main
       className="share-card paper-texture"
       data-share-card="1"
+      data-fit={fit ? '1' : '0'}
       style={{
         width: dims.width,
-        minHeight: dims.minHeight,
+        minHeight: effectiveMinHeight,
         margin: 0,
         padding: 0,
         background: 'linear-gradient(160deg, #1b4d5a 0%, #143842 50%, #0e2a32 100%)',
@@ -192,7 +207,7 @@ export function ShareCardSurface(props: Props): ReactNode {
         style={{
           position: 'relative',
           padding: format === 'story' ? '52px 56px' : '60px 72px',
-          minHeight: dims.minHeight,
+          minHeight: effectiveMinHeight,
           display: 'flex',
           flexDirection: 'column',
         }}
@@ -322,12 +337,15 @@ export function ShareCardSurface(props: Props): ReactNode {
             />
           </div>
 
-          {/* Arabic + WBW + insights */}
+          {/* Arabic + WBW + insights — flex:1 + justifyContent:center
+              so content stays vertically centered when the card has
+              extra room (e.g. story format with a short verse). */}
           <section
             style={{
               flex: 1,
               display: 'flex',
               flexDirection: 'column',
+              justifyContent: fit ? 'flex-start' : 'center',
               gap: 18,
               marginTop: 26,
             }}
@@ -336,21 +354,21 @@ export function ShareCardSurface(props: Props): ReactNode {
               <WbwGrid
                 wbw={wbw}
                 fontFamily={fontFamily}
-                arabicSize={pickArabicSize(format, arabic.length, true)}
+                arabicSize={Math.round(pickArabicSize(format, arabic.length, true) * scale)}
               />
             ) : (
               <ArabicVerse
                 arabic={arabic}
                 fontFamily={fontFamily}
-                fontSize={pickArabicSize(format, arabic.length, false)}
+                fontSize={Math.round(pickArabicSize(format, arabic.length, false) * scale)}
                 tajweedAnnotations={isTajweed ? tajweedAnnotations : null}
               />
             )}
             {showTransliteration && transliteration ? (
-              <Transliteration text={transliteration} format={format} />
+              <Transliteration text={transliteration} format={format} scale={scale} />
             ) : null}
             {variant !== 'minimal' && variant !== 'wbw' && translation ? (
-              <Translation text={translation} format={format} />
+              <Translation text={translation} format={format} scale={scale} />
             ) : null}
             {showGrammar && morphology ? (
               <GrammarStrip morphology={morphology} fontFamily={fontFamily} />
@@ -549,16 +567,18 @@ function WbwGrid({
 function Transliteration({
   text,
   format,
+  scale = 1,
 }: {
   readonly text: string;
   readonly format: 'landscape' | 'square' | 'story';
+  readonly scale?: number;
 }): ReactNode {
   return (
     <p
       dir="ltr"
       lang="en"
       style={{
-        fontSize: format === 'story' ? 22 : 18,
+        fontSize: Math.round((format === 'story' ? 22 : 18) * scale),
         lineHeight: 1.6,
         color: '#5a5a5a',
         fontStyle: 'italic',
@@ -573,16 +593,18 @@ function Transliteration({
 function Translation({
   text,
   format,
+  scale = 1,
 }: {
   readonly text: string;
   readonly format: 'landscape' | 'square' | 'story';
+  readonly scale?: number;
 }): ReactNode {
   return (
     <p
       dir="ltr"
       lang="en"
       style={{
-        fontSize: format === 'story' ? 26 : 22,
+        fontSize: Math.round((format === 'story' ? 26 : 22) * scale),
         lineHeight: 1.55,
         color: '#3a3a3a',
         fontStyle: 'italic',

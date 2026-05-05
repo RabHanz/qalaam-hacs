@@ -69,6 +69,12 @@ export function ShareDialog({
   const [showTransliteration, setShowTransliteration] = useState(false);
   const [showGrammar, setShowGrammar] = useState(false);
   const [showTafsir, setShowTafsir] = useState(false);
+  // Fit-to-content collapses the format's aspect-ratio minHeight so a
+  // short verse on a story format doesn't render with a huge empty
+  // bottom half. Scale enlarges the body text (Arabic + translation +
+  // transliteration) for better legibility on dense formats.
+  const [fit, setFit] = useState(false);
+  const [scale, setScale] = useState<1 | 1.25 | 1.5>(1);
   const [shareState, setShareState] = useState<ActionState>('idle');
   const [downloadState, setDownloadState] = useState<ActionState>('idle');
   const [linkState, setLinkState] = useState<ActionState>('idle');
@@ -80,7 +86,7 @@ export function ShareDialog({
     setDownloadState('idle');
     setLinkState('idle');
     setImgState('idle');
-  }, [format, variant, showTransliteration, showGrammar, showTafsir]);
+  }, [format, variant, showTransliteration, showGrammar, showTafsir, fit, scale]);
 
   // Esc + body-scroll-lock
   useEffect(() => {
@@ -109,6 +115,8 @@ export function ShareDialog({
     if (showTransliteration) params.set('transliteration', '1');
     if (showGrammar) params.set('grammar', '1');
     if (showTafsir) params.set('tafsir', '1');
+    if (fit) params.set('fit', '1');
+    if (scale !== 1) params.set('scale', scale.toString());
     // Prefer the Puppeteer-screenshot route — it reuses /share-card so
     // Arabic joins, tafsir HTML renders, tajweed CSS applies. The
     // Satori route at /og/ayah remains as a hot-cache fallback.
@@ -133,6 +141,8 @@ export function ShareDialog({
     showTransliteration,
     showGrammar,
     showTafsir,
+    fit,
+    scale,
   ]);
 
   if (!open) return null;
@@ -345,6 +355,28 @@ export function ShareDialog({
             />
             <Switch label="Grammar" checked={showGrammar} onChange={setShowGrammar} />
             <Switch label="Tafsir" checked={showTafsir} onChange={setShowTafsir} />
+          </div>
+
+          {/* Sizing controls — Fit collapses the format's aspect ratio
+              when the verse is short; Size enlarges the body text. */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span className="smallcaps text-ink-muted shrink-0 text-[10px] tracking-widest">
+              Sizing
+            </span>
+            <Switch label="Fit content" checked={fit} onChange={setFit} />
+            <div className="flex items-center gap-1.5">
+              <span className="smallcaps text-ink-muted text-[10px] tracking-widest">Size</span>
+              {([1, 1.25, 1.5] as const).map((s) => (
+                <ChipToggle
+                  key={s.toString()}
+                  active={scale === s}
+                  onClick={() => {
+                    setScale(s);
+                  }}
+                  label={`${s.toString()}×`}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
