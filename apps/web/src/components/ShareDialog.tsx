@@ -13,6 +13,7 @@
  * body scroll locked while open.
  */
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import type { ReactNode } from 'react';
 
@@ -51,6 +52,7 @@ export function ShareDialog({ verseKey, layoutSlug, open, onClose }: Props): Rea
   }, [open, onClose]);
 
   if (!open) return null;
+  if (typeof document === 'undefined') return null;
 
   const params = new URLSearchParams();
   if (variant !== 'default') params.set('variant', variant);
@@ -124,9 +126,12 @@ export function ShareDialog({ verseKey, layoutSlug, open, onClose }: Props): Rea
     a.remove();
   }
 
-  return (
+  // Portal to document.body so the modal escapes the AyahCard's
+  // overflow-hidden clip and any transformed ancestor that would
+  // otherwise turn position:fixed into containing-block-relative.
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+      className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="share-title"
@@ -139,7 +144,7 @@ export function ShareDialog({ verseKey, layoutSlug, open, onClose }: Props): Rea
       />
       <div
         className="bg-paper border-hairline sheet-rise relative flex w-full flex-col overflow-hidden rounded-t-2xl border-t shadow-2xl sm:max-w-2xl sm:rounded-2xl sm:border"
-        style={{ maxHeight: '92dvh' }}
+        style={{ maxHeight: '92dvh', minHeight: '60dvh' }}
       >
         {/* Drag handle (mobile) */}
         <div className="flex justify-center pb-1 pt-3 sm:hidden">
@@ -253,6 +258,7 @@ export function ShareDialog({ verseKey, layoutSlug, open, onClose }: Props): Rea
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

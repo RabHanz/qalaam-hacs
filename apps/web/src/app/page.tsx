@@ -15,10 +15,19 @@
  *     not a card grid
  */
 import Link from 'next/link';
-import type { ReactNode } from 'react';
 
-import { BookGlyph, CrescentGlyph, HairlineDivider, LanternGlyph, ThreadGlyph } from '../components/Glyph.js';
+
+import {
+  BookGlyph,
+  CrescentGlyph,
+  HairlineDivider,
+  LanternGlyph,
+  ThreadGlyph,
+} from '../components/Glyph.js';
+import { HijriNudge } from '../components/HijriNudge.js';
 import { SiteNav } from '../components/SiteNav.js';
+
+import type { ReactNode } from 'react';
 
 interface Surah {
   surah: number;
@@ -48,33 +57,40 @@ export default async function HomePage(): Promise<ReactNode> {
       <SiteNav />
 
       {/* HERO — asymmetric editorial spread, mobile-first */}
-      <section className="border-b border-hairline">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 py-12 sm:py-20 md:grid-cols-12 md:py-28 md:gap-12">
-          <div className="md:col-span-7 reveal">
-            <p className="smallcaps text-leaf text-[11px] tracking-widest mb-4 sm:mb-6">
+      <section className="border-hairline border-b">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 sm:py-20 md:grid-cols-12 md:gap-12 md:py-28">
+          <div className="reveal md:col-span-7">
+            <p className="smallcaps text-leaf mb-4 text-[11px] tracking-widest sm:mb-6">
               Editio · Familiae · Domi
             </p>
-            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light leading-[1.05] tracking-tight">
+            <h1 className="font-display text-4xl font-light leading-[1.05] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
               A Quran companion
               <br />
-              <span className="italic text-leaf">for the whole home.</span>
+              <span className="text-leaf italic">for the whole home.</span>
             </h1>
-            <p className="mt-6 sm:mt-8 max-w-xl text-base sm:text-lg leading-relaxed text-ink-muted">
-              Read, listen, and memorize — across every speaker in your house.
-              Built for families. Adhan-aware. Family-private, never gamified.
-              <span className="block mt-2 text-sm sm:text-base">No ads. No XP. No leaderboards.</span>
+            <p className="text-ink-muted mt-6 max-w-xl text-base leading-relaxed sm:mt-8 sm:text-lg">
+              Read, listen, and memorize — across every speaker in your house. Built for families.
+              Adhan-aware. Family-private, never gamified.
+              <span className="mt-2 block text-sm sm:text-base">
+                No ads. No XP. No leaderboards.
+              </span>
             </p>
-            <div className="mt-8 sm:mt-10 flex flex-wrap items-center gap-4">
+            <div className="mt-8 flex flex-wrap items-center gap-4 sm:mt-10">
               <Link
                 href="/read/1"
-                className="group inline-flex items-center gap-2 rounded-sm bg-ink px-6 sm:px-7 py-3 sm:py-3.5 text-white transition-colors hover:bg-ink-strong"
+                className="bg-ink hover:bg-ink-strong group inline-flex items-center gap-2 rounded-sm px-6 py-3 text-white transition-colors sm:px-7 sm:py-3.5"
               >
-                <span className="font-medium text-sm sm:text-base">Begin with Al-Fātiḥa</span>
-                <span aria-hidden className="text-leaf-soft transition-transform group-hover:translate-x-0.5 rtl-flip">→</span>
+                <span className="text-sm font-medium sm:text-base">Begin with Al-Fātiḥa</span>
+                <span
+                  aria-hidden
+                  className="text-leaf-soft rtl-flip transition-transform group-hover:translate-x-0.5"
+                >
+                  →
+                </span>
               </Link>
               <Link
                 href="/about"
-                className="text-xs sm:text-sm smallcaps text-ink-muted hover:text-ink underline-offset-4 hover:underline"
+                className="smallcaps text-ink-muted hover:text-ink text-xs underline-offset-4 hover:underline sm:text-sm"
               >
                 What is Qalaam
               </Link>
@@ -82,42 +98,48 @@ export default async function HomePage(): Promise<ReactNode> {
           </div>
 
           {/* Right column — vertical Bismillah strip with surah preview */}
-          <aside className="md:col-span-5 reveal reveal-2">
+          <aside className="reveal reveal-2 md:col-span-5">
             <div className="paper-card-raised relative overflow-hidden p-6 sm:p-8 md:p-10">
-              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-30"
-                style={{ background: 'radial-gradient(circle, var(--color-leaf-300) 0%, transparent 70%)' }}
+              <div
+                className="absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-30"
+                style={{
+                  background: 'radial-gradient(circle, var(--color-leaf-300) 0%, transparent 70%)',
+                }}
                 aria-hidden
               />
               <div className="relative">
-                <p className="smallcaps text-leaf text-[11px] tracking-widest">Sūrat al-Fātiḥa · 1:1</p>
+                <p className="smallcaps text-leaf text-[11px] tracking-widest">
+                  Sūrat al-Fātiḥa · 1:1
+                </p>
                 <p
                   dir="rtl"
-                  className="font-arabic mt-5 sm:mt-6 text-3xl sm:text-4xl md:text-5xl leading-[2] text-ink-strong"
+                  className="font-arabic text-ink-strong mt-5 text-3xl leading-[2] sm:mt-6 sm:text-4xl md:text-5xl"
                   style={{ unicodeBidi: 'plaintext', fontWeight: 600 }}
                 >
                   بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
                 </p>
-                <p className="font-display mt-3 sm:mt-4 text-sm sm:text-base italic text-ink-muted leading-relaxed">
+                <p className="font-display text-ink-muted mt-3 text-sm italic leading-relaxed sm:mt-4 sm:text-base">
                   In the name of God,
-                  <br />the Most Gracious, the Most Merciful.
+                  <br />
+                  the Most Gracious, the Most Merciful.
                 </p>
                 <HairlineDivider />
                 <dl className="grid grid-cols-2 gap-3 text-xs">
                   <div>
                     <dt className="smallcaps text-ink-muted">Verses</dt>
-                    <dd className="font-display text-lg text-ink-strong tabular-nums">6,236</dd>
+                    <dd className="font-display text-ink-strong text-lg tabular-nums">6,236</dd>
                   </div>
                   <div>
                     <dt className="smallcaps text-ink-muted">Reciters</dt>
-                    <dd className="font-display text-lg text-ink-strong tabular-nums">14</dd>
+                    <dd className="font-display text-ink-strong text-lg tabular-nums">14</dd>
                   </div>
                   <div>
                     <dt className="smallcaps text-ink-muted">Translations</dt>
-                    <dd className="font-display text-lg text-ink-strong tabular-nums">2 · en</dd>
+                    <dd className="font-display text-ink-strong text-lg tabular-nums">2 · en</dd>
                   </div>
                   <div>
                     <dt className="smallcaps text-ink-muted">Mushafs</dt>
-                    <dd className="font-display text-lg text-ink-strong tabular-nums">3</dd>
+                    <dd className="font-display text-ink-strong text-lg tabular-nums">3</dd>
                   </div>
                 </dl>
               </div>
@@ -126,9 +148,15 @@ export default async function HomePage(): Promise<ReactNode> {
         </div>
       </section>
 
+      {/* Calendar-aware contextual nudge — Surah Kahf on Friday,
+          Ramadan-aware framing, Hijri events. Hidden if no nudge applies. */}
+      <section className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+        <HijriNudge />
+      </section>
+
       {/* FOUR-PILLAR FEATURE STRIP — mobile-first 1col → 2col → 4col */}
-      <section className="border-b border-hairline">
-        <div className="mx-auto grid max-w-6xl gap-px bg-paper-200/60 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="border-hairline border-b">
+        <div className="bg-paper-200/60 mx-auto grid max-w-6xl grid-cols-1 gap-px sm:grid-cols-2 lg:grid-cols-4">
           <FeatureCell
             icon={BookGlyph}
             title="It reads with you"
@@ -165,51 +193,50 @@ export default async function HomePage(): Promise<ReactNode> {
       </section>
 
       {/* TABLE OF CONTENTS — surahs list, not card grid */}
-      <section className="border-b border-hairline">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-12 sm:py-20">
-          <div className="grid items-baseline gap-6 md:grid-cols-12 mb-8 sm:mb-12">
+      <section className="border-hairline border-b">
+        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-20">
+          <div className="mb-8 grid items-baseline gap-6 sm:mb-12 md:grid-cols-12">
             <div className="md:col-span-4">
               <p className="smallcaps text-leaf text-[11px] tracking-widest">Index · فِهْرِس</p>
-              <h2 className="font-display mt-3 text-3xl sm:text-4xl font-light tracking-tight">
+              <h2 className="font-display mt-3 text-3xl font-light tracking-tight sm:text-4xl">
                 The 114 surahs
               </h2>
             </div>
-            <p className="md:col-span-8 text-sm sm:text-base text-ink-muted leading-relaxed">
-              All 6,236 verses ingested from the Quranic Universal Library
-              (Tarteel AI). Tap any surah to read in full, or jump to deep
-              study for a single verse with translations, tafsir, word-by-word,
-              and mutashabihat watchlist.
+            <p className="text-ink-muted text-sm leading-relaxed sm:text-base md:col-span-8">
+              All 6,236 verses ingested from the Quranic Universal Library (Tarteel AI). Tap any
+              surah to read in full, or jump to deep study for a single verse with translations,
+              tafsir, word-by-word, and mutashabihat watchlist.
             </p>
           </div>
 
           {surahs.length === 0 ? (
-            <p className="paper-card p-8 text-center text-sm text-ink-muted">
+            <p className="paper-card text-ink-muted p-8 text-center text-sm">
               Backend unreachable. Start the dev backend on :4111 and refresh.
             </p>
           ) : (
-            <ul className="grid gap-px bg-paper-200/50 sm:grid-cols-2 md:grid-cols-3">
+            <ul className="bg-paper-200/50 grid gap-px sm:grid-cols-2 md:grid-cols-3">
               {surahs.map((s) => (
                 <li key={s.surah}>
                   <Link
                     href={`/read/${s.surah.toString()}`}
-                    className="group flex items-baseline justify-between gap-4 bg-paper px-5 py-4 transition-colors hover:bg-paper-100"
+                    className="bg-paper hover:bg-paper-100 group flex items-baseline justify-between gap-4 px-5 py-4 transition-colors"
                   >
-                    <div className="flex items-baseline gap-4 min-w-0">
-                      <span className="smallcaps font-mono text-xs text-ink-muted tabular-nums w-6 shrink-0">
+                    <div className="flex min-w-0 items-baseline gap-4">
+                      <span className="smallcaps text-ink-muted w-6 shrink-0 font-mono text-xs tabular-nums">
                         {s.surah.toString().padStart(3, '0')}
                       </span>
                       <div className="min-w-0">
-                        <p className="font-display text-lg leading-tight text-ink truncate group-hover:text-leaf transition-colors">
+                        <p className="font-display text-ink group-hover:text-leaf truncate text-lg leading-tight transition-colors">
                           {s.nameEnglish}
                         </p>
-                        <p className="text-xs text-ink-muted">
+                        <p className="text-ink-muted text-xs">
                           {s.verseCount.toString()} verses · {s.revelationPlace}
                         </p>
                       </div>
                     </div>
                     <span
                       dir="rtl"
-                      className="font-arabic text-2xl text-ink-strong shrink-0"
+                      className="font-arabic text-ink-strong shrink-0 text-2xl"
                       style={{ lineHeight: 1, unicodeBidi: 'plaintext' }}
                     >
                       {s.nameArabic}
@@ -224,12 +251,12 @@ export default async function HomePage(): Promise<ReactNode> {
 
       <footer className="mx-auto max-w-6xl px-6 py-12">
         <div className="rule-hairline" />
-        <div className="mt-6 flex flex-wrap items-baseline justify-between gap-3 text-xs text-ink-muted">
+        <div className="text-ink-muted mt-6 flex flex-wrap items-baseline justify-between gap-3 text-xs">
           <p>
             Quranic text via{' '}
             <a
               href="https://qul.tarteel.ai"
-              className="text-leaf hover:underline underline-offset-4"
+              className="text-leaf underline-offset-4 hover:underline"
               target="_blank"
               rel="noreferrer"
             >
@@ -253,27 +280,37 @@ interface FeatureCellProps {
   readonly delay: 1 | 2 | 3 | 4 | 5;
 }
 
-function FeatureCell({ icon: Icon, title, arabic, body, href, delay }: FeatureCellProps): ReactNode {
+function FeatureCell({
+  icon: Icon,
+  title,
+  arabic,
+  body,
+  href,
+  delay,
+}: FeatureCellProps): ReactNode {
   return (
     <Link
       href={href}
-      className={`group bg-paper p-8 md:p-10 transition-colors hover:bg-paper-100 reveal reveal-${delay.toString()}`}
+      className={`bg-paper hover:bg-paper-100 reveal group p-8 transition-colors md:p-10 reveal-${delay.toString()}`}
     >
-      <div className="flex items-baseline justify-between gap-4 mb-6">
+      <div className="mb-6 flex items-baseline justify-between gap-4">
         <Icon size={26} className="text-ink-muted group-hover:text-leaf transition-colors" />
         <span
           dir="rtl"
-          className="font-arabic text-xl text-ink-muted group-hover:text-leaf transition-colors"
+          className="font-arabic text-ink-muted group-hover:text-leaf text-xl transition-colors"
           style={{ unicodeBidi: 'plaintext', lineHeight: 1 }}
         >
           {arabic}
         </span>
       </div>
-      <h3 className="font-display text-3xl font-light tracking-tight mb-3 text-ink group-hover:text-ink-strong">
+      <h3 className="font-display text-ink group-hover:text-ink-strong mb-3 text-3xl font-light tracking-tight">
         {title}
       </h3>
-      <p className="text-base text-ink-muted leading-relaxed">{body}</p>
-      <span aria-hidden className="mt-6 inline-flex items-center gap-2 text-sm smallcaps text-ink-muted group-hover:text-leaf transition-colors">
+      <p className="text-ink-muted text-base leading-relaxed">{body}</p>
+      <span
+        aria-hidden
+        className="smallcaps text-ink-muted group-hover:text-leaf mt-6 inline-flex items-center gap-2 text-sm transition-colors"
+      >
         Open <span className="rtl-flip">→</span>
       </span>
     </Link>
