@@ -9,6 +9,15 @@
 - Every significant task references its ADR: `(ADR-NNNN)`.
 - A task is "complete" only when: (a) code merged, (b) tests passing, (c) docs updated, (d) ADR status reflected, (e) leading-metric instrumentation in place where applicable.
 
+## Status (snapshot 2026-05-05 — task plan §27.7 at 55/80 task-IDs done)
+
+Latest session shipped tasks #121, #162, #171, #180, #181, #185,
+#186, #187, #188, #196, #197, #199 (see "What this session shipped"
+below for the full ledger). Highest-leverage remaining unlock is
+still **#192 (auth foundation)** — gates seven family-tier tasks
+across bookmarks, parent dashboard, voice notes, khatm wall,
+billing, and personal voice cloning.
+
 ## Status (snapshot 2026-05-04 v7 — Phase 15 catalog + Phase 9 real-mode + Phase 10 polish + HA themed panel)
 
 | Phase                                                | Items | Done | %        | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
@@ -171,6 +180,95 @@ The phase table above tracks **engineering scaffolding**. This section tracks **
 | Home Assistant native        | Custom_component live on shadowserver            |  ✅  |
 
 ---
+
+### What this session shipped (snapshot 2026-05-05)
+
+Counted against the structured task plan in `STRATEGY_AND_ROADMAP.md`
+§27.8: completed task IDs **#121, #162, #171, #180, #181, #185,
+#186, #187, #188, #196, #197, #199**.
+That moves the running total from 51/80 → 55/80 task-IDs done.
+Pending: **#122, #158, #161, #165–#168, #171, #174–#176, #178–#179,
+#182–#184, #190–#198 minus what's listed above.**
+
+Code-level highlights from the session, in execution order:
+
+1. **#197/#121 Goto picker** — keyboard arrow-nav, Enter-pick, listen-mode
+   `history.replaceState` so the verse key persists the URL on share.
+2. **#196 /api proxy hardening** — scoped `Permissions-Policy`
+   (`geolocation=(self)`, `microphone=(self)`, `gyroscope=(self)`),
+   HSTS in production, explicit `/api/internal/*` deny, immutable
+   `Cache-Control` for `/_next/static/*`.
+3. **#185 I'rab grammar surface** — feature-key labels
+   (NOM/ACC/GEN/MS/FS/etc.) on the `MorphologyPane` chips, plus
+   `/grammar` primer page (case + mood + POS legend + roots) wired
+   into the `/learn` Reference card row.
+4. **#181 Mutashabihat side-by-side drill** —
+   `/drill/mutashabihat/[verseKey]` with LCS-based per-word diff,
+   "Cover partner" recall mode, partner-switch chips. The existing
+   `MutashabihatWatchlistPane` now links into it.
+5. **#162 Shareable ayah cards (Satori → Puppeteer)** — first iteration
+   used Satori but it can't render Arabic GSUB; replaced with a
+   chrome-free `/share-card/[verseKey]` page screenshotted by
+   headless Chromium at `/og/ayah-pp/[verseKey]`. Fully respects
+   layout, translation, transliteration, tafsir, tajweed CSS, WBW
+   chips, grammar grid. Persists a single Browser instance for ~500ms
+   warm renders. Satori route at `/og/ayah/[verseKey]` retained as a
+   fallback. `ShareDialog` (modal) lets the user compose via Format
+   pills (landscape / square / story), Variant pills (minimal /
+   translation / wbw / advanced), Insights switches (transliteration
+   / grammar / tafsir), and Sizing controls (Fit-content + 1× /
+   1.25× / 1.5×). Active translation/tafsir/transliteration slugs
+   forward from /read so the card respects the user's selection.
+6. **#199 Server-side forced aligner** — char-weighted apportionment
+   for the 37 EveryAyah reciters with no QUL segments; on-demand
+   per-verse, persisted to `qalaam_v1_recitations_segments_aligned`
+   (cold ~1s, warm ~30ms); reciter chips show segment-coverage dot.
+7. **#188 Friday Kahf nudge + Hijri-aware events** — `HijriNudge` on
+   homepage. Calls `/v1/hijri/today`, surfaces Friday Kahf, Ramadan
+   framing, or Hijri events. Hidden when no nudge applies.
+8. **#187 Ramadan deepening** — extended `HijriNudge` with Suhoor /
+   Iftar countdown when `isRamadan` + cached prayer-times present
+   (reads coords + method from localStorage). Daily juz tracker
+   maps Ramadan day → first surah of that juz.
+9. **#171 Hisn al-Muslim azkar surface** — curated 24-dhikr corpus
+   covering morning / evening / after-prayer / sleep / wake /
+   general; `/azkar` page with category strip + tap-counter
+   (conic-gradient progress ring) + collapsible virtue + hadith
+   reference. Resets daily via `localStorage` date key.
+10. **#186 Children's mode** — "Kids" pill in /read's View row,
+    persisted in localStorage. When ON: switches reciter to muallim/
+    Husary preset; sets `body[data-children='1']` so global CSS
+    bumps Arabic + body type sizes; advanced surfaces tagged
+    `data-children-hide="1"` (morphology pane, mutashabihat watch
+    in /study) hide automatically.
+11. **#180 "I just heard them recite" log** — parent-facing
+    `HeardThemRecite` component on `/hifdh`. One-tap log with
+    optional child-name input + recent-name chips; client-only,
+    family-private, never sent to a server. Cap 90 days in
+    localStorage.
+
+#### Defects fixed alongside the wave
+
+- WBW endpoint was returning 500 (`no such column: stem`) — the
+  morphology helper SQL was rewritten to aggregate from the real
+  schema (`form_arabic`, `pos_tag`, `features_json`,
+  `is_stem` flag).
+- Tafsir HTML bleed in `AyahCard` — added a minimal allowlist
+  `sanitizeHtml` and a `.tafsir-prose` class block in `globals.css`.
+- `CompareClient` hydration mismatch — deterministic initial state
+  - `useEffect` localStorage sync.
+- Tajweed colorization in continuous /read — added per-word range
+  application so glyph joining is preserved (mid-word splits broke
+  Arabic shaping).
+- Salah location: 3-provider IP-geo fallback chain (ipapi.co →
+  ipwho.is → ipinfo.io), 5s timeout each. Auto-fallback runs on
+  insecure origins where browser geolocation is blocked.
+- Salah compass: listens to `deviceorientationabsolute` (Android
+  Chrome) + `webkitCompassHeading` (iOS) for stable compass-true
+  bearing; informative hint when running on a LAN hostname like
+  `onnyx` (browser blocks the sensor outside HTTPS/localhost).
+- Mushaf "Open image" button: URL-decode + retry-on-transient.
+- Image-mushaf 404 vs transient distinction.
 
 ### What this turn (commit ad-hoc) actually shipped
 

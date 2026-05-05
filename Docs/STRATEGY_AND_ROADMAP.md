@@ -2831,3 +2831,73 @@ The single highest-leverage unlock is **#192 (auth)** — it gates 7
 downstream tasks across family, billing, and the children's mode that
 the INTRO premises depend on. Ship that first, then parallelize the
 rest by cluster.
+
+### 27.10 Progress snapshot (2026-05-05)
+
+Running tally against §27.7's task plan: **55 / 80 task-IDs done**
+(up from 51 the previous session). Closed this session:
+
+- **#121 / #197** Goto picker debug — keyboard arrow-nav, Enter-pick,
+  listen-mode hash sync.
+- **#162** Shareable ayah cards — Satori (`/og/ayah/[vk]`) shipped
+  first, then a Puppeteer-screenshot replacement at
+  `/og/ayah-pp/[vk]` over a chrome-free `/share-card/[vk]` page that
+  reuses the real reader components for full Arabic/tajweed/HTML
+  fidelity. ShareDialog modal with format pills (landscape/square/
+  story), variant pills (minimal/translation/wbw/advanced), Insights
+  switches (transliteration/grammar/tafsir), Sizing controls
+  (fit-content + 1×/1.25×/1.5×). Active translation slug forwarded
+  from /read.
+- **#171** Hisn al-Muslim azkar — `/azkar` surface, 24 curated du'as
+  across 6 categories, daily-resetting tap-counter, hadith refs.
+- **#180** "I just heard them recite" — parent-facing log on /hifdh,
+  client-only, family-private, 90-day cap.
+- **#181** Mutashabihat side-by-side drill — `/drill/mutashabihat/
+[vk]`, LCS word diff, Cover-partner mode.
+- **#185** I'rab grammar surface — feature-key labels in
+  `MorphologyPane`, new `/grammar` primer.
+- **#186** Children's mode toggle on /read — muallim reciter preset,
+  body[data-children="1"] CSS lift, advanced surfaces hidden.
+- **#187** Ramadan-aware UI deepening — Suhoor/Iftar countdown +
+  daily juz tracker in `HijriNudge`.
+- **#188** Friday Kahf nudge + Hijri-aware events — `HijriNudge`
+  on homepage.
+- **#196** /api proxy hardening — scoped Permissions-Policy, HSTS,
+  /api/internal/\* deny, immutable static cache.
+- **#199** Server-side forced aligner — char-weighted apportionment
+  for the 37 EveryAyah reciters with no QUL segments, persisted
+  to `qalaam_v1_recitations_segments_aligned`.
+
+Side-fixes shipped en route: WBW backend SQL bug (referenced
+non-existent columns), tafsir HTML bleed in `AyahCard` (allowlist
+sanitizer + `.tafsir-prose`), CompareClient hydration mismatch,
+tajweed colorization in continuous mode (per-word so Arabic glyph
+joining survives), salah 3-provider IP-geo fallback chain with
+auto-fallback on insecure origins, salah compass listening to
+`deviceorientationabsolute` + `webkitCompassHeading` for stable
+heading, mushaf "Open image" URL-decode + retry-on-transient.
+
+Remaining pending IDs (priority order for the next session):
+
+1. **#192 auth foundation** — the single biggest unlock; gates
+   #161, #179, #182, #183, #186-children-cloud-sync, #193-#195.
+2. **#190** IndoPak 16-line + Qatar layouts — `textIndopak` is
+   already in DB, needs a layout surface + mushaf renderer (small
+   ship; high-delight for the South-Asian / Hanafi audience).
+3. **#158** WBW translation backfill — 22k/83k words have glosses
+   today; expand via QUL deep-pull to full 83k.
+4. **#198** Playwright sweep — wraps everything; best last.
+5. **#174 / #175 / #176** Listen depth (offline / ambient / Cast) —
+   each is a multi-day infra ship.
+6. **#165 / #166 / #167 / #168** HA depth — needs HA-side auth +
+   media-source plumbing; queue after #192 + #163 stabilization.
+7. **#178 / #179 / #182 / #183** Family-tier features — auth-gated.
+8. **#184 / #191** Course bodies + mobile native apps — content +
+   second codebase efforts; queue separately.
+9. **#193 / #194 / #195** Billing + voice-cloning Pro tier — needs
+   #192 + Stripe + Habibi GPU.
+
+The next-session highest-leverage path: ship **#192** end-to-end
+(NextAuth + Prisma + the bookmarks/highlights/notes server side
+that #161 + #179 ride on), then parallelize the auth-unblocked
+family features.
