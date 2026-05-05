@@ -23,6 +23,8 @@ import { imageMushafRoutes } from './routes/v1/image-mushaf.js';
 import { mcpRoutes } from './routes/v1/mcp.js';
 import { morphologyRoutes } from './routes/v1/morphology.js';
 import { nowPlayingRoutes } from './routes/v1/now-playing.js';
+import { prayerTimesRoutes } from './routes/v1/prayer-times.js';
+import { qiblaHijriRoutes } from './routes/v1/qibla-hijri.js';
 import { qulLayoutsRoutes } from './routes/v1/qul-layouts.js';
 import { qulMetadataRoutes } from './routes/v1/qul-metadata.js';
 import { qulMutashabihatRoutes } from './routes/v1/qul-mutashabihat.js';
@@ -82,6 +84,8 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   await app.register(hifdhStateRoutes);
   await app.register(imageMushafRoutes);
   await app.register(nowPlayingRoutes);
+  await app.register(prayerTimesRoutes);
+  await app.register(qiblaHijriRoutes);
   await app.register(translationsRoutes);
   await app.register(transliterationsRoutes);
   await app.register(tajweedRoutes);

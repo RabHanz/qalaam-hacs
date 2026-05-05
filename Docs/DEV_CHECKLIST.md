@@ -116,16 +116,16 @@ The phase table above tracks **engineering scaffolding**. This section tracks **
 
 ### Companion features (everything from INTRO §"Companion features")
 
-| INTRO promise                                  | Reality                                             | Done |
-| ---------------------------------------------- | --------------------------------------------------- | :--: |
-| Adhan / prayer times + 12 calculation methods  | None                                                |  ❌  |
-| Multiple adhan recordings (incl. Fajr variant) | None                                                |  ❌  |
-| Qibla direction with smart calibration         | None                                                |  ❌  |
-| Hijri calendar with Umm al-Qura + tabular      | None                                                |  ❌  |
-| Hisn al-Muslim azkar (50+ entries)             | Catalog in `packages/curriculum`; no `/azkar` route |  〰️  |
-| Scheduled morning/evening adhkar playback      | None                                                |  ❌  |
-| Masjid finder                                  | None                                                |  ❌  |
-| Hijri-Gregorian dates everywhere               | None                                                |  ❌  |
+| INTRO promise                                  | Reality                                                                                                                                                                                                                                                     | Done |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--: |
+| Adhan / prayer times + 12 calculation methods  | ✅ NEW. `@qalaam/adhan` wraps Batoul Apps `adhan` MIT. Backend `/v1/prayer-times` + `/v1/prayer-times/methods`. Web `/salah` page with countdown + method/asr pickers (12 methods × 3 high-lat rules × shafii/hanafi).                                      |  ✅  |
+| Multiple adhan recordings (incl. Fajr variant) | None                                                                                                                                                                                                                                                        |  ❌  |
+| Qibla direction with smart calibration         | ✅ NEW. Backend `/v1/qibla?lat=&lon=` (great-circle bearing to Kaaba). `/salah` renders compass dial with leaf-gold needle; opt-in DeviceOrientation hook for rotational sync.                                                                              |  ✅  |
+| Hijri calendar with Umm al-Qura + tabular      | ✅ NEW. Backend `/v1/hijri/today` + `/v1/hijri/at?date=` via moment-hijri (Umm al-Qura). Returns date + Islamic events (Ashura, Mawlid, Bara'ah, Ramadan-1, Laylat al-Qadr odd nights, Eid al-Fitr, Arafah, Eid al-Adha, Tashreeq). Hijri ribbon on /salah. |  ✅  |
+| Hisn al-Muslim azkar (50+ entries)             | Catalog in `packages/curriculum`; no `/azkar` route                                                                                                                                                                                                         |  〰️  |
+| Scheduled morning/evening adhkar playback      | None                                                                                                                                                                                                                                                        |  ❌  |
+| Masjid finder                                  | None                                                                                                                                                                                                                                                        |  ❌  |
+| Hijri-Gregorian dates everywhere               | None                                                                                                                                                                                                                                                        |  ❌  |
 
 ### Family
 

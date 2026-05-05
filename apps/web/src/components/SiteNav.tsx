@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { href: '/listen', label: 'Listen', icon: CrescentGlyph },
   { href: '/hifdh', label: 'Hifdh', icon: ThreadGlyph },
   { href: '/learn', label: 'Learn', icon: LanternGlyph },
+  { href: '/salah', label: 'Salah', icon: CrescentGlyph },
 ] as const;
 
 export function SiteNav(): ReactNode {

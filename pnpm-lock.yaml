@@ -87,6 +87,9 @@ importers:
       '@prisma/client':
         specifier: ^6.0.0
         version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+      '@qalaam/adhan':
+        specifier: workspace:*
+        version: link:../../packages/adhan
       '@qalaam/api-client-ts':
         specifier: workspace:*
         version: link:../../packages/api-client-ts

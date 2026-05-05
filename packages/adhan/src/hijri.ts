@@ -3,6 +3,8 @@
  *
  * Months are 1-indexed: Muharram=1 ... Dhul-Hijjah=12.
  */
+// moment-hijri ships no upstream types — see ./moment-hijri.d.ts for
+// the local stub covering the iYear/iMonth/iDate accessors we use.
 import moment from 'moment-hijri';
 
 import type { HijriDate } from './types.js';

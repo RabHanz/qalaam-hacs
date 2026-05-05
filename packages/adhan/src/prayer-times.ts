@@ -6,16 +6,19 @@
  * native one — Qalaam exposes only what we need today; extend as required.
  */
 import {
-  CalculationMethod as AdhanMethod,
   Coordinates as AdhanCoordinates,
   HighLatitudeRule as AdhanHighLatitudeRule,
-  Madhab,
+  CalculationMethod as AdhanMethod,
   PrayerTimes as AdhanPrayerTimes,
+  Madhab,
 } from 'adhan';
 
 import type { CalculationMethod, PrayerTimes, PrayerTimesArgs } from './types.js';
 
-const METHOD_MAP: Record<CalculationMethod, () => ReturnType<typeof AdhanMethod.MuslimWorldLeague>> = {
+const METHOD_MAP: Record<
+  CalculationMethod,
+  () => ReturnType<typeof AdhanMethod.MuslimWorldLeague>
+> = {
   'muslim-world-league': () => AdhanMethod.MuslimWorldLeague(),
   egyptian: () => AdhanMethod.Egyptian(),
   karachi: () => AdhanMethod.Karachi(),
@@ -33,7 +36,7 @@ const METHOD_MAP: Record<CalculationMethod, () => ReturnType<typeof AdhanMethod.
 const HIGH_LAT_MAP = {
   'middle-of-the-night': AdhanHighLatitudeRule.MiddleOfTheNight,
   'seventh-of-the-night': AdhanHighLatitudeRule.SeventhOfTheNight,
-  'twilight-angle': AdhanHighLatitudeRule.TwilightAnglePerNight,
+  'twilight-angle': AdhanHighLatitudeRule.TwilightAngle,
 } as const;
 
 export function computePrayerTimes(args: PrayerTimesArgs): PrayerTimes {
@@ -42,7 +45,8 @@ export function computePrayerTimes(args: PrayerTimesArgs): PrayerTimes {
   else params.madhab = Madhab.Shafi;
   if (args.highLatitudeRule) params.highLatitudeRule = HIGH_LAT_MAP[args.highLatitudeRule];
   if (args.fajrAngleAdjustment !== undefined) params.adjustments.fajr = args.fajrAngleAdjustment;
-  if (args.maghribAngleAdjustment !== undefined) params.adjustments.maghrib = args.maghribAngleAdjustment;
+  if (args.maghribAngleAdjustment !== undefined)
+    params.adjustments.maghrib = args.maghribAngleAdjustment;
   if (args.ishaAngleAdjustment !== undefined) params.adjustments.isha = args.ishaAngleAdjustment;
 
   const coords = new AdhanCoordinates(args.coordinates.lat, args.coordinates.lng);
@@ -66,14 +70,7 @@ export function nextPrayer(
   now: Date,
   times: PrayerTimes,
 ): { readonly name: keyof PrayerTimes; readonly at: Date } | undefined {
-  const order: (keyof PrayerTimes)[] = [
-    'fajr',
-    'sunrise',
-    'dhuhr',
-    'asr',
-    'maghrib',
-    'isha',
-  ];
+  const order: (keyof PrayerTimes)[] = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
   for (const name of order) {
     if (times[name].getTime() > now.getTime()) {
       return { name, at: times[name] };
