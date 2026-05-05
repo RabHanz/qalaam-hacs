@@ -30,6 +30,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
 import { SILENT_MARK_REGEX } from '../lib/arabic-render.js';
+import { loadTajweedCss } from '../lib/load-tajweed-css.js';
 import { fetchQpcV4, isTajweedLayout, type QpcV4Verse } from '../lib/qpc-v4.js';
 import { sanitizeHtml } from '../lib/sanitize-html.js';
 import { applyTajweed, fetchTajweed, type TajweedAnnotation } from '../lib/tajweed.js';
@@ -224,6 +225,13 @@ export function AyahCard({
   // fetch entirely. Used by the CSS-overlay tajweed fallback path.
   const tajweedActive = isTajweedLayout(layoutSlug);
   const [tajweedAnno, setTajweedAnno] = useState<readonly TajweedAnnotation[] | null>(null);
+  // Lazy-load the 484KB qpc-v4-fonts.css bundle the first time a
+  // tajweed-active card mounts. The CSS is a static asset under
+  // public/, so this is a single network fetch + cache hit on every
+  // subsequent tajweed view.
+  useEffect(() => {
+    if (tajweedActive) loadTajweedCss();
+  }, [tajweedActive]);
   useEffect(() => {
     if (!tajweedActive) {
       setTajweedAnno(null);

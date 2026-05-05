@@ -14,7 +14,13 @@
 set -Eeuo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-OUT_CSS="${REPO_ROOT}/apps/web/src/styles/qpc-v4-fonts.css"
+# Emit to public/ — this CSS is loaded LAZILY (only when the user picks
+# the tajweed layout) by lib/load-tajweed-css.ts. Putting it in src/styles
+# would have Next.js inline it into the global stylesheet that ships on
+# every route, parsing 540KB of @font-palette-values rules even for
+# users who never enable tajweed mode. That parse cost was the cause of
+# the sluggishness + STATUS_BREAKPOINT crashes.
+OUT_CSS="${REPO_ROOT}/apps/web/public/qpc-v4-fonts.css"
 
 cat > "${OUT_CSS}" <<'HEADER'
 /*
@@ -66,38 +72,33 @@ cat > "${OUT_CSS}" <<'HEADER'
  */
 HEADER
 
-# Qalaam refined-earth palette (overrides CPAL palette 0). Design rationale
-# in the header comment above. Hand-tuned against the warm-paper light
-# theme; the same values still read on the dark theme since the glyph
-# strokes are dense enough.
-TAJWEED_PALETTE_LIGHT='    0 #2a201a,    1 #b09a82,    2 #b09a82,    3 #8a3624,    4 #c08428,    5 #d6a657,    6 #4f7f5f,    7 #4a6f8e,    8 #6c93a8,    9 #a8552e,   10 #6e9a78,   11 #a07c3e,   12 #ecdec2,   13 #2a201a,   14 #2a201a,   15 #b09a82'
+# Qalaam refined-earth palette (overrides CPAL palette 0). v2: pushed
+# the saturation/contrast up after the v1 palette read as too washed
+# against the warm-paper background. Still firmly NOT the Quran.com
+# primary-color look — terracotta-and-sage instead of red-and-blue —
+# but with enough punch that the rules read at a glance.
+#   [0] base ink      [1,2,15] silent / hamzat-wasl (warm sand)
+#   [3] qalqalah      [4] madd 4-5      [5] madd 2
+#   [6] ghunnah       [7] idghaam-no-ghunnah  [8] idghaam-shafawi
+#   [9] madd 6 lazim  [10] laam idghaam [11] sukun
+#   [12] ikhfa bg
+TAJWEED_PALETTE_LIGHT='    0 #1f1410,    1 #9a8166,    2 #9a8166,    3 #b03a1a,    4 #d49011,    5 #e0b14d,    6 #2f8a5a,    7 #2c5a82,    8 #4d8aa8,    9 #c45323,   10 #5a9b6e,   11 #b78a30,   12 #f0dcb4,   13 #1f1410,   14 #1f1410,   15 #9a8166'
 
-# Highlight palette — every slot painted brand gold (with a slightly
-# warmer #b6862c → #d6a657 spread) so the active word of the recitation
+# Highlight palette — every slot painted brand gold so the active word
 # reads as a single highlighted unit even when the glyph spans several
-# CPAL color indices.
-TAJWEED_PALETTE_HIGHLIGHT='    0 #b6862c,    1 #d6a657,    2 #d6a657,    3 #b6862c,    4 #b6862c,    5 #b6862c,    6 #b6862c,    7 #b6862c,    8 #d6a657,    9 #b6862c,   10 #b6862c,   11 #b6862c,   12 #f6e9c8,   13 #b6862c,   14 #b6862c,   15 #d6a657'
+# CPAL color indices. v2: bumped to leaf-700 (#8a6614) on stroke slots
+# for stronger contrast against the sand-pill background, kept the
+# light-gold spread on edge accents.
+TAJWEED_PALETTE_HIGHLIGHT='    0 #8a6614,    1 #c69426,    2 #c69426,    3 #8a6614,    4 #8a6614,    5 #8a6614,    6 #8a6614,    7 #8a6614,    8 #c69426,    9 #8a6614,   10 #8a6614,   11 #8a6614,   12 #fdf2cc,   13 #8a6614,   14 #8a6614,   15 #c69426'
 
 for n in $(seq 1 604); do
-  cat >> "${OUT_CSS}" <<EOF
-@font-face {
-  font-family: 'QPCv4Page${n}';
-  src: url('/fonts/quran-tajweed-v4/p${n}.woff2') format('woff2');
-  font-display: block;
-  font-weight: 400;
-  unicode-range: U+FC41-U+FC64;
-}
-@font-palette-values --qalaam-tajweed {
-  font-family: 'QPCv4Page${n}';
-  base-palette: 0;
-  override-colors: ${TAJWEED_PALETTE_LIGHT};
-}
-@font-palette-values --qalaam-tajweed-highlight {
-  font-family: 'QPCv4Page${n}';
-  base-palette: 0;
-  override-colors: ${TAJWEED_PALETTE_HIGHLIGHT};
-}
-EOF
+  # One line per declaration — keeps the file scannable in a diff and
+  # cuts byte count roughly in half vs the multi-line form (a 50%
+  # reduction matters when this CSS is 540KB+ and used to live in the
+  # global stylesheet that ships on every route).
+  echo "@font-face{font-family:'QPCv4Page${n}';src:url('/fonts/quran-tajweed-v4/p${n}.woff2') format('woff2');font-display:block;font-weight:400;unicode-range:U+FC41-U+FC64}" >> "${OUT_CSS}"
+  echo "@font-palette-values --qalaam-tajweed{font-family:'QPCv4Page${n}';base-palette:0;override-colors:${TAJWEED_PALETTE_LIGHT}}" >> "${OUT_CSS}"
+  echo "@font-palette-values --qalaam-tajweed-highlight{font-family:'QPCv4Page${n}';base-palette:0;override-colors:${TAJWEED_PALETTE_HIGHLIGHT}}" >> "${OUT_CSS}"
 done
 
 lines=$(wc -l < "${OUT_CSS}")

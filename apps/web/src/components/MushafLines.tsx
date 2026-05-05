@@ -26,6 +26,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
 import { SILENT_MARK_REGEX } from '../lib/arabic-render.js';
+import { loadTajweedCss } from '../lib/load-tajweed-css.js';
 import { fetchQpcV4, isTajweedLayout, type QpcV4Verse } from '../lib/qpc-v4.js';
 import { applyTajweed, fetchTajweed, type TajweedAnnotation } from '../lib/tajweed.js';
 
@@ -158,8 +159,12 @@ export function MushafLines({
   // for every distinct verse on this page. Module caches in
   // lib/tajweed + lib/qpc-v4 dedupe across mounts so flipping
   // /mushaf pages back and forth never refetches the same verse.
+  // Also lazy-loads the 484KB qpc-v4-fonts.css the first time any
+  // tajweed surface mounts — moving it out of the global stylesheet
+  // is what fixed the page sluggishness + STATUS_BREAKPOINT crashes.
   useEffect(() => {
     if (!isTajweedLayout(layoutSlug)) return;
+    loadTajweedCss();
     const apiBase = resolveApiBase();
     const verseKeys = new Set<string>();
     for (const line of lines) {

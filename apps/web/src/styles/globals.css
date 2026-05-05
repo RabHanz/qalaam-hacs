@@ -16,7 +16,15 @@
 
 @import 'tailwindcss';
 @import './tokens.css';
-@import './qpc-v4-fonts.css';
+/*
+ * NOTE: qpc-v4-fonts.css (~484KB of @font-face + @font-palette-values for
+ * the 604 KFGQPC V4 page fonts) is intentionally NOT imported here.
+ * Inlining it into the global stylesheet that ships on every route was
+ * the root cause of the page sluggishness + Chrome STATUS_BREAKPOINT
+ * crashes the user reported on 2026-05-06. The file now lives under
+ * apps/web/public/qpc-v4-fonts.css and is lazy-loaded by
+ * lib/load-tajweed-css.ts the first time a tajweed surface mounts.
+ */
 
 /*
  * Google Fonts (Fraunces / IBM Plex Sans / Amiri / Amiri Quran / Noto
@@ -638,35 +646,50 @@
     border-color: color-mix(in srgb, var(--color-leaf-700) 70%, transparent);
   }
 
-  /* Recite-highlight — paints the GLYPH ITSELF in leaf-gold along
-   * the letter's curves. NO background-color, NO border, NO box —
-   * just the calligraphy in warm gold with a soft halo. Cascades
-   * into ALL nested children (tajweed-* spans, silent-marks,
-   * mushaf-word anchors) so the entire active word is gold even
-   * if it's split into 5+ inner spans. */
+  /* Recite-highlight — the active word during recitation playback.
+   *
+   * v3 (2026-05-06): User reported the v2 sand-pill was still too
+   * subtle on the tajweed COLR layer. Cranked up: deeper warm-gold
+   * fill, stronger inset border, perceivable scale (1.045×), AND a
+   * 1.4s breathing pulse driven by the keyframes below so the eye
+   * tracks the active word even when scanning across a dense page.
+   *
+   * Keep cascading into ALL nested children so split-span words
+   * (silent-marks, tajweed-* segments, etc.) all get the gold wash. */
   .recite-highlight,
   .recite-highlight *,
   .recite-highlight a,
   a.recite-highlight,
   a.recite-highlight * {
-    color: var(--color-leaf-500) !important;
-    /* Soft sand-paper background so the highlight is unmistakable
-     * even on dense mushaf pages where text-shadow alone gets lost
-     * inside the COLR-painted glyph. Warm tone keeps it cohesive
-     * with the brand palette rather than reading as "yellow box". */
-    background-color: color-mix(in srgb, var(--color-leaf-300) 32%, transparent);
-    border-radius: 0.18em;
-    padding: 0 0.08em;
+    color: var(--color-leaf-700) !important;
+    background-color: color-mix(in srgb, var(--color-leaf-300) 62%, transparent);
+    border-radius: 0.22em;
+    padding: 0.05em 0.18em;
     box-shadow:
-      0 0 0 1px color-mix(in srgb, var(--color-leaf-500) 28%, transparent) inset,
-      0 0.12em 0.5em -0.18em color-mix(in srgb, var(--color-leaf-500) 38%, transparent);
+      0 0 0 1.5px color-mix(in srgb, var(--color-leaf-500) 78%, transparent) inset,
+      0 0.18em 0.7em -0.18em color-mix(in srgb, var(--color-leaf-500) 70%, transparent),
+      0 0 1.1em -0.05em color-mix(in srgb, var(--color-leaf-300) 70%, transparent);
     text-shadow:
-      0 0 0.35em color-mix(in srgb, var(--color-leaf-300) 70%, transparent),
-      0 0 0.15em color-mix(in srgb, var(--color-leaf-500) 50%, transparent);
+      0 0 0.4em color-mix(in srgb, var(--color-leaf-300) 90%, transparent),
+      0 0 0.18em color-mix(in srgb, var(--color-leaf-500) 70%, transparent);
     transition:
-      color 80ms ease-out,
-      background-color 120ms ease-out,
-      text-shadow 80ms ease-out;
+      color 90ms ease-out,
+      background-color 140ms ease-out,
+      box-shadow 140ms ease-out,
+      text-shadow 90ms ease-out;
+  }
+  /* Outer-element-only treatments — scale + pulsing animation only on
+   * the OUTERMOST .recite-highlight (so a nested .recite-highlight *
+   * doesn't compound the transform). */
+  .recite-highlight,
+  a.recite-highlight {
+    /* Subtle scale pop — 4.5% bump signals "this word is now" without
+     * disturbing line-fit math (well within MushafLine's 6-16px safety
+     * margin). transform-origin: center keeps RTL flow stable. */
+    transform: scale(1.045);
+    transform-origin: center;
+    animation: qalaam-recite-pulse 1.4s ease-in-out infinite;
+    will-change: box-shadow, background-color;
   }
   /* When a V4 PUA glyph (rendered by a QPCv4Page<N> COLR font) is
    * highlighted, swap to the all-gold palette so every CPAL slot in
@@ -676,23 +699,41 @@
   .recite-highlight {
     font-palette: --qalaam-tajweed-highlight;
   }
+  @keyframes qalaam-recite-pulse {
+    0%,
+    100% {
+      box-shadow:
+        0 0 0 1.5px color-mix(in srgb, var(--color-leaf-500) 78%, transparent) inset,
+        0 0.18em 0.7em -0.18em color-mix(in srgb, var(--color-leaf-500) 70%, transparent),
+        0 0 1.1em -0.05em color-mix(in srgb, var(--color-leaf-300) 70%, transparent);
+    }
+    50% {
+      box-shadow:
+        0 0 0 1.5px color-mix(in srgb, var(--color-leaf-500) 95%, transparent) inset,
+        0 0.22em 0.95em -0.16em color-mix(in srgb, var(--color-leaf-500) 95%, transparent),
+        0 0 1.6em 0.04em color-mix(in srgb, var(--color-leaf-300) 95%, transparent);
+    }
+  }
   :root[data-theme='dark'] .recite-highlight,
   :root[data-theme='dark'] .recite-highlight *,
   :root[data-theme='dark'] a.recite-highlight,
   :root[data-theme='dark'] a.recite-highlight * {
     color: var(--color-leaf-300) !important;
-    background-color: color-mix(in srgb, var(--color-leaf-500) 24%, transparent);
+    background-color: color-mix(in srgb, var(--color-leaf-500) 38%, transparent);
     box-shadow:
-      0 0 0 1px color-mix(in srgb, var(--color-leaf-300) 36%, transparent) inset,
-      0 0.12em 0.6em -0.18em color-mix(in srgb, var(--color-leaf-500) 50%, transparent);
+      0 0 0 1.5px color-mix(in srgb, var(--color-leaf-300) 78%, transparent) inset,
+      0 0.18em 0.8em -0.16em color-mix(in srgb, var(--color-leaf-500) 80%, transparent),
+      0 0 1.4em -0.05em color-mix(in srgb, var(--color-leaf-300) 60%, transparent);
     text-shadow:
-      0 0 0.4em color-mix(in srgb, var(--color-leaf-500) 75%, transparent),
-      0 0 0.18em color-mix(in srgb, var(--color-leaf-300) 60%, transparent);
+      0 0 0.45em color-mix(in srgb, var(--color-leaf-500) 90%, transparent),
+      0 0 0.2em color-mix(in srgb, var(--color-leaf-300) 80%, transparent);
   }
   @media (prefers-reduced-motion: reduce) {
     .recite-highlight,
     .recite-highlight * {
       transition: none;
+      animation: none;
+      transform: none;
     }
   }
 
