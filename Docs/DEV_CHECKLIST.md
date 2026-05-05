@@ -181,16 +181,28 @@ The phase table above tracks **engineering scaffolding**. This section tracks **
 
 ### What's still gap (top of next-turn priority queue)
 
-1. **Tafsir ingest** — Saheeh footnotes + Muyassar Arabic (existing fixtures cover Al-Fatiha only; need full corpus).
-2. **Mushaf-page mode** — `/mushaf/:layout/:page` route consuming `/v1/layouts/:layout/page/:n` (data live).
-3. **Verse-highlight following audio** — wire `/v1/recitations/:reciterId/word-at?ms=…` to AyahCard playback.
-4. **Asbab al-nuzul + summary surfacing** on `/study` and `/read/[surah]` surah header.
-5. **Tajweed coloring** — overlay `quran-tajweed` annotations onto Arabic word spans.
-6. **Search** — translations + Arabic FTS (SQLite FTS5).
-7. **Hifdh per-user plan creator** — Range/Portion/Schedule trichotomy UI.
-8. **Real Listen Mode loop** — sabaq player driving any speaker via the adapter registry.
-9. **Prayer times + qibla + hijri** — adhan + qibla npm packages, `/companion` route.
-10. **Family + auth** — Postgres user model, per-child plans, parent dashboard.
+Replaced by the structured task plan in Docs/STRATEGY_AND_ROADMAP.md
+§27.8 (frontend↔backend wiring matrix) + §27.9 (dependency graph).
+Per-cluster summary:
+
+| Cluster                    | Tasks     | Highest-leverage               |
+| -------------------------- | --------- | ------------------------------ |
+| A. Reading enrichment      | #155-#162 | #155 surah-info, #159 search   |
+| B. Home Assistant catch-up | #163-#168 | #163 coordinator (gates rest)  |
+| C. Companion features      | #169-#171 | #169 adhan+prayer-times        |
+| D. Listening depth         | #172-#177 | #172 controls, #177 lockscreen |
+| E. Hifdh depth             | #178-#183 | #179 plan creator (after #192) |
+| F. Learning                | #184-#186 | #184 lesson bodies             |
+| G. Smart-home + ambient    | #187-#191 | #189 Shazam, #190 layouts      |
+| H. Foundations             | #192-#195 | **#192 auth** unblocks 7       |
+| I. Hardening               | #196-#198 | #198 e2e prevents regressions  |
+
+The single highest-leverage unlock is **#192 (auth + accounts)** —
+gates per-child plans, parent dashboard, voice notes, family khatm,
+children's mode, billing, and personal voice cloning. Ship first.
+
+After #192: parallelize Cluster A (web wiring) + Cluster B (HA
+catch-up) + Cluster C (prayer-times → unblocks Ramadan mode).
 
 ---
 

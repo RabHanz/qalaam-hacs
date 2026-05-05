@@ -2703,4 +2703,131 @@ initialized` + `tools/list` + `tools/call` (single + batch). Tool
     3 × 6,236 = 18,708 rows. Future work: scrape additional Latin scholar
     transliterations (Lane, Pelly) once licensing clears.
 12. **Mobile** — Kotlin / Swift apps borrowing from quran_android +
-    QuranEngine patterns.
+    QuranEngine patterns. (task #191)
+
+### 27.8 Frontend↔backend wiring matrix (2026-05-05 audit)
+
+The web app currently consumes ~22 of 47 backend routes. The HA
+integration consumes 3. The matrix below pairs every uncovered route
+with the task that wires it up. INTRO promises that lack a backend
+route get a "build then wire" task instead.
+
+#### Cluster A — Reading-surface enrichment
+
+| Backend route                            | Web surface today              | Task |
+| ---------------------------------------- | ------------------------------ | ---- |
+| `/v1/surah-info/:surah`                  | not consumed                   | #155 |
+| `/v1/tajweed/:vk` legend                 | colors render, legend missing  | #156 |
+| `/v1/image-mushaf/:layout/page-for/:vk`  | route shipped, not in chip-row | #157 |
+| `/v1/wbw/:vk` (multi-lang)               | en only, 22K/77K rows          | #158 |
+| _new_ `/v1/search`                       | needs FTS5 index               | #159 |
+| `/v1/topics/by-verse/:vk` (search merge) | shipped, not in /search        | #160 |
+| _new_ `/v1/{bookmarks,highlights,notes}` | localStorage only              | #161 |
+| _new_ `/api/og/ayah/:vk`                 | Satori built, not wired        | #162 |
+
+#### Cluster B — Home Assistant catch-up
+
+The HA coordinator currently fetches `/v1/reciters` +
+`/v1/hifdh/state` + `/v1/now-playing/qalaam` only. Every route added
+in the past 4 weeks is invisible to HA users.
+
+| Gap                                                                                                       | Task |
+| --------------------------------------------------------------------------------------------------------- | ---- |
+| Coordinator: topics + morphology + mutashabihat + transliterations + image-mushaf                         | #163 |
+| Sensors: word-of-day · topic-of-day · mutashabihat-count · prayer-window · active-reciter · active-layout | #164 |
+| Conversation agent via `/mcp` (qalaam-mcp 7 tools, bilingual phrases)                                     | #165 |
+| Lovelace panel: today's topic + image-mushaf preview + mutashabihat watchlist + now-playing controls      | #166 |
+| Media-source tree: topics · mushaf-pages · today's session playlist                                       | #167 |
+| Services: per-room sabaq · door-LED · adhan-window events                                                 | #168 |
+
+#### Cluster C — Companion features
+
+| Promise                 | Status       | Task |
+| ----------------------- | ------------ | ---- |
+| Adhan + 12 calc methods | not started  | #169 |
+| Qibla + Hijri + events  | not started  | #170 |
+| Hisn al-Muslim azkar    | catalog only | #171 |
+
+#### Cluster D — Listening depth
+
+| Promise                            | Task |
+| ---------------------------------- | ---- |
+| Speed / repeat-range / sleep timer | #172 |
+| Multi-reciter A/B compare          | #173 |
+| Offline downloads + service worker | #174 |
+| Listen Mode ambient loop           | #175 |
+| Cast/Sonos/AirPlay UI in /listen   | #176 |
+| Background playback + lock-screen  | #177 |
+
+#### Cluster E — Hifdh depth
+
+| Promise                                   | Task |
+| ----------------------------------------- | ---- |
+| Per-page mistake heatmap                  | #178 |
+| Per-child plan creator + parent dashboard | #179 |
+| One-tap "I just heard them recite"        | #180 |
+| Mutashabihat side-by-side drill           | #181 |
+| Family voice notes + praise stickers      | #182 |
+| Family khatm modes + wall display         | #183 |
+
+#### Cluster F — Learning the language
+
+| Promise                                      | Task |
+| -------------------------------------------- | ---- |
+| Quranic Arabic course bodies (Level 1-4)     | #184 |
+| I'rab grammar surface (uses 128K morphology) | #185 |
+| Children's mode + softer reciter defaults    | #186 |
+
+#### Cluster G — Smart-home + ambient
+
+| Promise                                                    | Task |
+| ---------------------------------------------------------- | ---- |
+| Ramadan-aware UI mode                                      | #187 |
+| Friday Surah Kahf nudge                                    | #188 |
+| Shazam-for-Quran (asr-worker + FTS5)                       | #189 |
+| 3 more mushaf layouts (IndoPak 16, Qatar 15, DigitalKhatt) | #190 |
+| Mobile native apps                                         | #191 |
+
+#### Cluster H — Foundations
+
+| Capability                                          | Task |
+| --------------------------------------------------- | ---- |
+| Auth + accounts (NextAuth, families, child consent) | #192 |
+| Three-tier billing (Free/Premium/Pro + grant tier)  | #193 |
+| Voice cloning v2 (consent vault + Habibi GPU run)   | #194 |
+| Personal teacher voice cloning (Pro tier)           | #195 |
+
+#### Cluster I — Hardening
+
+| Capability                   | Task |
+| ---------------------------- | ---- |
+| /api proxy hardening         | #196 |
+| Goto picker debug carry-over | #197 |
+| Playwright e2e sweep         | #198 |
+
+### 27.9 Dependency graph (highest-leverage paths)
+
+```
+#192 auth ──┬─ #179 plan creator + parent dashboard ── #180 rate ── #178 heatmap
+            ├─ #182 family voice notes
+            ├─ #183 khatm modes
+            ├─ #186 children's mode
+            └─ #193 billing ── #194 voice-cloning v2 ── #195 personal teacher
+
+#159 search ──┬─ #160 topical search
+              └─ #189 Shazam-for-Quran
+
+#155 surah-info ── #163 HA coordinator extend ── #164 sensors
+                                              ├─ #165 conversation agent
+                                              ├─ #166 panel refresh
+                                              ├─ #167 media-source
+                                              └─ #168 services
+
+#169 prayer-times ── #170 Qibla/Hijri ──┬─ #187 Ramadan mode
+                                        └─ #188 Friday Kahf
+```
+
+The single highest-leverage unlock is **#192 (auth)** — it gates 7
+downstream tasks across family, billing, and the children's mode that
+the INTRO premises depend on. Ship that first, then parallelize the
+rest by cluster.
