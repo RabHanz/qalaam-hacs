@@ -105,3 +105,9 @@ test-results/
 !.changeset/config.json
 !.changeset/README.md
 .eslintcache
+
+# Image-mushaf overlay PNGs — 63MB of KFGQPC page renders staged from
+# data/qul-source/raw/unpacked/mushaf-layout-12.sqlite/6/*.png by
+# scripts/data/ingest-image-mushaf-overlays.py. Re-run the ingest to
+# repopulate; no need to track in git.
+apps/web/public/mushaf-images/

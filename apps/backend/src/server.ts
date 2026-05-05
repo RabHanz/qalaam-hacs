@@ -19,6 +19,7 @@ import { chaptersRoutes } from './routes/v1/chapters.js';
 import { curriculumRoutes } from './routes/v1/curriculum.js';
 import { hifdhStateRoutes } from './routes/v1/hifdh-state.js';
 import { hifdhRoutes } from './routes/v1/hifdh.js';
+import { imageMushafRoutes } from './routes/v1/image-mushaf.js';
 import { mcpRoutes } from './routes/v1/mcp.js';
 import { morphologyRoutes } from './routes/v1/morphology.js';
 import { nowPlayingRoutes } from './routes/v1/now-playing.js';
@@ -77,6 +78,7 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   await app.register(recitationsRoutes, { config });
   await app.register(hifdhRoutes);
   await app.register(hifdhStateRoutes);
+  await app.register(imageMushafRoutes);
   await app.register(nowPlayingRoutes);
   await app.register(translationsRoutes);
   await app.register(transliterationsRoutes);
