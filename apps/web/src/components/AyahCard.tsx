@@ -561,6 +561,58 @@ export function AyahCard({
             const tWords = arabic.split(/(\s+)/); // keep whitespace tokens
             const out: ReactNode[] = [];
             let charCursor = 0;
+            // Track the WORD index (excluding whitespace tokens) so the
+            // continuous player's recite-highlight can match the same
+            // word index used by the default render path. Without this,
+            // /read/Tajweed (and IndoPak via this branch) had no word
+            // highlight during playback — a regression after I added
+            // silent-mark wrapping here.
+            const idx = selfHighlightIdx ?? highlightWordIndex ?? null;
+            let activeWordIndex = -1;
+            // Same low-mark detection used in the default render path —
+            // U+06E3 small low seen, U+06EA empty-centre low stop, U+06ED
+            // small low meem all sit BELOW the baseline, not above. The
+            // .silent-mark-low CSS modifier inverts the translateY so
+            // they don't float onto the letter above (the "م overlap"
+            // bug on words like ٱنتِقَامٍۭ).
+            const LOW_MARKS = new Set([0x06e3, 0x06ea, 0x06ed]);
+            const ZERO_MARKS = new Set([0x06df, 0x06e0]);
+            const wrapWithMarks = (
+              text: string,
+              ruleClass: string | undefined,
+              keyBase: string,
+            ): ReactNode[] => {
+              const parts = text.split(SILENT_MARK_REGEX);
+              return parts.map((p, pi) => {
+                if (SILENT_MARK_REGEX.test(p)) {
+                  const cp = p.codePointAt(0) ?? 0;
+                  const variantCls = LOW_MARKS.has(cp)
+                    ? ' silent-mark-low'
+                    : ZERO_MARKS.has(cp)
+                      ? ' silent-mark-zero'
+                      : '';
+                  // Tajweed rule color also paints the silent mark — keeps
+                  // it visually consistent with the surrounding segment.
+                  const ruleCls = ruleClass ? ` ${ruleClass}` : '';
+                  return (
+                    <span
+                      key={`${keyBase}-sm${pi.toString()}`}
+                      className={`silent-mark${variantCls}${ruleCls}`}
+                    >
+                      {p}
+                    </span>
+                  );
+                }
+                if (p.length === 0) return null;
+                return ruleClass ? (
+                  <span key={`${keyBase}-t${pi.toString()}`} className={ruleClass}>
+                    {p}
+                  </span>
+                ) : (
+                  <span key={`${keyBase}-t${pi.toString()}`}>{p}</span>
+                );
+              });
+            };
             for (let wi = 0; wi < tWords.length; wi++) {
               const word = tWords[wi] ?? '';
               if (word.length === 0) continue;
@@ -569,6 +621,9 @@ export function AyahCard({
                 charCursor += word.length;
                 continue;
               }
+              activeWordIndex += 1;
+              const isActive = idx !== null && activeWordIndex === idx;
+              const highlightCls = isActive ? ' recite-highlight' : '';
               const wStart = charCursor;
               const wEnd = wStart + word.length;
               // Local annotations clipped to this word's range
@@ -580,17 +635,29 @@ export function AyahCard({
                   rule: a.rule,
                 }));
               if (local.length === 0) {
-                out.push(<span key={`tw-${wi.toString()}`}>{word}</span>);
+                // No tajweed coloring on this word — still wrap silent
+                // marks so they render as discreet superscripts /
+                // sub-baseline dots per the .silent-mark CSS rule.
+                out.push(
+                  <span key={`tw-${wi.toString()}`} className={highlightCls.trim() || undefined}>
+                    {wrapWithMarks(word, undefined, `tw-${wi.toString()}`)}
+                  </span>,
+                );
               } else {
                 const segs = applyTajweed(word, local);
                 out.push(
-                  <span key={`tw-${wi.toString()}`} style={{ display: 'inline' }}>
+                  <span
+                    key={`tw-${wi.toString()}`}
+                    className={highlightCls.trim() || undefined}
+                    style={{ display: 'inline' }}
+                  >
                     {segs.map((seg, si) => (
-                      <span
-                        key={`tw-${wi.toString()}-s${si.toString()}`}
-                        className={seg.rule ? `tajweed-${seg.rule}` : undefined}
-                      >
-                        {seg.text}
+                      <span key={`tw-${wi.toString()}-s${si.toString()}`}>
+                        {wrapWithMarks(
+                          seg.text,
+                          seg.rule ? `tajweed-${seg.rule}` : undefined,
+                          `tw-${wi.toString()}-s${si.toString()}`,
+                        )}
                       </span>
                     ))}
                   </span>,
@@ -649,14 +716,22 @@ export function AyahCard({
             // — fixes the "م overlap" on words like ٱنتِقَامٍۭ.
             const parts = word.split(SILENT_MARK_RE);
             const LOW_MARKS = new Set([0x06e3, 0x06ea, 0x06ed]);
+            const ZERO_MARKS = new Set([0x06df, 0x06e0]);
             return (
               <span key={i} className={className}>
                 {parts.map((p, pi) => {
                   if (SILENT_MARK_RE.test(p)) {
                     const cp = p.codePointAt(0) ?? 0;
-                    const cls = LOW_MARKS.has(cp) ? 'silent-mark silent-mark-low' : 'silent-mark';
+                    const variant = LOW_MARKS.has(cp)
+                      ? ' silent-mark-low'
+                      : ZERO_MARKS.has(cp)
+                        ? ' silent-mark-zero'
+                        : '';
                     return (
-                      <span key={`${i.toString()}-sm-${pi.toString()}`} className={cls}>
+                      <span
+                        key={`${i.toString()}-sm-${pi.toString()}`}
+                        className={`silent-mark${variant}`}
+                      >
                         {p}
                       </span>
                     );

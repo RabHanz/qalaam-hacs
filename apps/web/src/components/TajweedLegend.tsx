@@ -100,7 +100,7 @@ const RULES: readonly RuleEntry[] = [
     nameEn: 'Iqlāb',
     nameAr: 'إقلاب',
     explanation:
-      'Noon-sākin/Tanween converts to a hidden meem before ب — held with ghunnah for ~2 harakāt.',
+      'Noon-sākin/Tanween converts to a hidden meem before ب — held with ghunnah for ~2 harakāt. Marked in the mushaf by the small low meem (ۭ) placed on or below the tanween/nūn — visible in words like ٱنتِقَامٍۭ and شَدِيدٌۭ.',
     category: 'noon-meem',
     lessonSlug: 'level-2/iqlab',
   },
@@ -234,7 +234,12 @@ export function TajweedLegend({ inline = false }: Props): ReactNode {
           onClick={() => {
             setOpen(true);
           }}
-          className="jump-fab bg-paper text-ink border-hairline hover:bg-paper-100 fixed bottom-6 left-4 z-30 inline-flex touch-manipulation items-center gap-2 rounded-full border px-4 py-2.5 shadow-lg sm:bottom-8 sm:left-8 sm:px-5 sm:py-3"
+          /* Mobile: sit ABOVE the sticky player bar (bottom-24).
+             Desktop: sit ALIGNED with the player's vertical centre
+             (sm:bottom-4 ≈ 16px from viewport bottom puts a ~40px-tall
+             FAB centred on a ~70px-tall player bar). The previous
+             sm:bottom-28 was way too high. */
+          className="jump-fab bg-paper text-ink border-hairline hover:bg-paper-100 fixed bottom-24 left-4 z-40 inline-flex touch-manipulation items-center gap-2 rounded-full border px-4 py-2.5 shadow-lg sm:bottom-4 sm:left-8 sm:px-5 sm:py-3"
         >
           <svg
             width={16}

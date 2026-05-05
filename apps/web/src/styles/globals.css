@@ -801,57 +801,75 @@
    * Use a Naskh font that draws the codepoint as a tiny circle, override
    * UthmanicHafs which substitutes a full-size rosette. */
   .silent-mark {
-    /* Discreet decorative pause/sajda/iqlab marks. The surrounding
-     * Quran font (UthmanicHafs / AlQuranIndoPak — both self-hosted
-     * with full Quranic glyph coverage) draws these correctly; this
-     * rule only shrinks them so they read as scaffolding, not text.
+    /* Discreet decorative pause / sajda / iqlab marks. Sized to be
+     * IDENTIFIABLE — recitation readers need to see whether a waqf
+     * mark is ۖ qaf-lam-yeh, ۗ saaf-lam-yeh, ۚ jeem, etc. — but
+     * lighter and lifted so the body line reads cleanly. Matches
+     * Quran.com / Tarteel proportions.
      *
-     * - font-family: inherit  → use the parent's Quran font, no
-     *   FOUT swap.
-     * - font-size: 0.32em     → discreet, well below substantive
-     *   diacritic size (which renders at ~0.6em-equiv natively).
-     *   Smaller than the previous 0.4em — fixes the "obnoxious
-     *   round silent mark" complaint.
-     * - transform: translateY(-1.05em)  → lift HIGH marks above the
-     *   baseline so they sit as superscripts on the letter they
-     *   follow. The .silent-mark-low override below INVERTS this
-     *   for U+06ED etc. that should sit BELOW the baseline.
-     * - opacity: 0.55         → quieter than 0.65, reads as ink-grey
-     *   marginalia. */
+     * - font-family: inherit  → use parent's Quran font, no FOUT.
+     * - font-size: 0.42em     → readable shape, clearly secondary
+     *   to substantive diacritics (~0.7em-equiv natively).
+     * - transform: translateY(-1.0em)  → lift above baseline as
+     *   superscript on the letter cap-height.
+     * - opacity: 0.6          → muted ink-grey, scaffolding-not-text.
+     *
+     * .silent-mark-low override below INVERTS the lift for U+06ED
+     * etc. that should sit BELOW the baseline. */
+    /* CRITICAL: must remain `display: inline` (NOT inline-block).
+     * inline-block creates a new font-shaping context, which BREAKS
+     * Arabic letter-joining when a silent-mark codepoint sits mid-
+     * word (e.g. U+06E2 iqlab indicator in أَنۢبَآءِ). The ن and ب
+     * around an inline-block mark would render in final/initial
+     * forms instead of joining via medial — producing the visual
+     * overlap the user reported in /mushaf line view. `inline` lets
+     * the browser shape the whole word as one run, the mark glyph
+     * included.
+     *
+     * `position: relative` + `top` / `right` is the only positional
+     * primitive that works on inline elements (transforms are
+     * silently ignored on `display: inline`). */
     font-family: inherit;
-    font-size: 0.32em;
-    display: inline-block;
-    transform: translateY(-1.05em);
-    color: var(--color-ink-muted, #6b6b6b);
-    opacity: 0.55;
+    font-size: 1.25em;
+    display: inline;
+    position: relative;
+    top: -0.1em;
+    right: -0.3em;
+    color: inherit;
+    opacity: 1;
     font-weight: 400;
-    line-height: 0;
-    margin: 0 -0.22em;
-    width: 0.5em;
-    text-align: center;
-    overflow: visible;
-    font-feature-settings:
-      'calt' 0,
-      'liga' 0,
-      'rlig' 0;
     text-rendering: geometricPrecision;
-    font-variant-numeric: normal;
   }
   /*
    * Low-position marks (small low meem U+06ED, small low seen U+06E3,
-   * empty-centre low stop U+06EA). These render BELOW the baseline by
-   * convention — never above. The default .silent-mark rule lifts
-   * with translateY(-1.05em) which is wrong for these and creates the
-   * "م overlap" artefact the user reported (the small low meem on
-   * ٱنتِقَامٍۭ floats up onto the م letter above it). Override with a
-   * positive translateY so they push DOWN where they belong.
+   * empty-centre low stop U+06EA) sit BELOW the baseline by
+   * convention. The Quran.com convention drops the U+06ED low meem
+   * far enough that it aligns vertically with the descender of
+   * letters like ج / ح / م-final tails on the same line, NOT
+   * floating just below the baseline (which still overlaps
+   * preceding-letter descenders).
    */
   .silent-mark-low {
-    transform: translateY(0.35em);
-    /* And slightly larger than the high marks — low-position marks
-     * read as "below the line" diacritics, not floating dots. 0.36em
-     * matches Quran.com's rendering proportions. */
-    font-size: 0.36em;
+    /* Override the high-mark positioning: U+06ED, U+06E3, U+06EA
+     * sit BELOW the baseline, not above. */
+    top: 1.15em;
+    right: -0.3em;
+    font-size: 0.7em;
+    opacity: 1;
+  }
+  /*
+   * Saktah waqf zeros (U+06DF small high rounded zero, U+06E0 small
+   * high upright rectangular zero). These commonly appear AFTER alif/
+   * waw on words like كَفَرُوا۟ and indicate a brief silence. They render
+   * as tiny circles/rectangles by typographic convention — much
+   * smaller than the named-letter pause marks (ۖ ۗ ۚ etc.) which are
+   * miniature ligatures the reciter identifies by shape. Bumping the
+   * named-letter pause marks made the saktah-zeros look out-of-scale,
+   * so we shrink THESE back down individually.
+   */
+  .silent-mark-zero {
+    font-size: 0.35em;
+    top: -0.95em;
   }
   /* Inside the v4 tajweed layout the rule may also tag the silent
    * mark — keep it neutral regardless of rule color. */

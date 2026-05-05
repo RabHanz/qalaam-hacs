@@ -75,8 +75,20 @@ const SILENT_MARK_RE = buildSilentMarkRegex();
 //   U+06ED  small low meem  (iqlab indicator — ALWAYS low position)
 const LOW_MARKS = new Set([0x06e3, 0x06ea, 0x06ed]);
 
+// Saktah waqf zeros — small geometric primitives (circle / rectangle)
+// that appear above alif/waw to indicate a brief pause (e.g. كَفَرُوا۟).
+// These render proportionally tinier than the named-letter pause marks
+// (ۖ ۗ ۚ etc.) by typographic convention. Bumping those pause marks
+// for legibility made these zeros look out-of-scale, so they get a
+// modifier that shrinks them back down.
+//   U+06DF  small high rounded zero
+//   U+06E0  small high upright rectangular zero
+const ZERO_MARKS = new Set([0x06df, 0x06e0]);
+
 function classForMark(codepoint: number): string {
-  return LOW_MARKS.has(codepoint) ? 'silent-mark silent-mark-low' : 'silent-mark';
+  if (LOW_MARKS.has(codepoint)) return 'silent-mark silent-mark-low';
+  if (ZERO_MARKS.has(codepoint)) return 'silent-mark silent-mark-zero';
+  return 'silent-mark';
 }
 
 /**

@@ -198,7 +198,9 @@ export function JumpToPicker({ mode, layoutSlug = 'madani_15' }: Props): ReactNo
         onClick={() => {
           setOpen(true);
         }}
-        className="jump-fab bg-leaf text-paper shadow-leaf/20 fixed bottom-6 right-4 z-40 inline-flex items-center gap-2 rounded-full px-4 py-2.5 shadow-lg hover:opacity-95 sm:bottom-8 sm:right-8 sm:px-5 sm:py-3"
+        /* Mobile: above the player (bottom-24).
+           Desktop: vertically centred on the player bar (sm:bottom-4). */
+        className="jump-fab bg-leaf text-paper shadow-leaf/20 fixed bottom-24 right-4 z-40 inline-flex items-center gap-2 rounded-full px-4 py-2.5 shadow-lg hover:opacity-95 sm:bottom-4 sm:right-8 sm:px-5 sm:py-3"
       >
         <svg
           width={16}

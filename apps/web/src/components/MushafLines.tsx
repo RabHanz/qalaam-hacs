@@ -539,6 +539,7 @@ function renderLineText(
     // Without this, U+06ED on words like ٱنتِقَامٍۭ floats up onto
     // the م above and creates the visual overlap the user reported.
     const LOW_MARKS = new Set([0x06e3, 0x06ea, 0x06ed]);
+    const ZERO_MARKS = new Set([0x06df, 0x06e0]);
     for (let si = 0; si < segs.length; si += 1) {
       const s = segs[si];
       if (!s) continue;
@@ -548,12 +549,16 @@ function renderLineText(
         if (!p) continue;
         if (SILENT_MARK_RE.test(p)) {
           const cp = p.codePointAt(0) ?? 0;
-          const lowCls = LOW_MARKS.has(cp) ? ' silent-mark-low' : '';
+          const variantCls = LOW_MARKS.has(cp)
+            ? ' silent-mark-low'
+            : ZERO_MARKS.has(cp)
+              ? ' silent-mark-zero'
+              : '';
           const ruleCls = s.rule ? ` tajweed-${s.rule}` : '';
           wordChildren.push(
             <span
               key={`${w.wordId.toString()}-s${si.toString()}m${pi.toString()}`}
-              className={`silent-mark${lowCls}${ruleCls}`}
+              className={`silent-mark${variantCls}${ruleCls}`}
             >
               {p}
             </span>,
