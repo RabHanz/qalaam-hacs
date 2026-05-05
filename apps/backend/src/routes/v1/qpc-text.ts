@@ -112,8 +112,12 @@ export async function qpcTextRoutes(
         .all(verseKey);
 
       if (rows.length === 0) {
+        // Reuse the no-coverage code rather than introducing a new one
+        // — semantically the right fit (we have layout knowledge but
+        // no V4 PUA word rows for this verse) and keeps the error-code
+        // union small.
         throw new QalaamError(
-          'qalaam.data.not-found',
+          'qalaam.mushaf.no-coverage',
           `Verse ${verseKey} isn't in the V4 Tajweed corpus.`,
         );
       }

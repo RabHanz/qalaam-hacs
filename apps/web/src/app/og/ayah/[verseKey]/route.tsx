@@ -23,6 +23,9 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
+// arabic-persian-reshaper is a CJS module without TS types.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment -- third-party module ships no types
+// @ts-ignore -- declaration file missing upstream; .convertArabic is the only API we use
 import { ArabicShaper } from 'arabic-persian-reshaper';
 import { ImageResponse } from 'next/og';
 
@@ -433,10 +436,12 @@ export async function GET(req: NextRequest, ctx: RouteCtx): Promise<Response> {
   const tajweedSegmentsRtl: readonly { text: string; color?: string }[] | null =
     needsTajweed && tajweed && tajweed.annotations.length > 0
       ? applyTajweed(arabicSource.replace(/[٠-٩۰-۹]+$/u, '').trim(), tajweed.annotations)
-          .map((seg) => ({
-            text: shapeWord(seg.text),
-            color: seg.rule ? TAJWEED_COLOR[seg.rule] : undefined,
-          }))
+          .map((seg) => {
+            const color = seg.rule ? TAJWEED_COLOR[seg.rule] : undefined;
+            return color !== undefined
+              ? { text: shapeWord(seg.text), color }
+              : { text: shapeWord(seg.text) };
+          })
           .reverse()
       : null;
 

@@ -90,6 +90,11 @@ export async function GET(req: NextRequest, ctx: RouteCtx): Promise<Response> {
     | 'square'
     | 'story';
   const viewport = FORMAT_VIEWPORTS[format] ?? FORMAT_VIEWPORTS.landscape;
+  if (!viewport) {
+    // Defensive — FORMAT_VIEWPORTS.landscape is statically defined,
+    // but TS can't see that under noUncheckedIndexedAccess.
+    return new NextResponse('Internal viewport config missing', { status: 500 });
+  }
 
   // Build the share-card URL (same origin) with all forwarded params.
   const params = new URLSearchParams(url.searchParams.toString());
@@ -123,11 +128,14 @@ export async function GET(req: NextRequest, ctx: RouteCtx): Promise<Response> {
     // Find the share card and capture its actual rendered size.
     const handle = await page.$('.share-card');
     if (!handle) throw new Error('share-card root not found');
-    const buf = (await handle.screenshot({
+    const buf = await handle.screenshot({
       type: 'png',
       omitBackground: false,
-    }));
-    return new NextResponse(buf, {
+    });
+    // puppeteer types screenshot() as Uint8Array<ArrayBufferLike> while
+    // NextResponse wants BodyInit (Buffer / Blob / ArrayBuffer / etc.);
+    // wrap the underlying buffer to satisfy the constructor signature.
+    return new NextResponse(Buffer.from(buf), {
       status: 200,
       headers: {
         'content-type': 'image/png',

@@ -23,6 +23,8 @@ import { notFound } from 'next/navigation';
 import { ShareCardSurface } from '../../../components/ShareCardSurface.js';
 import { sanitizeMorphologyWords } from '../../../lib/morphology-display.js';
 
+import type { MorphologyWord } from '../../../lib/morphology-display.js';
+import type { TajweedAnnotation } from '../../../lib/tajweed.js';
 import type { ReactNode } from 'react';
 
 interface PageProps {
@@ -48,25 +50,9 @@ interface WbwWord {
   readonly textArabic: string;
   readonly translation: string | null;
 }
-interface MorphologyToken {
-  readonly tag: string;
-  readonly form: string;
-  readonly lemma: string | null;
-  readonly root: string | null;
-  readonly isStem: boolean;
-}
-interface MorphologyWord {
-  readonly wordIndex: number;
-  readonly tokens: readonly MorphologyToken[];
-}
-interface TajweedAnno {
-  readonly start: number;
-  readonly end: number;
-  readonly rule: string;
-}
 interface TajweedResp {
   readonly verseKey: string;
-  readonly annotations: readonly TajweedAnno[];
+  readonly annotations: readonly TajweedAnnotation[];
 }
 
 const API_BASE = process.env.PUBLIC_API_URL ?? 'http://localhost:4111';

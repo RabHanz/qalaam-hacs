@@ -27,12 +27,12 @@ import type { ReactNode } from 'react';
 
 interface Props {
   readonly verseKey: string;
-  readonly layoutSlug?: string;
+  readonly layoutSlug?: string | undefined;
   /** Active translation slug from /read (e.g. 'pickthall', 'maududi').
    *  Defaults to saheeh-international when omitted. */
-  readonly translationSlug?: string;
-  readonly transliterationSlug?: string;
-  readonly tafsirSlug?: string;
+  readonly translationSlug?: string | undefined;
+  readonly transliterationSlug?: string | undefined;
+  readonly tafsirSlug?: string | undefined;
   readonly open: boolean;
   readonly onClose: () => void;
 }
@@ -172,11 +172,15 @@ export function ShareDialog({
   async function nativeShare(): Promise<void> {
     setShareState('busy');
     try {
-      interface NavWithShare extends Navigator {
+      // The lib.dom.d.ts shipped with this TS version declares
+      // Navigator.canShare as required, conflicting with our optional
+      // augmentation. Cast through unknown so we don't fight the
+      // ambient type while still narrowing nav.share for the call.
+      interface NavShareApi {
         share?: (d: ShareData & { files?: File[] }) => Promise<void>;
         canShare?: (d: ShareData & { files?: File[] }) => boolean;
       }
-      const nav = navigator as NavWithShare;
+      const nav = navigator as unknown as NavShareApi;
       if (nav.share) {
         try {
           const res = await fetch(cardUrls.path);
