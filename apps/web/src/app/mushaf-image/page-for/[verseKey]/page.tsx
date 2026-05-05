@@ -19,7 +19,15 @@ interface PageProps {
 const LAYOUT_SLUG = 'madani-16';
 
 export default async function PageForVerse({ params }: PageProps): Promise<ReactNode> {
-  const { verseKey } = await params;
+  const { verseKey: raw } = await params;
+  // Next.js leaves the param percent-encoded when the colon was URL-encoded
+  // upstream (`1%3A1`), so decode defensively before validating.
+  let verseKey = raw;
+  try {
+    verseKey = decodeURIComponent(raw);
+  } catch {
+    /* malformed escape — leave as-is so the regex below rejects it */
+  }
   if (!/^[0-9]+:[0-9]+$/.test(verseKey)) {
     return (
       <>

@@ -121,9 +121,23 @@ export function SalahClient(): ReactNode {
     };
   }, []);
 
-  // Acquire geolocation on demand.
+  // Acquire geolocation on demand. Browser Geolocation API is gated to
+  // secure origins (HTTPS or http://localhost / 127.0.0.1) — when the
+  // page is served over a LAN IP we surface the IP-fallback / manual
+  // entry instead of the confusing "Only secure origins are allowed"
+  // error users were hitting on the dev box.
   const acquireLocation = useCallback(() => {
     setPermError(null);
+    if (typeof window !== 'undefined' && !window.isSecureContext) {
+      setPermError(
+        'Browser geolocation is blocked outside HTTPS or localhost. Use the IP fallback or manual entry below.',
+      );
+      return;
+    }
+    if (typeof navigator === 'undefined') {
+      setPermError('Geolocation API not available — use the manual entry below.');
+      return;
+    }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const next = { lat: pos.coords.latitude, lon: pos.coords.longitude };
@@ -140,6 +154,60 @@ export function SalahClient(): ReactNode {
       { maximumAge: 600_000, timeout: 8_000 },
     );
   }, []);
+
+  // IP-based geolocation fallback (~city-level). Hits ipapi.co's free
+  // tier — no key, ~1k req/day. Privacy: only the user's IP leaves the
+  // device, and only when they tap the button.
+  const acquireLocationByIp = useCallback(async () => {
+    setPermError(null);
+    try {
+      const res = await fetch('https://ipapi.co/json/');
+      if (!res.ok) throw new Error(`ipapi ${res.status.toString()}`);
+      const body = (await res.json()) as { latitude?: number; longitude?: number };
+      if (typeof body.latitude !== 'number' || typeof body.longitude !== 'number') {
+        throw new Error('ipapi returned no coordinates');
+      }
+      const next = { lat: body.latitude, lon: body.longitude };
+      setCoords(next);
+      try {
+        window.localStorage.setItem(STORE_LOC, JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+    } catch (err) {
+      setPermError(`IP lookup failed: ${(err as Error).message}`);
+    }
+  }, []);
+
+  // Manual lat/lon entry — escape hatch for dev/LAN deployments where
+  // navigator.geolocation is blocked, and for users who want to set a
+  // fixed location (e.g., a masjid they pray at).
+  const [manualLat, setManualLat] = useState('');
+  const [manualLon, setManualLon] = useState('');
+  const applyManualLocation = useCallback(
+    (e: React.SyntheticEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const lat = Number.parseFloat(manualLat);
+      const lon = Number.parseFloat(manualLon);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+        setPermError('Both latitude and longitude must be numbers.');
+        return;
+      }
+      if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+        setPermError('Latitude -90 to 90, longitude -180 to 180.');
+        return;
+      }
+      const next = { lat, lon };
+      setCoords(next);
+      setPermError(null);
+      try {
+        window.localStorage.setItem(STORE_LOC, JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+    },
+    [manualLat, manualLon],
+  );
 
   // Fetch prayer times + qibla + hijri whenever inputs change.
   useEffect(() => {
@@ -266,14 +334,66 @@ export function SalahClient(): ReactNode {
             in your browser; nothing is sent to our servers except the same-origin computation
             request.
           </p>
-          <button
-            type="button"
-            onClick={acquireLocation}
-            className="bg-leaf text-paper smallcaps touch-manipulation rounded-full px-5 py-2.5 text-xs tracking-widest hover:opacity-95"
-          >
-            Use my location
-          </button>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={acquireLocation}
+              className="bg-leaf text-paper smallcaps touch-manipulation rounded-full px-5 py-2.5 text-xs tracking-widest hover:opacity-95"
+            >
+              Use my location
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                void acquireLocationByIp();
+              }}
+              className="border-hairline text-ink-muted hover:text-leaf hover:border-leaf/40 smallcaps touch-manipulation rounded-full border px-4 py-2.5 text-xs tracking-widest"
+            >
+              Approximate by IP
+            </button>
+          </div>
           {permError ? <p className="text-mistake-error mt-3 text-sm">{permError}</p> : null}
+          {/* Manual entry — always visible so a fixed-location user
+              (e.g., the local masjid) can set coordinates once and forget. */}
+          <form
+            onSubmit={applyManualLocation}
+            className="border-hairline mt-5 flex flex-wrap items-end justify-center gap-2 border-t pt-4"
+          >
+            <label className="smallcaps text-ink-muted text-[10px] tracking-widest">
+              Latitude
+              <input
+                type="number"
+                step="any"
+                inputMode="decimal"
+                value={manualLat}
+                onChange={(e) => {
+                  setManualLat(e.target.value);
+                }}
+                placeholder="40.7128"
+                className="border-hairline bg-paper-100 text-ink mt-1 block w-32 rounded border px-2.5 py-1.5 text-sm"
+              />
+            </label>
+            <label className="smallcaps text-ink-muted text-[10px] tracking-widest">
+              Longitude
+              <input
+                type="number"
+                step="any"
+                inputMode="decimal"
+                value={manualLon}
+                onChange={(e) => {
+                  setManualLon(e.target.value);
+                }}
+                placeholder="-74.0060"
+                className="border-hairline bg-paper-100 text-ink mt-1 block w-32 rounded border px-2.5 py-1.5 text-sm"
+              />
+            </label>
+            <button
+              type="submit"
+              className="bg-leaf/15 text-leaf smallcaps hover:bg-leaf/25 touch-manipulation rounded-full px-4 py-2 text-xs tracking-widest"
+            >
+              Set
+            </button>
+          </form>
         </section>
       ) : null}
 
