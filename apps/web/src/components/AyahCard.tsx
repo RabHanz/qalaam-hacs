@@ -642,19 +642,27 @@ export function AyahCard({
               );
             }
             // Split each word on silent-mark codepoints + wrap them
-            // so the .silent-mark CSS rule lifts + shrinks them.
+            // so the .silent-mark CSS rule shrinks + lifts (high) /
+            // pushes down (low) per the codepoint's typographic class.
+            // Codepoints in LOW_MARKS (U+06E3, U+06EA, U+06ED) get the
+            // `silent-mark-low` modifier so they sit BELOW the baseline
+            // — fixes the "م overlap" on words like ٱنتِقَامٍۭ.
             const parts = word.split(SILENT_MARK_RE);
+            const LOW_MARKS = new Set([0x06e3, 0x06ea, 0x06ed]);
             return (
               <span key={i} className={className}>
-                {parts.map((p, pi) =>
-                  SILENT_MARK_RE.test(p) ? (
-                    <span key={`${i.toString()}-sm-${pi.toString()}`} className="silent-mark">
-                      {p}
-                    </span>
-                  ) : (
-                    <span key={`${i.toString()}-t-${pi.toString()}`}>{p}</span>
-                  ),
-                )}
+                {parts.map((p, pi) => {
+                  if (SILENT_MARK_RE.test(p)) {
+                    const cp = p.codePointAt(0) ?? 0;
+                    const cls = LOW_MARKS.has(cp) ? 'silent-mark silent-mark-low' : 'silent-mark';
+                    return (
+                      <span key={`${i.toString()}-sm-${pi.toString()}`} className={cls}>
+                        {p}
+                      </span>
+                    );
+                  }
+                  return <span key={`${i.toString()}-t-${pi.toString()}`}>{p}</span>;
+                })}
                 {!isLast ? ' ' : ''}
               </span>
             );

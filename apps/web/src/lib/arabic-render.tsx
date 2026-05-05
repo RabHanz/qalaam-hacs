@@ -64,24 +64,45 @@ function buildSilentMarkRegex(): RegExp {
 
 const SILENT_MARK_RE = buildSilentMarkRegex();
 
+// Codepoints that should render BELOW the baseline (small-LOW marks),
+// not above. These need positive translateY (push down), opposite of
+// the small-high marks. Critical: U+06ED (small low meem) on words
+// like ٱنتِقَامٍۭ — when given the same `translateY(-1em)` as small-high
+// marks, it floats up onto the م letter and causes the visual overlap
+// the user kept reporting. Treating it as a low-mark fixes that.
+//   U+06E3  small low seen  (low-position diacritic)
+//   U+06EA  empty-centre low stop
+//   U+06ED  small low meem  (iqlab indicator — ALWAYS low position)
+const LOW_MARKS = new Set([0x06e3, 0x06ea, 0x06ed]);
+
+function classForMark(codepoint: number): string {
+  return LOW_MARKS.has(codepoint) ? 'silent-mark silent-mark-low' : 'silent-mark';
+}
+
 /**
  * Render Arabic text as a fragment, wrapping every decorative mark
  * codepoint in `<span class="silent-mark">` so the global CSS rule
- * shrinks + lifts them. Pass-through for non-Arabic strings.
+ * shrinks them. Low-position marks (U+06ED etc.) get an extra
+ * `silent-mark-low` modifier so they render below the baseline
+ * instead of being lifted up.
+ *
+ * Pass-through for non-Arabic strings.
  */
 export function renderWithSilentMarks(text: string, keyPrefix = 'sm'): ReactNode {
   if (!text) return null;
   const parts = text.split(SILENT_MARK_RE);
   if (parts.length === 1) return text;
-  return parts.map((p, i) =>
-    SILENT_MARK_RE.test(p) ? (
-      <span key={`${keyPrefix}-${i.toString()}`} className="silent-mark">
-        {p}
-      </span>
-    ) : (
-      <span key={`${keyPrefix}-t${i.toString()}`}>{p}</span>
-    ),
-  );
+  return parts.map((p, i) => {
+    if (SILENT_MARK_RE.test(p)) {
+      const cp = p.codePointAt(0) ?? 0;
+      return (
+        <span key={`${keyPrefix}-${i.toString()}`} className={classForMark(cp)}>
+          {p}
+        </span>
+      );
+    }
+    return <span key={`${keyPrefix}-t${i.toString()}`}>{p}</span>;
+  });
 }
 
 /** Exposed so AyahCard / MushafLines can match the same set when they

@@ -801,35 +801,33 @@
    * Use a Naskh font that draws the codepoint as a tiny circle, override
    * UthmanicHafs which substitutes a full-size rosette. */
   .silent-mark {
-    /* Force a Naskh-style font that draws U+06D6–U+06DC, U+06DF–U+06E5,
-     * U+06E7–U+06E8, U+06EA–U+06ED as tiny circles / dots instead of
-     * the full-size rosettes UthmanicHafs / IndoPak / Nastaliq draw
-     * inline (or, where the layout font lacks the glyph, the .notdef
-     * tofu boxes that overlap base letters like م).
+    /* Discreet decorative pause/sajda/iqlab marks. The surrounding
+     * Quran font (UthmanicHafs / AlQuranIndoPak — both self-hosted
+     * with full Quranic glyph coverage) draws these correctly; this
+     * rule only shrinks them so they read as scaffolding, not text.
      *
-     * Inline-block + width 0.55em + negative side margins lets the
-     * mark hug the letter it modifies without carving a gap in the
-     * line. transform: translateY is the most reliable cross-font
-     * baseline shift (vertical-align bugs with display: inline-block
-     * + custom fonts). font-feature-settings: "calt" off prevents
-     * Naskh-family OpenType substitutions from re-enlarging the
-     * mark via contextual alternates. */
-    /* Inherit the surrounding context's font (UthmanicHafs for Madani/
-     * Tajweed, KFGQPCNastaleeq for IndoPak — both self-hosted with
-     * full silent-mark glyph coverage). The .silent-mark span ONLY
-     * shrinks + lifts; it doesn't override the family. This is the
-     * frontier-app convention (Quran.com / Tarteel / Quranly) and
-     * eliminates the FOUT-flicker the user reported. */
+     * - font-family: inherit  → use the parent's Quran font, no
+     *   FOUT swap.
+     * - font-size: 0.32em     → discreet, well below substantive
+     *   diacritic size (which renders at ~0.6em-equiv natively).
+     *   Smaller than the previous 0.4em — fixes the "obnoxious
+     *   round silent mark" complaint.
+     * - transform: translateY(-1.05em)  → lift HIGH marks above the
+     *   baseline so they sit as superscripts on the letter they
+     *   follow. The .silent-mark-low override below INVERTS this
+     *   for U+06ED etc. that should sit BELOW the baseline.
+     * - opacity: 0.55         → quieter than 0.65, reads as ink-grey
+     *   marginalia. */
     font-family: inherit;
-    font-size: 0.4em;
+    font-size: 0.32em;
     display: inline-block;
-    transform: translateY(-0.95em);
+    transform: translateY(-1.05em);
     color: var(--color-ink-muted, #6b6b6b);
-    opacity: 0.65;
+    opacity: 0.55;
     font-weight: 400;
     line-height: 0;
-    margin: 0 -0.2em;
-    width: 0.55em;
+    margin: 0 -0.22em;
+    width: 0.5em;
     text-align: center;
     overflow: visible;
     font-feature-settings:
@@ -837,11 +835,23 @@
       'liga' 0,
       'rlig' 0;
     text-rendering: geometricPrecision;
-    /* Defensive: if the host font's small-high glyph is missing the
-     * browser falls back to .notdef (a tofu box). Forcing color on
-     * the span + the Naskh font-stack above ensures we never see
-     * that box at full size. */
     font-variant-numeric: normal;
+  }
+  /*
+   * Low-position marks (small low meem U+06ED, small low seen U+06E3,
+   * empty-centre low stop U+06EA). These render BELOW the baseline by
+   * convention — never above. The default .silent-mark rule lifts
+   * with translateY(-1.05em) which is wrong for these and creates the
+   * "م overlap" artefact the user reported (the small low meem on
+   * ٱنتِقَامٍۭ floats up onto the م letter above it). Override with a
+   * positive translateY so they push DOWN where they belong.
+   */
+  .silent-mark-low {
+    transform: translateY(0.35em);
+    /* And slightly larger than the high marks — low-position marks
+     * read as "below the line" diacritics, not floating dots. 0.36em
+     * matches Quran.com's rendering proportions. */
+    font-size: 0.36em;
   }
   /* Inside the v4 tajweed layout the rule may also tag the silent
    * mark — keep it neutral regardless of rule color. */
