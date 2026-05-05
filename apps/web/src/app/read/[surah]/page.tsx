@@ -15,6 +15,7 @@ import { ErrorState } from '../../../components/ErrorState.js';
 import { JumpToPicker } from '../../../components/JumpToPicker.js';
 import { ReadSurfaceClient, type VerseLite } from '../../../components/ReadSurfaceClient.js';
 import { SiteNav } from '../../../components/SiteNav.js';
+import { SurahInfoPane } from '../../../components/SurahInfoPane.js';
 import { qalaamClient } from '../../../lib/qalaam-client.js';
 
 import type { ReactNode } from 'react';
@@ -245,6 +246,11 @@ export default async function ReadSurahPage({ params }: PageProps): Promise<Reac
           )}
         </div>
       </header>
+
+      {/* Surah summary + revelation context — INTRO promise, surfaces
+          /v1/surah-info on first paint so the user has the "story" before
+          the verses. */}
+      <SurahInfoPane variant="compact" surah={surahNumber} apiBase={apiBase} />
 
       {/* Bismillah header (skip surah 9). Rendered server-side, hydration-safe. */}
       {surahNumber !== 9 && surahMeta?.bismillahPre !== 0 ? (

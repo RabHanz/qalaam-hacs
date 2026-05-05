@@ -92,13 +92,22 @@ export default async function ImageMushafPage({ params }: PageProps): Promise<Re
       <SiteNav />
 
       <header className="border-hairline border-b">
-        <div className="mx-auto flex max-w-3xl items-baseline justify-between px-4 py-4 sm:px-6">
+        <div className="mx-auto flex max-w-3xl items-baseline justify-between px-4 py-4 sm:px-6 gap-3 flex-wrap">
           <p className="smallcaps text-leaf text-[11px] tracking-widest">
             Madani 16-line · Image · KFGQPC
           </p>
-          <p className="smallcaps text-ink-muted text-[11px] tabular-nums tracking-widest">
-            Page {page.toString()} / {TOTAL_PAGES.toString()}
-          </p>
+          <div className="flex items-baseline gap-2">
+            <Link
+              href={`/mushaf/madinah/${page.toString()}`}
+              title="Switch to text-rendered Madinah mushaf"
+              className="smallcaps border-hairline text-ink-muted hover:text-leaf hover:border-leaf/40 rounded-full border px-3 py-1 text-[11px] tracking-wider"
+            >
+              As text
+            </Link>
+            <p className="smallcaps text-ink-muted text-[11px] tabular-nums tracking-widest">
+              {page.toString()} / {TOTAL_PAGES.toString()}
+            </p>
+          </div>
         </div>
       </header>
 

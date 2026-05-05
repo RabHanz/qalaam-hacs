@@ -14,6 +14,7 @@ import { MushafLines } from '../../../../components/MushafLines.js';
 import { MushafPagePlayer } from '../../../../components/MushafPagePlayer.js';
 import { MushafPageSwipe } from '../../../../components/MushafPageSwipe.js';
 import { SiteNav } from '../../../../components/SiteNav.js';
+import { TajweedLegend } from '../../../../components/TajweedLegend.js';
 
 import type { ReactNode } from 'react';
 
@@ -31,7 +32,7 @@ interface LayoutWord {
 interface LayoutLine {
   readonly lineNumber: number;
   readonly lineType: 'ayah' | 'surah_name' | 'basmallah';
-  readonly alignment: 'centered' | 'justified' | string;
+  readonly alignment: string;
   readonly firstWordId: number | null;
   readonly lastWordId: number | null;
   readonly surah: number | null;
@@ -65,7 +66,11 @@ async function fetchJson<T>(url: string, revalidate = 86400): Promise<T | null> 
 }
 
 function arabicNumeral(n: number): string {
-  return n.toString().split('').map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d).join('');
+  return n
+    .toString()
+    .split('')
+    .map((d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)] ?? d)
+    .join('');
 }
 
 export default async function MushafPage({ params }: PageProps): Promise<ReactNode> {
@@ -75,7 +80,7 @@ export default async function MushafPage({ params }: PageProps): Promise<ReactNo
     return (
       <>
         <SiteNav />
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-20">
+        <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6">
           <EmptyState title="Bad page number" hint={`Got "${page}".`} />
         </div>
       </>
@@ -88,7 +93,10 @@ export default async function MushafPage({ params }: PageProps): Promise<ReactNo
   // updates propagate quickly. Page word data still long-cached
   // because it's stable.
   const [pageBody, layoutsBody] = await Promise.all([
-    fetchJson<{ data: LayoutPage }>(`${apiBase}/v1/layouts/${encodeURIComponent(layout)}/page/${pageNumber.toString()}`, 60),
+    fetchJson<{ data: LayoutPage }>(
+      `${apiBase}/v1/layouts/${encodeURIComponent(layout)}/page/${pageNumber.toString()}`,
+      60,
+    ),
     fetchJson<{ layouts?: LayoutInfo[]; data?: string[] }>(`${apiBase}/v1/layouts`, 60),
   ]);
 
@@ -96,7 +104,7 @@ export default async function MushafPage({ params }: PageProps): Promise<ReactNo
     return (
       <>
         <SiteNav />
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-20">
+        <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6">
           <EmptyState
             title="Mushaf page not found"
             hint={`No data for layout '${layout}' page ${pageNumber.toString()}.`}
@@ -116,36 +124,36 @@ export default async function MushafPage({ params }: PageProps): Promise<ReactNo
       <SiteNav />
 
       {/* Editorial header */}
-      <header className="border-b border-hairline">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-5 sm:py-7 flex items-baseline justify-between gap-3 flex-wrap">
+      <header className="border-hairline border-b">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-baseline justify-between gap-3 px-4 py-5 sm:px-6 sm:py-7">
           <div>
             <p className="smallcaps text-leaf text-[11px] tracking-widest">
               Mushaf · {activeLayout?.name ?? layout}
             </p>
             {activeLayout?.subtitle ? (
-              <p className="text-[11px] text-ink-muted mt-0.5">{activeLayout.subtitle}</p>
+              <p className="text-ink-muted mt-0.5 text-[11px]">{activeLayout.subtitle}</p>
             ) : null}
           </div>
-          <p className="font-display text-2xl sm:text-3xl text-ink-strong tabular-nums">
+          <p className="font-display text-ink-strong text-2xl tabular-nums sm:text-3xl">
             <span className="opacity-50">page</span> {arabicNumeral(pageNumber)}
-            <span className="opacity-30 mx-1.5">/</span>
-            <span className="text-base text-ink-muted">{totalPages.toString()}</span>
+            <span className="mx-1.5 opacity-30">/</span>
+            <span className="text-ink-muted text-base">{totalPages.toString()}</span>
           </p>
         </div>
       </header>
 
       {/* Layout switcher + Exit-to-reader */}
-      <div className="border-b border-hairline bg-paper-100/85 backdrop-blur-md sticky top-[60px] sm:top-[68px] z-20">
-        <div className="mx-auto max-w-5xl px-3 sm:px-6 py-2.5 flex items-center gap-2 overflow-x-auto scrollbar-thin">
-          <span className="smallcaps text-leaf text-[10px] tracking-widest shrink-0 w-[64px]">
+      <div className="border-hairline bg-paper-100/85 sticky top-[60px] z-20 border-b backdrop-blur-md sm:top-[68px]">
+        <div className="scrollbar-thin mx-auto flex max-w-5xl items-center gap-2 overflow-x-auto px-3 py-2.5 sm:px-6">
+          <span className="smallcaps text-leaf w-[64px] shrink-0 text-[10px] tracking-widest">
             Layout
           </span>
-          <div className="flex items-center gap-1.5 min-w-max flex-1">
+          <div className="flex min-w-max flex-1 items-center gap-1.5">
             {layouts.map((l) => (
               <Link
                 key={l.slug}
                 href={`/mushaf/${l.urlSlug ?? l.slug}/${pageNumber.toString()}`}
-                className={`shrink-0 rounded-full px-3 py-1 text-[11px] sm:text-xs smallcaps tracking-wider transition-colors border ${
+                className={`smallcaps shrink-0 rounded-full border px-3 py-1 text-[11px] tracking-wider transition-colors sm:text-xs ${
                   l.slug === layout
                     ? 'bg-leaf text-paper border-leaf'
                     : 'border-hairline text-ink hover:bg-paper-200/60'
@@ -170,16 +178,33 @@ export default async function MushafPage({ params }: PageProps): Promise<ReactNo
             }
             const surah = firstVk.split(':')[0] ?? '1';
             return (
-              <Link
-                href={`/read/${surah}#${firstVk}`}
-                title="Switch to continuous / one-ayah reader"
-                className="shrink-0 ml-2 rounded-full px-3 py-1 text-[11px] sm:text-xs smallcaps tracking-wider border border-leaf/40 text-leaf hover:bg-leaf/10 inline-flex items-center gap-1"
-              >
-                <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
-                  <path d="M9 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                Exit mushaf
-              </Link>
+              <>
+                <Link
+                  href={`/mushaf-image/page-for/${encodeURIComponent(firstVk)}`}
+                  title="Switch to image-faithful KFGQPC page (preserves the visual position of every word)"
+                  className="smallcaps border-hairline text-ink-muted hover:text-leaf hover:border-leaf/40 ml-2 inline-flex shrink-0 items-center gap-1 rounded-full border px-3 py-1 text-[11px] tracking-wider sm:text-xs"
+                >
+                  As image
+                </Link>
+                <Link
+                  href={`/read/${surah}#${firstVk}`}
+                  title="Switch to continuous / one-ayah reader"
+                  className="smallcaps border-leaf/40 text-leaf hover:bg-leaf/10 ml-2 inline-flex shrink-0 items-center gap-1 rounded-full border px-3 py-1 text-[11px] tracking-wider sm:text-xs"
+                >
+                  <svg
+                    width={11}
+                    height={11}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    aria-hidden
+                  >
+                    <path d="M9 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Exit mushaf
+                </Link>
+              </>
             );
           })()}
         </div>
@@ -188,19 +213,22 @@ export default async function MushafPage({ params }: PageProps): Promise<ReactNo
       {/* Jump to surah / verse — floating action */}
       <JumpToPicker mode="mushaf" layoutSlug={layout} />
 
+      {/* Tajweed legend — only on the tajweed mushaf surface */}
+      {layout === 'tajweed' || layout === 'kfgqpc_v4' ? <TajweedLegend /> : null}
+
       {/* Page body — swipeable + slide-in animation per page */}
-      <main className="mx-auto max-w-3xl px-4 sm:px-6 py-8 sm:py-12">
+      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
         <MushafPageSwipe layout={layout} pageNumber={pageNumber} totalPages={totalPages}>
-        <article
-          key={`${layout}-${pageNumber.toString()}`}
-          className="paper-card-raised p-6 sm:p-10 md:p-14 slide-in-next"
-          aria-label={`Mushaf page ${pageNumber.toString()}`}
-        >
-          <MushafLines lines={data.lines} layoutSlug={layout} sharedSize />
-        </article>
+          <article
+            key={`${layout}-${pageNumber.toString()}`}
+            className="paper-card-raised slide-in-next p-6 sm:p-10 md:p-14"
+            aria-label={`Mushaf page ${pageNumber.toString()}`}
+          >
+            <MushafLines lines={data.lines} layoutSlug={layout} sharedSize />
+          </article>
         </MushafPageSwipe>
 
-        <p className="text-[10px] smallcaps text-ink-muted/70 tracking-widest text-center pt-4 mt-4">
+        <p className="smallcaps text-ink-muted/70 mt-4 pt-4 text-center text-[10px] tracking-widest">
           Swipe ← for next page · Swipe → for previous
         </p>
 
@@ -238,18 +266,19 @@ export default async function MushafPage({ params }: PageProps): Promise<ReactNo
       {/* Continuous-recitation player — Tarteel-style, plays through
           the verses on this page and chains into the next page/surah. */}
       <MushafPagePlayer
-        lines={data.lines.map((l) => ({ lineType: l.lineType, words: l.words.map((w) => ({ verseKey: w.verseKey })) }))}
-        initialSurah={
-          (() => {
-            for (const line of data.lines) {
-              for (const w of line.words) {
-                const s = Number.parseInt(w.verseKey.split(':')[0] ?? '1', 10);
-                if (Number.isFinite(s)) return s;
-              }
+        lines={data.lines.map((l) => ({
+          lineType: l.lineType,
+          words: l.words.map((w) => ({ verseKey: w.verseKey })),
+        }))}
+        initialSurah={(() => {
+          for (const line of data.lines) {
+            for (const w of line.words) {
+              const s = Number.parseInt(w.verseKey.split(':')[0] ?? '1', 10);
+              if (Number.isFinite(s)) return s;
             }
-            return 1;
-          })()
-        }
+          }
+          return 1;
+        })()}
       />
     </>
   );

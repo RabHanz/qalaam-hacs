@@ -6,10 +6,11 @@
  * header fits 375px without horizontal overflow.
  */
 import Link from 'next/link';
-import type { ReactNode } from 'react';
 
 import { BookGlyph, CrescentGlyph, LanternGlyph, ThreadGlyph } from './Glyph.js';
 import { ThemeToggle } from './ThemeToggle.js';
+
+import type { ReactNode } from 'react';
 
 const NAV_ITEMS = [
   { href: '/read/1', label: 'Read', icon: BookGlyph },
@@ -20,11 +21,15 @@ const NAV_ITEMS = [
 
 export function SiteNav(): ReactNode {
   return (
-    <header className="border-b border-hairline bg-paper-100/85 backdrop-blur-md sticky top-0 z-30">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 sm:px-6 py-3 sm:py-4">
-        <Link href="/" aria-label="Qalaam — home" className="group flex items-baseline gap-2 sm:gap-3 shrink-0 min-w-0">
+    <header className="border-hairline bg-paper-100/85 sticky top-0 z-30 border-b backdrop-blur-md">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-3 sm:px-6 sm:py-4">
+        <Link
+          href="/"
+          aria-label="Qalaam — home"
+          className="group flex min-w-0 shrink-0 items-baseline gap-2 sm:gap-3"
+        >
           <span
-            className="font-arabic text-2xl sm:text-3xl text-leaf"
+            className="font-arabic text-leaf text-2xl sm:text-3xl"
             dir="rtl"
             lang="ar"
             aria-label="كلام"
@@ -32,13 +37,13 @@ export function SiteNav(): ReactNode {
           >
             كَلَام
           </span>
-          <span className="font-display text-lg sm:text-2xl font-medium tracking-tight text-ink-strong hidden xs:inline sm:inline">
+          <span className="font-display text-ink-strong xs:inline hidden text-lg font-medium tracking-tight sm:inline sm:text-2xl">
             Qalaam
           </span>
         </Link>
 
-        <div className="flex items-center gap-0.5 sm:gap-2 shrink-0">
-          <nav aria-label="Primary" className="flex items-center gap-0 sm:gap-1 mr-1 sm:mr-2">
+        <div className="flex shrink-0 items-center gap-0.5 sm:gap-2">
+          <nav aria-label="Primary" className="mr-1 flex items-center gap-0 sm:mr-2 sm:gap-1">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               return (
@@ -46,13 +51,37 @@ export function SiteNav(): ReactNode {
                   key={item.href}
                   href={item.href}
                   aria-label={item.label}
-                  className="group inline-flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto sm:px-3 sm:py-2 gap-2 rounded-md text-sm text-ink hover:bg-paper-200/60 transition-colors"
+                  className="text-ink hover:bg-paper-200/60 group inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md text-sm transition-colors sm:h-auto sm:w-auto sm:px-3 sm:py-2"
                 >
-                  <Icon size={16} className="text-ink-muted group-hover:text-leaf transition-colors" />
-                  <span className="smallcaps font-medium hidden sm:inline">{item.label}</span>
+                  <Icon
+                    size={16}
+                    className="text-ink-muted group-hover:text-leaf transition-colors"
+                  />
+                  <span className="smallcaps hidden font-medium sm:inline">{item.label}</span>
                 </Link>
               );
             })}
+            <Link
+              href="/search"
+              aria-label="Search · ⌘K"
+              title="Search · ⌘K"
+              className="text-ink hover:bg-paper-200/60 group inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md text-sm transition-colors sm:h-auto sm:w-auto sm:px-3 sm:py-2"
+            >
+              <svg
+                width={16}
+                height={16}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden
+                className="text-ink-muted group-hover:text-leaf transition-colors"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-3-3" strokeLinecap="round" />
+              </svg>
+              <span className="smallcaps hidden font-medium sm:inline">Search</span>
+            </Link>
           </nav>
           <ThemeToggle />
         </div>

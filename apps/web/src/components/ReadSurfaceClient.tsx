@@ -27,6 +27,7 @@ import { AyahCard } from './AyahCard.js';
 import { AyahMushafLines } from './AyahMushafLines.js';
 import { ContinuousReaderPlayer } from './ContinuousReaderPlayer.js';
 import { HairlineDivider } from './Glyph.js';
+import { TajweedLegend } from './TajweedLegend.js';
 import { TranslationPicker } from './TranslationPicker.js';
 
 import type { ReactNode } from 'react';
@@ -530,13 +531,22 @@ export function ReadSurfaceClient({
                 const active = layouts.find((l) => l.slug === activeLayoutSlug) ?? layouts[0];
                 if (!active) return null;
                 return (
-                  <a
-                    href={`/mushaf/${active.urlSlug ?? active.slug}/page-for/${encodeURIComponent(firstVk)}`}
-                    title="Open the page-faithful mushaf for this verse"
-                    className="smallcaps border-leaf/40 text-leaf hover:bg-leaf/10 ml-1 shrink-0 rounded-full border px-3 py-1 text-[11px] tracking-wider sm:text-xs"
-                  >
-                    Open page →
-                  </a>
+                  <>
+                    <a
+                      href={`/mushaf/${active.urlSlug ?? active.slug}/page-for/${encodeURIComponent(firstVk)}`}
+                      title="Open the page-faithful mushaf for this verse"
+                      className="smallcaps border-leaf/40 text-leaf hover:bg-leaf/10 ml-1 shrink-0 rounded-full border px-3 py-1 text-[11px] tracking-wider sm:text-xs"
+                    >
+                      Open page →
+                    </a>
+                    <a
+                      href={`/mushaf-image/page-for/${encodeURIComponent(firstVk)}`}
+                      title="Open the image-faithful KFGQPC page for this verse — preserves the visual position of every word"
+                      className="smallcaps border-hairline text-ink-muted hover:text-leaf hover:border-leaf/40 shrink-0 rounded-full border px-3 py-1 text-[11px] tracking-wider sm:text-xs"
+                    >
+                      Open image →
+                    </a>
+                  </>
                 );
               })()}
             </ChipRow>
@@ -662,6 +672,13 @@ export function ReadSurfaceClient({
         onHighlight={setHighlight}
         currentSurah={surahN}
       />
+
+      {/* Tajweed legend — only when the user has flipped the layout to
+          tajweed (slug 'kfgqpc_v4' or 'tajweed'). FAB pinned bottom-left,
+          opens an editorial bottom-sheet. */}
+      {activeLayoutSlug === 'kfgqpc_v4' || activeLayoutSlug === 'tajweed' ? (
+        <TajweedLegend />
+      ) : null}
     </>
   );
 }
