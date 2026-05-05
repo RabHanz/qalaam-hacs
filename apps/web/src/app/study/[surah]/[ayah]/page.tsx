@@ -21,6 +21,7 @@ import { SurahInfoPane } from '../../../../components/SurahInfoPane.js';
 import { TopicsByVersePane } from '../../../../components/TopicsByVersePane.js';
 import { WordByWordPane } from '../../../../components/WordByWordPane.js';
 import { qalaamClient } from '../../../../lib/qalaam-client.js';
+import { sanitizeHtml } from '../../../../lib/sanitize-html.js';
 
 import type { ReactNode } from 'react';
 
@@ -224,17 +225,22 @@ async function StudyBody({
             <ol className="m-0 grid list-none gap-8 p-0">
               {tafsirs.map((t, i) => (
                 <li key={t.slug} className={i > 0 ? 'border-hairline border-t pt-8' : ''}>
-                  <p
+                  {/* Tafsir text from QUL ships with inline scholarly
+                      markup (.qpc-hafs spans for embedded Quran,
+                      <p> blocks, <sup> footnote markers). Sanitize
+                      through the allowlist + render via the
+                      .tafsir-prose styles in globals.css so the
+                      embedded Arabic ayah quotes get the leaf accent. */}
+                  <div
                     dir={t.language === 'ar' ? 'rtl' : 'ltr'}
-                    className={
+                    className={`tafsir-prose ${
                       t.language === 'ar'
                         ? 'font-arabic text-ink text-xl leading-[1.95]'
                         : 'text-ink text-base leading-[1.7]'
-                    }
+                    }`}
                     style={{ unicodeBidi: 'plaintext' }}
-                  >
-                    {t.text}
-                  </p>
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(t.text) }}
+                  />
                   <footer className="smallcaps text-ink-muted mt-4 text-xs">
                     — {t.scholarName}
                   </footer>

@@ -28,6 +28,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 import Database from 'better-sqlite3';
+
 import type { Database as DB } from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
 
@@ -76,6 +77,7 @@ interface ApiWord {
   readonly tokens: readonly ApiToken[];
 }
 
+// eslint-disable-next-line @typescript-eslint/require-await -- fastify register signature requires Promise<void> for symmetry; body is sync.
 export async function morphologyRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get<{ Params: { verseKey: string } }>(
     '/v1/morphology/:verseKey',
@@ -119,10 +121,16 @@ export async function morphologyRoutes(fastify: FastifyInstance): Promise<void> 
         } catch {
           /* ignore malformed feature blobs */
         }
+        // The QUL morphology dump leaks Buckwalter "@" markers into
+        // form_arabic for tokens that have an unwritten/silent letter
+        // (e.g. أُو@لَٰٓئِكَ, وا@). The raw character isn't valid for
+        // user display — strip it on the way out so consumers always
+        // get a clean Arabic glyph string.
+        const cleanForm = r.form_arabic.replace(/@/g, '');
         list.push({
           tokenIndex: r.token_index,
           tag: r.pos_tag,
-          form: r.form_arabic,
+          form: cleanForm,
           formBuckwalter: r.form_buck,
           lemma: r.lemma,
           root: r.root,
@@ -151,8 +159,7 @@ export async function morphologyRoutes(fastify: FastifyInstance): Promise<void> 
     '/v1/morphology/root/:root',
     {
       schema: {
-        description:
-          'List every verse-word sharing a Buckwalter root (concordance lookup).',
+        description: 'List every verse-word sharing a Buckwalter root (concordance lookup).',
         tags: ['morphology'],
       },
     },
@@ -165,7 +172,13 @@ export async function morphologyRoutes(fastify: FastifyInstance): Promise<void> 
       const rows = db
         .prepare<
           [string],
-          { verse_key: string; word_index: number; form_arabic: string; lemma: string | null; pos_tag: string }
+          {
+            verse_key: string;
+            word_index: number;
+            form_arabic: string;
+            lemma: string | null;
+            pos_tag: string;
+          }
         >(
           `SELECT verse_key, word_index, form_arabic, lemma, pos_tag
            FROM qalaam_v1_qul_morphology
@@ -180,7 +193,8 @@ export async function morphologyRoutes(fastify: FastifyInstance): Promise<void> 
         occurrences: rows.map((r) => ({
           verseKey: r.verse_key,
           wordIndex: r.word_index,
-          form: r.form_arabic,
+          // Strip the Buckwalter "@" silent-letter marker (see GET handler).
+          form: r.form_arabic.replace(/@/g, ''),
           lemma: r.lemma,
           tag: r.pos_tag,
         })),

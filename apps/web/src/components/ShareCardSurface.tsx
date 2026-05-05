@@ -10,6 +10,17 @@
  * captures the .share-card root, so all sizing here lives on that
  * single element.
  */
+import {
+  POS_LABEL,
+  displayableFeatures,
+  featureChipLabel,
+  lemmaDisplay,
+  posClass,
+  rootBuckwalterToArabic,
+  tokenRoleLabel,
+  type MorphologyToken,
+  type MorphologyWord as DisplayMorphologyWord,
+} from '../lib/morphology-display.js';
 import { sanitizeHtml } from '../lib/sanitize-html.js';
 import { applyTajweed, type TajweedAnnotation } from '../lib/tajweed.js';
 
@@ -33,17 +44,11 @@ interface WbwWord {
   readonly textArabic: string;
   readonly translation: string | null;
 }
-interface MorphologyToken {
-  readonly tag: string;
-  readonly form: string;
-  readonly lemma: string | null;
-  readonly root: string | null;
-  readonly isStem: boolean;
-}
-interface MorphologyWord {
-  readonly wordIndex: number;
-  readonly tokens: readonly MorphologyToken[];
-}
+// Morphology types live in lib/morphology-display.ts so /study and
+// /share-card share the same source of truth (per memory rule
+// `feedback_quranic_authenticity.md`). Re-export the type alias here
+// to avoid a cross-cutting rename in the Props interface below.
+type MorphologyWord = DisplayMorphologyWord;
 
 interface Props {
   readonly verseKey: string;
@@ -72,23 +77,7 @@ interface Props {
   readonly scale: number;
 }
 
-const POS_LABEL: Record<string, string> = {
-  N: 'Noun',
-  PN: 'Proper noun',
-  ADJ: 'Adjective',
-  V: 'Verb',
-  P: 'Preposition',
-  CONJ: 'Conjunction',
-  SUB: 'Subordinator',
-  REM: 'Resumption',
-  PRON: 'Pronoun',
-  REL: 'Relative',
-  DEM: 'Demonstrative',
-  DET: 'Determiner',
-  NEG: 'Negation',
-  EMPH: 'Emphatic',
-  VOC: 'Vocative',
-};
+// POS_LABEL imported from lib/morphology-display.ts
 
 function arabicTextFor(verse: Verse, layoutSlug: string): string {
   if (layoutSlug === 'kfgqpc_v1' || layoutSlug === 'indopak' || layoutSlug.includes('indopak')) {
@@ -371,7 +360,7 @@ export function ShareCardSurface(props: Props): ReactNode {
               <Translation text={translation} format={format} scale={scale} />
             ) : null}
             {showGrammar && morphology ? (
-              <GrammarStrip morphology={morphology} fontFamily={fontFamily} />
+              <WordGrammarGrid morphology={morphology} fontFamily={fontFamily} />
             ) : null}
             {showTafsir && tafsir ? <TafsirSnippet text={tafsir} scholar={tafsirScholar} /> : null}
           </section>
@@ -656,86 +645,220 @@ function TafsirSnippet({
   );
 }
 
-function GrammarStrip({
+/**
+ * WordGrammarGrid — faithful port of MorphologyPane's word grid for
+ * the static share-card. Per memory `feedback_quranic_authenticity.md`:
+ *  - Combined Arabic word built from ALL token forms (never just stem).
+ *  - One POS chip PER TOKEN with `posClass()` colour.
+ *  - Token role (prefix / stem / suffix) labelled inline.
+ *  - Lemma + root + i'rab features (case / gender / number / mood …)
+ *    all surfaced because the screenshot can't tap-expand.
+ */
+function WordGrammarGrid({
   morphology,
   fontFamily,
 }: {
   readonly morphology: readonly MorphologyWord[];
   readonly fontFamily: string;
 }): ReactNode {
-  // Per-word grammar mini-card row, RTL flow. Each card shows the
-  // word's stem token's POS + lemma + root.
   return (
-    <div
+    <ol
       dir="rtl"
+      lang="ar"
       style={{
         display: 'flex',
         flexWrap: 'wrap',
-        gap: 10,
-        unicodeBidi: 'plaintext',
+        justifyContent: 'flex-end',
+        gap: 14,
+        listStyle: 'none',
+        padding: '14px 16px',
         margin: 0,
-        padding: '12px 14px',
         background: 'rgba(27,77,90,0.05)',
-        borderRadius: 10,
+        borderRadius: 12,
+        unicodeBidi: 'plaintext',
       }}
     >
       {morphology.map((w) => {
-        const stem = w.tokens.find((t) => t.isStem) ?? w.tokens[0];
-        if (!stem) return null;
+        if (w.tokens.length === 0) return null;
+        // Combined Arabic word — concatenate every token's `form` so
+        // prefix + stem + suffix render as one joined glyph cluster.
+        const combinedArabic = w.tokens.map((t) => t.form).join('');
         return (
-          <div
+          <li
             key={w.wordIndex}
             style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              padding: '8px 10px',
-              minWidth: 80,
+              gap: 8,
+              padding: '12px 14px',
+              minWidth: 110,
+              maxWidth: 260,
               background: '#fff',
               border: '1px solid rgba(27,77,90,0.18)',
-              borderRadius: 8,
-              gap: 4,
+              borderRadius: 10,
             }}
           >
+            {/* Combined word in mushaf-grade Arabic */}
             <span
               dir="rtl"
               lang="ar"
               style={{
                 fontFamily,
-                fontSize: 22,
+                fontSize: 28,
                 color: '#0e0e0e',
                 fontWeight: 600,
-                lineHeight: 1.2,
+                lineHeight: 1.5,
+                unicodeBidi: 'plaintext',
+                textAlign: 'center',
+              }}
+            >
+              {combinedArabic}
+            </span>
+
+            {/* One POS chip per token — colour-coded by posClass */}
+            <div
+              dir="rtl"
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                gap: 4,
                 unicodeBidi: 'plaintext',
               }}
             >
-              {stem.form}
-            </span>
-            <span
+              {w.tokens.map((t) => (
+                <PosChip key={t.tokenIndex} token={t} />
+              ))}
+            </div>
+
+            {/* Per-token detail: role + lemma + root + features */}
+            <div
+              dir="ltr"
               style={{
-                fontSize: 9,
-                letterSpacing: 2,
-                textTransform: 'uppercase',
-                color: '#1b4d5a',
-                fontWeight: 700,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+                width: '100%',
+                marginTop: 4,
+                paddingTop: 6,
+                borderTop: '1px solid rgba(27,77,90,0.08)',
               }}
             >
-              {POS_LABEL[stem.tag] ?? stem.tag}
-            </span>
-            {stem.root ? (
-              <span
-                style={{
-                  fontSize: 10,
-                  color: '#b6862c',
-                  fontFamily: 'monospace',
-                }}
-              >
-                √ {stem.root}
-              </span>
-            ) : null}
-          </div>
+              {w.tokens.map((t) => (
+                <TokenDetail key={t.tokenIndex} token={t} fontFamily={fontFamily} />
+              ))}
+            </div>
+          </li>
         );
       })}
+    </ol>
+  );
+}
+
+/** Single POS chip — wraps the corpus tag with the same colour
+ *  classes (`pos-chip pos-verb` etc.) the live `MorphologyPane` uses,
+ *  so the share screenshot inherits the same visual language. */
+function PosChip({ token }: { readonly token: MorphologyToken }): ReactNode {
+  const role = tokenRoleLabel(token);
+  return (
+    <span
+      className={`pos-chip ${posClass(token.tag)}`}
+      title={`${POS_LABEL[token.tag] ?? token.tag}${role ? ` · ${role}` : ''}`}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        fontSize: 10,
+        letterSpacing: 1.5,
+        padding: '3px 8px',
+        borderRadius: 6,
+        fontWeight: 700,
+        textTransform: 'uppercase',
+        // Inline fallback colours so the chip reads even if the live
+        // .pos-* CSS rules aren't in scope (Puppeteer screenshot uses
+        // them; defensive against headless missing-style edge cases).
+        background: 'rgba(27,77,90,0.08)',
+        color: '#1b4d5a',
+      }}
+    >
+      {POS_LABEL[token.tag] ?? token.tag}
+    </span>
+  );
+}
+
+/** Per-token expanded detail — role, lemma (Arabic + Buckwalter
+ *  display), root (Buckwalter + Arabic letter form), i'rab features. */
+function TokenDetail({
+  token,
+  fontFamily,
+}: {
+  readonly token: MorphologyToken;
+  readonly fontFamily: string;
+}): ReactNode {
+  const role = tokenRoleLabel(token);
+  const features = displayableFeatures(token.features);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <span
+        style={{
+          fontSize: 9,
+          letterSpacing: 2,
+          textTransform: 'uppercase',
+          color: '#1b4d5a',
+          opacity: 0.7,
+          fontWeight: 700,
+        }}
+      >
+        {POS_LABEL[token.tag] ?? token.tag}
+        {role ? ` · ${role}` : ''}
+      </span>
+      {token.lemma ? (
+        <span style={{ fontSize: 10, color: '#3a3a3a' }}>
+          <span style={{ opacity: 0.65 }}>lemma · </span>
+          <span dir="rtl" lang="ar" style={{ fontFamily, fontWeight: 600 }}>
+            {lemmaDisplay(token.lemma)}
+          </span>
+        </span>
+      ) : null}
+      {token.root ? (
+        <span style={{ fontSize: 10, color: '#3a3a3a' }}>
+          <span style={{ opacity: 0.65 }}>root · </span>
+          <span dir="rtl" lang="ar" style={{ fontFamily, fontWeight: 600 }}>
+            {rootBuckwalterToArabic(token.root)}
+          </span>
+          <span style={{ marginInlineStart: 6, color: '#b6862c', fontFamily: 'monospace' }}>
+            {token.root}
+          </span>
+        </span>
+      ) : null}
+      {features.length > 0 ? (
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 4,
+            marginTop: 2,
+          }}
+        >
+          {features.slice(0, 8).map(([k, v]) => (
+            <span
+              key={k}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                fontSize: 9,
+                letterSpacing: 0.5,
+                padding: '2px 6px',
+                borderRadius: 4,
+                border: '1px solid rgba(27,77,90,0.15)',
+                color: '#3a3a3a',
+              }}
+            >
+              {featureChipLabel(k, v)}
+            </span>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

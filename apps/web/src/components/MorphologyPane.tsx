@@ -20,6 +20,7 @@
 import { useEffect, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
+import { POS_LABEL, featureChipLabel, lemmaDisplay, posClass } from '../lib/morphology-display.js';
 
 import type { ReactNode } from 'react';
 
@@ -49,130 +50,10 @@ interface ApiResponse {
   readonly license: string;
 }
 
-/**
- * POS tag → human-readable English label. Comprehensive coverage of
- * Kais Dukes' 45-tag set.
- */
-const POS_LABEL: Record<string, string> = {
-  // Nominals
-  N: 'Noun',
-  PN: 'Proper noun',
-  ADJ: 'Adjective',
-  // Verbal
-  V: 'Verb',
-  // Function words / particles
-  P: 'Preposition',
-  CONJ: 'Conjunction',
-  SUB: 'Subordinator',
-  REM: 'Resumption particle',
-  CIRC: 'Circumstantial',
-  RES: 'Restriction',
-  EXP: 'Explanation',
-  COND: 'Conditional',
-  // Pronouns
-  PRON: 'Pronoun',
-  REL: 'Relative pronoun',
-  DEM: 'Demonstrative',
-  // Determiners + negation
-  DET: 'Determiner',
-  NEG: 'Negation',
-  EXH: 'Exhortation',
-  // Vocative + emphatic
-  VOC: 'Vocative',
-  EMPH: 'Emphatic',
-  // Special
-  INL: 'Quranic initials',
-  ACC: 'Accusative particle',
-  AVR: 'Aversion particle',
-  CAUS: 'Causal particle',
-  AMD: 'Amendment',
-  COM: 'Comitative',
-  EQ: 'Equality',
-  IMPV: 'Imperative',
-  INC: 'Inceptive',
-  INT: 'Interrogative',
-  PRP: 'Purpose',
-  PRO: 'Prohibition',
-  RET: 'Retraction',
-  SUP: 'Supplemental',
-  T: 'Time adverb',
-  LOC: 'Location adverb',
-  FUT: 'Future particle',
-  ANS: 'Answer particle',
-  CERT: 'Certainty',
-  PREV: 'Preventive',
-  INTG: 'Interrogative',
-};
-
-/**
- * POS tag → semantic color group. Matches Tarteel/Quran.com convention
- * loosely: verbs warm (red/orange), nouns cool (teal/blue), function
- * words muted (gray).
- */
-function posClass(tag: string): string {
-  if (tag === 'V' || tag === 'IMPV') return 'pos-verb';
-  if (tag === 'N' || tag === 'PN') return 'pos-noun';
-  if (tag === 'ADJ') return 'pos-adj';
-  if (tag === 'PRON' || tag === 'REL' || tag === 'DEM') return 'pos-pronoun';
-  if (tag === 'P' || tag === 'CONJ' || tag === 'SUB' || tag === 'REM' || tag === 'CIRC')
-    return 'pos-particle';
-  if (tag === 'DET') return 'pos-det';
-  if (tag === 'NEG' || tag === 'PRO') return 'pos-neg';
-  return 'pos-other';
-}
-
-/**
- * Decode Buckwalter lemma marker — strip the `{` (alif-wasl) prefix
- * for display so "{ll~ah" reads as "Allah".
- */
-function lemmaDisplay(lemma: string): string {
-  return lemma.replace(/^\{/, '').replace(/[~`]/g, '');
-}
-
-/**
- * I'rab feature-key → human-readable label. The corpus encodes case,
- * gender, number, definiteness, mood, voice etc. as terse abbreviations
- * (MS, GEN, NOM, FS…). Students learning Arabic grammar need to see the
- * full label or they can't read the chip.
- */
-const FEATURE_LABEL: Record<string, string> = {
-  // Case
-  NOM: 'nominative · مرفوع',
-  ACC: 'accusative · منصوب',
-  GEN: 'genitive · مجرور',
-  // Gender + number
-  M: 'masculine',
-  F: 'feminine',
-  MS: 'masc · sing',
-  FS: 'fem · sing',
-  MD: 'masc · dual',
-  FD: 'fem · dual',
-  MP: 'masc · plural',
-  FP: 'fem · plural',
-  // Verbal mood + voice + form
-  MOOD_IND: 'indicative · مرفوع',
-  MOOD_SUB: 'subjunctive · منصوب',
-  MOOD_JUS: 'jussive · مجزوم',
-  ACT: 'active voice',
-  PASS: 'passive voice',
-  // Person
-  '1ST': '1st person',
-  '2ND': '2nd person',
-  '3RD': '3rd person',
-  // Definiteness
-  DEF: 'definite (al-)',
-  INDEF: 'indefinite',
-  // Verb tense / aspect
-  PERF: 'perfect tense',
-  IMPF: 'imperfect tense',
-  IMPV: 'imperative',
-};
-
-function featureChipLabel(key: string, value: unknown): string {
-  if (FEATURE_LABEL[key]) return FEATURE_LABEL[key];
-  if (typeof value === 'boolean') return key;
-  return `${key}:${String(value)}`;
-}
+// Display tables (POS_LABEL, posClass, FEATURE_LABEL, featureChipLabel,
+// lemmaDisplay, displayableFeatures, tokenRoleLabel) live in
+// `lib/morphology-display.ts` so /share-card and /study render the
+// same i'rab faithfully — never duplicate or drift.
 
 interface Props {
   readonly verseKey: string;
