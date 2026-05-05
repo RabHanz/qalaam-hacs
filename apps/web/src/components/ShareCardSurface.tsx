@@ -10,6 +10,7 @@
  * captures the .share-card root, so all sizing here lives on that
  * single element.
  */
+import { renderWithSilentMarks } from '../lib/arabic-render.js';
 import {
   POS_LABEL,
   displayableFeatures,
@@ -18,8 +19,8 @@ import {
   posClass,
   rootBuckwalterToArabic,
   tokenRoleLabel,
-  type MorphologyToken,
   type MorphologyWord as DisplayMorphologyWord,
+  type MorphologyToken,
 } from '../lib/morphology-display.js';
 import { sanitizeHtml } from '../lib/sanitize-html.js';
 import { applyTajweed, type TajweedAnnotation } from '../lib/tajweed.js';
@@ -458,10 +459,14 @@ function ArabicVerse({
     wordBreak: 'normal' as const,
   };
   // No tajweed → plain paragraph, real GSUB shaping in the browser.
+  // Silent marks (U+06D6–U+06DC, U+06DF–U+06E5, U+06E7–U+06E8,
+  // U+06EA–U+06ED) are wrapped via renderWithSilentMarks so they
+  // render as discreet superscripts on the share-card too — matches
+  // how /read renders the same verse.
   if (!tajweedAnnotations || tajweedAnnotations.length === 0) {
     return (
       <p dir="rtl" lang="ar" style={baseStyle}>
-        {arabic}
+        {renderWithSilentMarks(arabic, `vk-${arabic.length.toString()}`)}
       </p>
     );
   }
@@ -489,7 +494,11 @@ function ArabicVerse({
         rule: a.rule,
       }));
     if (local.length === 0) {
-      nodes.push(<span key={`tw-${wi.toString()}`}>{word}</span>);
+      nodes.push(
+        <span key={`tw-${wi.toString()}`}>
+          {renderWithSilentMarks(word, `tw-${wi.toString()}`)}
+        </span>,
+      );
     } else {
       const segs = applyTajweed(word, local);
       nodes.push(
@@ -499,7 +508,7 @@ function ArabicVerse({
               key={`tw-${wi.toString()}-s${si.toString()}`}
               className={seg.rule ? `tajweed-${seg.rule}` : undefined}
             >
-              {seg.text}
+              {renderWithSilentMarks(seg.text, `tw-${wi.toString()}-s${si.toString()}`)}
             </span>
           ))}
         </span>,
@@ -565,7 +574,7 @@ function WbwGrid({
                 unicodeBidi: 'plaintext',
               }}
             >
-              {w.textArabic}
+              {renderWithSilentMarks(w.textArabic, `wbw-${w.verseKey}-${w.wordIndex.toString()}`)}
             </span>
             {!isAyahNumber && w.translation ? (
               <span
@@ -747,7 +756,7 @@ function WordGrammarGrid({
                 textAlign: 'center',
               }}
             >
-              {combinedArabic}
+              {renderWithSilentMarks(combinedArabic, `gg-${w.wordIndex.toString()}`)}
             </span>
 
             {/* One POS chip per token — colour-coded by posClass */}
