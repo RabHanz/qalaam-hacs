@@ -94,7 +94,11 @@ export function SalahClient(): ReactNode {
   const [deviceHeading, setDeviceHeading] = useState<number | null>(null);
   const [now, setNow] = useState(Date.now());
 
-  // Restore from localStorage.
+  // Restore from localStorage. If we land on an insecure origin (LAN
+  // hostname like "onnyx", non-HTTPS) AND there's no cached coords,
+  // we kick off an IP-based geo lookup in a follow-up effect (defined
+  // below acquireLocationByIp) so the user doesn't have to discover
+  // the fallback button manually.
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORE_LOC);
@@ -232,6 +236,29 @@ export function SalahClient(): ReactNode {
     setPermError(`IP lookup failed (${failures.join('; ')}). Enter coordinates manually below.`);
   }, []);
 
+  // Auto IP-fallback on insecure origins. The browser blocks
+  // navigator.geolocation outside HTTPS / localhost, so trying it on a
+  // LAN host like "onnyx" silently fails — we proactively run the IP
+  // approximation in the background once on mount when no cached
+  // coords exist, so the user lands on a populated /salah page
+  // without needing to discover the fallback button.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.isSecureContext) return; // browser will hand us location on click
+    if (coords) return; // already have a value (cached or freshly set)
+    const id = window.setTimeout(() => {
+      void acquireLocationByIp();
+    }, 250);
+    return () => {
+      window.clearTimeout(id);
+    };
+    // Run once after the localStorage-restore effect has had a chance
+    // to populate `coords` — that effect sets state in the same tick,
+    // so by the time this effect runs `coords` reflects the cached
+    // value if any. We deliberately omit acquireLocationByIp here:
+    // it's a stable useCallback() with empty deps, never changes.
+  }, []);
+
   // Reset location — clear stored coordinates so the user can pick again.
   const resetLocation = useCallback(() => {
     setCoords(null);
@@ -336,8 +363,9 @@ export function SalahClient(): ReactNode {
       return;
     }
     if (!window.isSecureContext) {
-      // Most browsers block the sensor outside HTTPS/localhost. Surface
-      // the manual-rotation fallback rather than silently failing.
+      // Most browsers block the orientation sensor outside HTTPS /
+      // localhost. We surface "unavailable" + the manual rotation
+      // slider; the helper text below explains why.
       setCompassStatus('unavailable');
       return;
     }
@@ -346,9 +374,25 @@ export function SalahClient(): ReactNode {
     }
     const D = window.DeviceOrientationEvent as unknown as OrientationEventClass;
     let firstEventTimer: number | null = null;
-    const onOrientation = (e: DeviceOrientationEvent): void => {
-      const alpha = e.alpha;
-      if (typeof alpha === 'number') {
+    // Android Chrome dispatches `deviceorientationabsolute` for true
+    // compass-north heading. iOS uses `deviceorientation` plus the
+    // Apple-specific `webkitCompassHeading`. We listen on both events
+    // and prefer absolute / webkitCompass when available — that's
+    // what gives a STABLE bearing as the user rotates.
+    const onOrientation = (
+      e: DeviceOrientationEvent & { webkitCompassHeading?: number; absolute?: boolean },
+    ): void => {
+      let alpha: number | null = null;
+      if (typeof e.webkitCompassHeading === 'number') {
+        // iOS: webkitCompassHeading is degrees clockwise from North.
+        // Map to alpha (counter-clockwise from North) for parity.
+        alpha = (360 - e.webkitCompassHeading) % 360;
+      } else if (e.absolute && typeof e.alpha === 'number') {
+        alpha = e.alpha;
+      } else if (typeof e.alpha === 'number') {
+        alpha = e.alpha;
+      }
+      if (alpha !== null) {
         setDeviceHeading(alpha);
         setCompassStatus('active');
         if (firstEventTimer !== null) {
@@ -363,8 +407,12 @@ export function SalahClient(): ReactNode {
       firstEventTimer = window.setTimeout(() => {
         setCompassStatus('unavailable');
         window.removeEventListener('deviceorientation', onOrientation, true);
+        window.removeEventListener('deviceorientationabsolute', onOrientation, true);
       }, 3000);
       window.addEventListener('deviceorientation', onOrientation, true);
+      // Android only — `deviceorientationabsolute` is the compass-true
+      // sibling. Adding both lets us latch onto the more reliable one.
+      window.addEventListener('deviceorientationabsolute', onOrientation, true);
     };
     if (typeof D.requestPermission === 'function') {
       void D.requestPermission().then(
@@ -701,10 +749,10 @@ export function SalahClient(): ReactNode {
             </p>
           ) : null}
           {compassStatus === 'unavailable' ? (
-            <p className="text-ink-muted mx-auto mt-3 max-w-xs text-xs italic">
-              Device compass not available here (desktop, insecure origin, or no magnetometer). The
-              needle below points to absolute compass bearing — face that direction with a real
-              compass, or use the slider.
+            <p className="text-ink-muted mx-auto mt-3 max-w-sm text-xs italic leading-relaxed">
+              {typeof window !== 'undefined' && !window.isSecureContext
+                ? `Compass needs an HTTPS origin or localhost — ${window.location.hostname} is treated as insecure by the browser. Open https://… or http://localhost on the device to use the live compass; otherwise the needle shows the absolute Qibla bearing for a physical compass, and the slider below lets you nudge it.`
+                : 'Device compass not available (no magnetometer detected). The needle below points to absolute compass bearing — face that direction with a real compass, or use the slider.'}
             </p>
           ) : null}
           {compassStatus === 'active' ? (
