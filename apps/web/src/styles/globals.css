@@ -16,6 +16,7 @@
 
 @import 'tailwindcss';
 @import './tokens.css';
+@import './qpc-v4-fonts.css';
 
 /*
  * Google Fonts (Fraunces / IBM Plex Sans / Amiri / Amiri Quran / Noto

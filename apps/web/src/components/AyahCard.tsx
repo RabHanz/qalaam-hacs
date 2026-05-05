@@ -220,7 +220,7 @@ export function AyahCard({
   const [shareOpen, setShareOpen] = useState(false);
   // Tajweed annotations — only fetched when the layout slug indicates
   // tajweed coloring (kfgqpc_v4 / tajweed). Other layouts skip the
-  // fetch entirely.
+  // fetch entirely. Used by the CSS-overlay tajweed fallback path.
   const tajweedActive = layoutSlug === 'kfgqpc_v4' || layoutSlug === 'tajweed';
   const [tajweedAnno, setTajweedAnno] = useState<readonly TajweedAnnotation[] | null>(null);
   useEffect(() => {
@@ -233,6 +233,39 @@ export function AyahCard({
       const apiBase = resolveApiBase();
       const list = await fetchTajweed(apiBase, verseKey);
       if (!cancelled.v) setTajweedAnno(list);
+    })();
+    return () => {
+      cancelled.v = true;
+    };
+  }, [tajweedActive, verseKey]);
+
+  // V4 PUA-encoded text + page-specific font. When this loads we render
+  // with the canonical KFGQPC V4 Tajweed COLR/CPAL color font (tajweed
+  // colors baked into the font, no CSS overlay). Falls back to the
+  // CSS-overlay `tajweedAnno` path if the fetch fails or returns no
+  // page mapping (e.g. hypothetical future re-ingest gaps).
+  interface QpcV4Verse {
+    pageNumber: number | null;
+    fontFamily: string | null;
+    words: readonly { wordIndex: number; text: string }[];
+  }
+  const [qpcV4, setQpcV4] = useState<QpcV4Verse | null>(null);
+  useEffect(() => {
+    if (!tajweedActive) {
+      setQpcV4(null);
+      return;
+    }
+    const cancelled = { v: false };
+    void (async () => {
+      try {
+        const apiBase = resolveApiBase();
+        const res = await fetch(`${apiBase}/v1/qpc-text/${encodeURIComponent(verseKey)}?layout=v4`);
+        if (!res.ok) return;
+        const body = (await res.json()) as QpcV4Verse;
+        if (!cancelled.v) setQpcV4(body);
+      } catch {
+        /* falls back to CSS-overlay path */
+      }
     })();
     return () => {
       cancelled.v = true;
@@ -551,12 +584,44 @@ export function AyahCard({
         aria-label={`Verse ${verseKey}`}
       >
         {(() => {
-          // Tajweed mode: when the active layout is tajweed and we have
-          // annotations, render colored char-segments PER WORD so each
-          // word remains its own joining context. Splitting letters
-          // across spans breaks Arabic glyph-joining (the browser font
-          // can't shape across DOM boundaries). MushafLines uses the
-          // same per-word approach — keeping behavior consistent.
+          // PRIORITY 1: KFGQPC V4 Tajweed canonical render — PUA-encoded
+          // text rendered with the matching per-page COLR/CPAL color
+          // font. Tajweed colours are BAKED INTO THE FONT'S COLOR
+          // TABLES, not applied via CSS spans — bit-for-bit identical
+          // to the printed KFGQPC V4 1441H mushaf. No CSS-overlay
+          // approximation. Sourced from QUL #47 + Quran Foundation's
+          // 604 per-page woff2 fonts.
+          if (tajweedActive && qpcV4?.fontFamily && qpcV4.words.length > 0) {
+            const idx = selfHighlightIdx ?? highlightWordIndex ?? null;
+            const fontFamily = qpcV4.fontFamily;
+            const words = qpcV4.words;
+            return words.map((w, i) => {
+              const isActive = idx !== null && i === idx;
+              const sep = i < words.length - 1 ? ' ' : '';
+              return (
+                <span
+                  key={`qpc-v4-${w.wordIndex.toString()}`}
+                  className={isActive ? 'recite-highlight' : undefined}
+                  style={{
+                    fontFamily: `"${fontFamily}"`,
+                    // The COLR/CPAL color font carries its own coloring;
+                    // we pass color: inherit only as a fallback for the
+                    // very brief frame before the page font lands.
+                    color: 'inherit',
+                  }}
+                >
+                  {w.text}
+                  {sep}
+                </span>
+              );
+            });
+          }
+          // PRIORITY 2 (fallback): CSS-overlay tajweed — when V4 PUA
+          // data isn't available (e.g. fetch failed, page-mapping gap),
+          // fall back to per-word annotation coloring on UthmanicHafs
+          // Unicode text. Renders as colored char-segments PER WORD so
+          // each word remains its own joining context. Splitting
+          // letters across spans breaks Arabic glyph-joining.
           if (tajweedActive && tajweedAnno && tajweedAnno.length > 0) {
             const tWords = arabic.split(/(\s+)/); // keep whitespace tokens
             const out: ReactNode[] = [];

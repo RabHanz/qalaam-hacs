@@ -26,6 +26,7 @@ import { morphologyRoutes } from './routes/v1/morphology.js';
 import { nowPlayingRoutes } from './routes/v1/now-playing.js';
 import { prayerTimesRoutes } from './routes/v1/prayer-times.js';
 import { qiblaHijriRoutes } from './routes/v1/qibla-hijri.js';
+import { qpcTextRoutes } from './routes/v1/qpc-text.js';
 import { qulLayoutsRoutes } from './routes/v1/qul-layouts.js';
 import { qulMetadataRoutes } from './routes/v1/qul-metadata.js';
 import { qulMutashabihatRoutes } from './routes/v1/qul-mutashabihat.js';
@@ -112,6 +113,7 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   await app.register(qulSurahInfoRoutes, { config });
   await app.register(qulLayoutsRoutes, { config });
   await app.register(qulRecitationsRoutes, { config });
+  await app.register(qpcTextRoutes, { config });
 
   return app;
 }
