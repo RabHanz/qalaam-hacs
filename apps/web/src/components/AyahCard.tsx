@@ -46,6 +46,11 @@ interface AyahCardProps {
    *  italic register so it reads as a phonetic bridge, not a gloss. */
   readonly transliteration?: string | null;
   readonly tafsirSlug?: string | null;
+  /** Active translation slug — forwarded to ShareDialog so the card
+   *  reflects what /read is currently showing. */
+  readonly translationSlug?: string | null;
+  /** Active transliteration slug. */
+  readonly transliterationSlug?: string | null;
   readonly reciterSlug: string;
   /** Optional, ignored — always resolves to the same-origin /api proxy on
    *  the client. Kept so existing parents compile unchanged. */
@@ -183,6 +188,8 @@ export function AyahCard({
   translation,
   transliteration,
   tafsirSlug,
+  translationSlug,
+  transliterationSlug,
   reciterSlug,
   highlightWordIndex,
   layoutSlug,
@@ -807,6 +814,9 @@ export function AyahCard({
       <ShareDialog
         verseKey={verseKey}
         layoutSlug={layoutSlug}
+        translationSlug={translationSlug ?? undefined}
+        transliterationSlug={transliterationSlug ?? undefined}
+        tafsirSlug={tafsirSlug ?? undefined}
         open={shareOpen}
         onClose={() => {
           setShareOpen(false);

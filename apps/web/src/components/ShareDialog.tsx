@@ -28,6 +28,11 @@ import type { ReactNode } from 'react';
 interface Props {
   readonly verseKey: string;
   readonly layoutSlug?: string;
+  /** Active translation slug from /read (e.g. 'pickthall', 'maududi').
+   *  Defaults to saheeh-international when omitted. */
+  readonly translationSlug?: string;
+  readonly transliterationSlug?: string;
+  readonly tafsirSlug?: string;
   readonly open: boolean;
   readonly onClose: () => void;
 }
@@ -50,7 +55,15 @@ const VARIANTS: readonly { id: Variant; label: string; hint: string }[] = [
 
 type ActionState = 'idle' | 'busy' | 'ok' | 'err';
 
-export function ShareDialog({ verseKey, layoutSlug, open, onClose }: Props): ReactNode {
+export function ShareDialog({
+  verseKey,
+  layoutSlug,
+  translationSlug,
+  transliterationSlug,
+  tafsirSlug,
+  open,
+  onClose,
+}: Props): ReactNode {
   const [format, setFormat] = useState<Format>('landscape');
   const [variant, setVariant] = useState<Variant>('translation');
   const [showTransliteration, setShowTransliteration] = useState(false);
@@ -90,6 +103,9 @@ export function ShareDialog({ verseKey, layoutSlug, open, onClose }: Props): Rea
     params.set('format', format);
     params.set('variant', variant);
     if (layoutSlug) params.set('layout', layoutSlug);
+    if (translationSlug) params.set('translation', translationSlug);
+    if (transliterationSlug) params.set('transliterationSlug', transliterationSlug);
+    if (tafsirSlug) params.set('tafsirSlug', tafsirSlug);
     if (showTransliteration) params.set('transliteration', '1');
     if (showGrammar) params.set('grammar', '1');
     if (showTafsir) params.set('tafsir', '1');
@@ -106,7 +122,18 @@ export function ShareDialog({ verseKey, layoutSlug, open, onClose }: Props): Rea
           ? `${origin}/read/${verseKey.split(':')[0] ?? '1'}#${verseKey}`
           : '',
     };
-  }, [verseKey, layoutSlug, format, variant, showTransliteration, showGrammar, showTafsir]);
+  }, [
+    verseKey,
+    layoutSlug,
+    translationSlug,
+    transliterationSlug,
+    tafsirSlug,
+    format,
+    variant,
+    showTransliteration,
+    showGrammar,
+    showTafsir,
+  ]);
 
   if (!open) return null;
   if (typeof document === 'undefined') return null;

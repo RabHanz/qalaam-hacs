@@ -127,7 +127,7 @@ const fetchTajweed = (vk: string): Promise<TajweedResp | null> =>
 
 const fetchTranslation = async (vk: string): Promise<string | null> => {
   const body = await fetchJson<{ text?: string }>(
-    `${API_BASE}/v1/translations/saheeh-international/${encodeURIComponent(vk)}`,
+    `${API_BASE}/v1/translations/saheeh-international/by_verse/${encodeURIComponent(vk)}`,
   );
   return body?.text ?? null;
 };

@@ -621,6 +621,8 @@ export function ReadSurfaceClient({
                 transliteration === 'off' ? null : (transliterationMap.get(v.verseKey) ?? null)
               }
               tafsirSlug={tafsirSlug}
+              translationSlug={translation === 'none' ? null : translation}
+              transliterationSlug={transliteration === 'off' ? null : transliteration}
               reciterSlug={reciter}
               apiBase={apiBase}
               layoutSlug={activeLayoutSlug}
@@ -867,6 +869,7 @@ function SingleAyahView({
             arabic={textForLayout(v, layoutSlug)}
             translation={translation === 'none' ? null : (translationMap.get(v.verseKey) ?? null)}
             tafsirSlug={tafsirSlug}
+            translationSlug={translation === 'none' ? null : translation}
             reciterSlug={reciterSlug}
             apiBase={apiBase}
             layoutSlug={layoutSlug}

@@ -56,6 +56,7 @@ interface Props {
   readonly tafsir: string | null;
   readonly tafsirScholar: string | null;
   readonly morphology: readonly MorphologyWord[] | null;
+  readonly tajweedAnnotations: readonly TajweedAnnotation[] | null;
   readonly format: 'landscape' | 'square' | 'story';
   readonly variant: 'minimal' | 'translation' | 'wbw' | 'advanced';
   readonly layoutSlug: string;
@@ -111,6 +112,7 @@ export function ShareCardSurface(props: Props): ReactNode {
     tafsir,
     tafsirScholar,
     morphology,
+    tajweedAnnotations,
     format,
     variant,
     layoutSlug,
@@ -341,7 +343,7 @@ export function ShareCardSurface(props: Props): ReactNode {
                 arabic={arabic}
                 fontFamily={fontFamily}
                 fontSize={pickArabicSize(format, arabic.length, false)}
-                tajweedActive={isTajweed}
+                tajweedAnnotations={isTajweed ? tajweedAnnotations : null}
               />
             )}
             {showTransliteration && transliteration ? (
@@ -396,43 +398,80 @@ function ArabicVerse({
   arabic,
   fontFamily,
   fontSize,
-  tajweedActive,
+  tajweedAnnotations,
 }: {
   readonly arabic: string;
   readonly fontFamily: string;
   readonly fontSize: number;
-  readonly tajweedActive: boolean;
+  readonly tajweedAnnotations: readonly TajweedAnnotation[] | null;
 }): ReactNode {
-  // Tajweed annotations would be a fetch — for static screenshot we
-  // skip color in the absence of annotations data passed through.
-  // (Annotation fetch is wired in /share-card/page.tsx if needed.)
-  void tajweedActive;
+  const baseStyle = {
+    fontFamily,
+    fontSize,
+    lineHeight: 1.95,
+    color: '#0e0e0e',
+    fontWeight: 600 as const,
+    unicodeBidi: 'plaintext' as const,
+    textAlign: 'right' as const,
+    margin: 0,
+    wordBreak: 'normal' as const,
+  };
+  // No tajweed → plain paragraph, real GSUB shaping in the browser.
+  if (!tajweedAnnotations || tajweedAnnotations.length === 0) {
+    return (
+      <p dir="rtl" lang="ar" style={baseStyle}>
+        {arabic}
+      </p>
+    );
+  }
+  // Tajweed: split into words, apply annotations PER WORD so each word
+  // remains its own joining context. Splitting letters across DOM
+  // boundaries breaks Arabic glyph-joining.
+  const words = arabic.split(/(\s+)/);
+  let charCursor = 0;
+  const nodes: ReactNode[] = [];
+  for (let wi = 0; wi < words.length; wi += 1) {
+    const word = words[wi] ?? '';
+    if (word.length === 0) continue;
+    if (/^\s+$/.test(word)) {
+      nodes.push(word);
+      charCursor += word.length;
+      continue;
+    }
+    const wStart = charCursor;
+    const wEnd = wStart + word.length;
+    const local = tajweedAnnotations
+      .filter((a) => a.end > wStart && a.start < wEnd)
+      .map((a) => ({
+        start: Math.max(0, a.start - wStart),
+        end: Math.min(word.length, a.end - wStart),
+        rule: a.rule,
+      }));
+    if (local.length === 0) {
+      nodes.push(<span key={`tw-${wi.toString()}`}>{word}</span>);
+    } else {
+      const segs = applyTajweed(word, local);
+      nodes.push(
+        <span key={`tw-${wi.toString()}`}>
+          {segs.map((seg, si) => (
+            <span
+              key={`tw-${wi.toString()}-s${si.toString()}`}
+              className={seg.rule ? `tajweed-${seg.rule}` : undefined}
+            >
+              {seg.text}
+            </span>
+          ))}
+        </span>,
+      );
+    }
+    charCursor = wEnd;
+  }
   return (
-    <p
-      dir="rtl"
-      lang="ar"
-      style={{
-        fontFamily,
-        fontSize,
-        lineHeight: 1.95,
-        color: '#0e0e0e',
-        fontWeight: 600,
-        unicodeBidi: 'plaintext',
-        textAlign: 'right',
-        margin: 0,
-        wordBreak: 'normal',
-      }}
-    >
-      {arabic}
+    <p dir="rtl" lang="ar" style={baseStyle}>
+      {nodes}
     </p>
   );
 }
-
-// Reserved for the per-word tajweed branch — silence unused-export warns
-void applyTajweed;
-type _ReservedTajweedType = TajweedAnnotation;
-const _reservedTajweed: _ReservedTajweedType[] = [];
-void _reservedTajweed;
 
 function WbwGrid({
   wbw,

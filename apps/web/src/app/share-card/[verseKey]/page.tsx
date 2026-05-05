@@ -58,6 +58,15 @@ interface MorphologyWord {
   readonly wordIndex: number;
   readonly tokens: readonly MorphologyToken[];
 }
+interface TajweedAnno {
+  readonly start: number;
+  readonly end: number;
+  readonly rule: string;
+}
+interface TajweedResp {
+  readonly verseKey: string;
+  readonly annotations: readonly TajweedAnno[];
+}
 
 const API_BASE = process.env.PUBLIC_API_URL ?? 'http://localhost:4111';
 
@@ -101,9 +110,21 @@ export default async function ShareCardPage({
     | 'wbw'
     | 'advanced';
   const layoutSlug = pickStr(sp.layout, 'madani_15');
+  // Forward the user's active translation/transliteration/tafsir if
+  // provided (the share dialog passes whatever /read had selected).
+  const translationSlug = pickStr(sp.translation, 'saheeh-international').replace(
+    /[^a-z0-9-]/g,
+    '',
+  );
+  const transliterationSlug = pickStr(sp.transliterationSlug, 'transliteration').replace(
+    /[^a-z0-9-.]/g,
+    '',
+  );
+  const tafsirSlug = pickStr(sp.tafsirSlug, 'jalalayn').replace(/[^a-z0-9-]/g, '');
   const showTransliteration = pickFlag(sp.transliteration);
   const showGrammar = pickFlag(sp.grammar) || variant === 'advanced';
   const showTafsir = pickFlag(sp.tafsir) || variant === 'advanced';
+  const isTajweedLayout = layoutSlug === 'tajweed' || layoutSlug === 'kfgqpc_v4';
 
   const surah = Number.parseInt(verseKey.split(':')[0] ?? '1', 10);
 
@@ -122,15 +143,15 @@ export default async function ShareCardPage({
   const needsGrammar = showGrammar;
   const needsTransliteration = showTransliteration;
 
-  const [translation, transliteration, wbw, tafsir, morphology] = await Promise.all([
+  const [translation, transliteration, wbw, tafsir, morphology, tajweed] = await Promise.all([
     needsTranslation
       ? fetchJson<{ text?: string }>(
-          `${API_BASE}/v1/translations/saheeh-international/${encodeURIComponent(verseKey)}`,
+          `${API_BASE}/v1/translations/${encodeURIComponent(translationSlug)}/by_verse/${encodeURIComponent(verseKey)}`,
         ).then((b) => b?.text ?? null)
       : Promise.resolve(null),
     needsTransliteration
       ? fetchJson<{ text?: string }>(
-          `${API_BASE}/v1/transliterations/transliteration/by_verse/${encodeURIComponent(verseKey)}`,
+          `${API_BASE}/v1/transliterations/${encodeURIComponent(transliterationSlug)}/by_verse/${encodeURIComponent(verseKey)}`,
         ).then((b) => b?.text ?? null)
       : Promise.resolve(null),
     needsWbw
@@ -140,13 +161,16 @@ export default async function ShareCardPage({
       : Promise.resolve(null),
     needsTafsir
       ? fetchJson<{ text?: string; scholar?: string }>(
-          `${API_BASE}/v1/tafsirs/jalalayn/by_verse/${encodeURIComponent(verseKey)}`,
+          `${API_BASE}/v1/tafsirs/${encodeURIComponent(tafsirSlug)}/by_verse/${encodeURIComponent(verseKey)}`,
         )
       : Promise.resolve(null),
     needsGrammar
       ? fetchJson<{ words: readonly MorphologyWord[] }>(
           `${API_BASE}/v1/morphology/${encodeURIComponent(verseKey)}`,
         )
+      : Promise.resolve(null),
+    isTajweedLayout
+      ? fetchJson<TajweedResp>(`${API_BASE}/v1/tajweed/${encodeURIComponent(verseKey)}`)
       : Promise.resolve(null),
   ]);
 
@@ -161,6 +185,7 @@ export default async function ShareCardPage({
       wbw={wbw}
       tafsir={tafsir?.text ?? null}
       tafsirScholar={tafsir?.scholar ?? null}
+      tajweedAnnotations={tajweed?.annotations ?? null}
       morphology={morphology?.words ?? null}
       format={format}
       variant={variant}
