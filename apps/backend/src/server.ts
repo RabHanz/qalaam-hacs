@@ -16,6 +16,7 @@ import { loggerPlugin } from './plugins/logger.js';
 import { healthRoutes } from './routes/health.js';
 import { mcpServerRoutes } from './routes/mcp-server.js';
 import { chaptersRoutes } from './routes/v1/chapters.js';
+import { creditsRoutes } from './routes/v1/credits.js';
 import { curriculumRoutes } from './routes/v1/curriculum.js';
 import { hifdhStateRoutes } from './routes/v1/hifdh-state.js';
 import { hifdhRoutes } from './routes/v1/hifdh.js';
@@ -104,6 +105,7 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   await app.register(mcpRoutes);
   await app.register(mcpServerRoutes);
   await app.register(curriculumRoutes);
+  await app.register(creditsRoutes);
   await app.register(qulMetadataRoutes, { config });
   await app.register(qulMutashabihatRoutes, { config });
   await app.register(qulWbwRoutes, { config });
