@@ -25,6 +25,10 @@ export default tseslint.config(
       '**/*.config.ts',
       '**/*.config.mjs',
       '**/*.config.cjs',
+      // lint-staged config — function form needs CJS module-system, not in
+      // a TS project, eslint-typescript can't parse it via project service.
+      '.lintstagedrc.cjs',
+      '**/.lintstagedrc.cjs',
       // One-shot ingest scripts run via tsx; not part of any tsconfig project.
       'scripts/data/ingest-qul-*.ts',
       // Test files in packages whose tsconfig excludes the tests/ dir —

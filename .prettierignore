@@ -23,3 +23,6 @@ __pycache__/
 
 # Docs that should not be reformatted
 CHANGELOG.md
+
+# QUL raw — large auto-generated sidecar tree, not human-edited
+data/qul-source/raw/
