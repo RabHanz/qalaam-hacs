@@ -12,11 +12,17 @@
       "reauth_confirm": {
         "title": "Re-authenticate Qalaam",
         "description": "Your API key was rejected. Paste a new one.",
-        "data": { "api_key": "API key" }
+        "data": {
+          "api_key": "API key"
+        }
       }
     },
-    "error": { "auth": "Invalid API key or unreachable Qalaam server." },
-    "abort": { "already_configured": "This Qalaam account is already configured." }
+    "error": {
+      "auth": "Invalid API key or unreachable Qalaam server."
+    },
+    "abort": {
+      "already_configured": "This Qalaam account is already configured."
+    }
   },
   "options": {
     "step": {
@@ -32,22 +38,79 @@
     }
   },
   "entity": {
-    "media_player": { "qalaam_player": { "name": "Qalaam" } },
+    "media_player": {
+      "qalaam_player": {
+        "name": "Qalaam"
+      }
+    },
     "sensor": {
-      "current_verse": { "name": "Current verse" },
-      "streak_days": { "name": "Streak" },
-      "next_prayer": { "name": "Next prayer" },
-      "today_session_count": { "name": "Portions due today" },
-      "grace_days_remaining": { "name": "Grace days remaining" },
-      "current_sabqi": { "name": "Current sabqi" }
+      "current_verse": {
+        "name": "Current verse"
+      },
+      "streak_days": {
+        "name": "Streak"
+      },
+      "next_prayer": {
+        "name": "Next prayer"
+      },
+      "today_session_count": {
+        "name": "Portions due today"
+      },
+      "grace_days_remaining": {
+        "name": "Grace days remaining"
+      },
+      "current_sabqi": {
+        "name": "Current sabqi"
+      },
+      "topic_of_day": {
+        "name": "Topic of the day"
+      },
+      "word_of_day": {
+        "name": "Word of the day"
+      },
+      "hijri_date": {
+        "name": "Hijri date"
+      },
+      "mutashabihat_count": {
+        "name": "Mutashabihat watchlist"
+      },
+      "active_reciter": {
+        "name": "Active reciter"
+      }
     },
     "binary_sensor": {
-      "is_reciting": { "name": "Reciting" },
-      "in_session": { "name": "Hifdh session active" }
+      "is_reciting": {
+        "name": "Reciting"
+      },
+      "in_session": {
+        "name": "Hifdh session active"
+      }
     },
-    "select": { "reciter": { "name": "Reciter" }, "mushaf": { "name": "Mushaf" } },
-    "button": { "test_me": { "name": "Test me" }, "mark_memorized": { "name": "Mark memorized" } },
-    "todo": { "hifdh_plan": { "name": "Hifdh plan" } },
-    "calendar": { "review_schedule": { "name": "Hifdh review schedule" } }
+    "select": {
+      "reciter": {
+        "name": "Reciter"
+      },
+      "mushaf": {
+        "name": "Mushaf"
+      }
+    },
+    "button": {
+      "test_me": {
+        "name": "Test me"
+      },
+      "mark_memorized": {
+        "name": "Mark memorized"
+      }
+    },
+    "todo": {
+      "hifdh_plan": {
+        "name": "Hifdh plan"
+      }
+    },
+    "calendar": {
+      "review_schedule": {
+        "name": "Hifdh review schedule"
+      }
+    }
   }
 }

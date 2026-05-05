@@ -482,17 +482,30 @@ export function ContinuousReaderPlayer({
     const verseKey = verses[verseIdx].verseKey;
     const segments = bundle.segments;
 
-    // Once we're past the last segment's end_ms, advance the highlight
-    // to lastSegment.wordIndex + 1 so the verse-end digit / closing
-    // word lights up DURING playback (not after onEnded fires, which
-    // is too late — buffer swap clears it before the eye lands).
+    // Tail handling — most reciters keep reciting the LAST word past the
+    // segment's nominal endMs (the natural decay of the closing madd,
+    // qalqalah, or pause). If we advance to the rosette the instant
+    // tMs >= lastSeg.endMs, the user sees the highlight jump too early
+    // and the last word never gets its full visual moment.
+    //
+    // Strategy: pin the highlight to the last actual word until we're
+    // within TAIL_GUARD_MS of the audio's known duration, THEN advance
+    // to the rosette/verse-end slot. If we have no duration (rare), fall
+    // back to staying on the last word — onEnded will handle the rosette.
+    const TAIL_GUARD_MS = 250;
     const lastSeg = segments.length > 0 ? segments[segments.length - 1] : null;
     if (lastSeg && tMs >= lastSeg.endMs) {
-      const finalIdx = lastSeg.wordIndex; // already +1 because we want one PAST the last segmented word
-      if (finalIdx !== lastWordIdxRef.current || verseKey !== lastVerseKeyRef.current) {
-        lastWordIdxRef.current = finalIdx;
+      const dur = a.duration;
+      const durMs = Number.isFinite(dur) && dur > 0 ? dur * 1000 : 0;
+      const closeToEnd = durMs > 0 && tMs >= durMs - TAIL_GUARD_MS;
+      // While the reciter is still on the last word, keep the highlight
+      // there (lastSeg.wordIndex - 1). Only after we're within ~250ms
+      // of the audio's actual end do we advance to the rosette slot.
+      const targetIdx = closeToEnd ? lastSeg.wordIndex : lastSeg.wordIndex - 1;
+      if (targetIdx !== lastWordIdxRef.current || verseKey !== lastVerseKeyRef.current) {
+        lastWordIdxRef.current = targetIdx;
         lastVerseKeyRef.current = verseKey;
-        onHighlight({ verseKey, wordIndex: finalIdx });
+        onHighlight({ verseKey, wordIndex: targetIdx });
       }
       return;
     }
