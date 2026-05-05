@@ -539,20 +539,53 @@ export function AyahCard({
       >
         {(() => {
           // Tajweed mode: when the active layout is tajweed and we have
-          // annotations, render the verse as char-range segments with
-          // .tajweed-* classes. Word-level highlight is suppressed in
-          // this mode since char ranges and word boundaries don't align
-          // cleanly — the user gets coloring in exchange for highlight.
+          // annotations, render colored char-segments PER WORD so each
+          // word remains its own joining context. Splitting letters
+          // across spans breaks Arabic glyph-joining (the browser font
+          // can't shape across DOM boundaries). MushafLines uses the
+          // same per-word approach — keeping behavior consistent.
           if (tajweedActive && tajweedAnno && tajweedAnno.length > 0) {
-            const segments = applyTajweed(arabic, tajweedAnno);
-            return segments.map((seg, i) => (
-              <span
-                key={`tj-${i.toString()}`}
-                className={seg.rule ? `tajweed-${seg.rule}` : undefined}
-              >
-                {seg.text}
-              </span>
-            ));
+            const tWords = arabic.split(/(\s+)/); // keep whitespace tokens
+            const out: ReactNode[] = [];
+            let charCursor = 0;
+            for (let wi = 0; wi < tWords.length; wi++) {
+              const word = tWords[wi] ?? '';
+              if (word.length === 0) continue;
+              if (/^\s+$/.test(word)) {
+                out.push(word);
+                charCursor += word.length;
+                continue;
+              }
+              const wStart = charCursor;
+              const wEnd = wStart + word.length;
+              // Local annotations clipped to this word's range
+              const local = tajweedAnno
+                .filter((a) => a.end > wStart && a.start < wEnd)
+                .map((a) => ({
+                  start: Math.max(0, a.start - wStart),
+                  end: Math.min(word.length, a.end - wStart),
+                  rule: a.rule,
+                }));
+              if (local.length === 0) {
+                out.push(<span key={`tw-${wi.toString()}`}>{word}</span>);
+              } else {
+                const segs = applyTajweed(word, local);
+                out.push(
+                  <span key={`tw-${wi.toString()}`} style={{ display: 'inline' }}>
+                    {segs.map((seg, si) => (
+                      <span
+                        key={`tw-${wi.toString()}-s${si.toString()}`}
+                        className={seg.rule ? `tajweed-${seg.rule}` : undefined}
+                      >
+                        {seg.text}
+                      </span>
+                    ))}
+                  </span>,
+                );
+              }
+              charCursor = wEnd;
+            }
+            return out;
           }
           // Default: split into words; render each as a span (so the
           // active one can pick up recite-highlight). The TRAILING word

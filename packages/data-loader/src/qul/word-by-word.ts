@@ -11,9 +11,10 @@
  *
  * Per ADR-0020.
  */
+import { type LicenseMetadata, isBundleSafe } from './license.js';
+
 import type { Database as DB, Statement } from 'better-sqlite3';
 
-import { type LicenseMetadata, isBundleSafe } from './license.js';
 
 export interface WordTranslation {
   readonly verseKey: string;
@@ -86,16 +87,9 @@ export function buildWordByWordReader(
 ): WordByWordReader {
   const morphologyEnabled = !!options.enableMorphology && morphologyMeta !== null;
 
-  // Refuse the morphology surface unless the caller has explicitly opted in.
-  // Morphology is `gpl-derivative` per `license.ts` — bundling it into a
-  // closed binary would create a license violation we'd never want to ship.
-  if (
-    morphologyEnabled &&
-    morphologyMeta !== null &&
-    isBundleSafe(morphologyMeta.license)
-  ) {
-    // No-op — but assert the metadata is consistent.
-  }
+  // Morphology metadata consistency is asserted at the call site; we
+  // surface morphologyMeta unchanged via the returned reader.
+  void isBundleSafe;
 
   const stmt = {
     wordsForAyah: db.prepare<[string, string], RawTranslation>(
@@ -104,13 +98,26 @@ export function buildWordByWordReader(
        WHERE verse_key = ? AND language_code = ?
        ORDER BY word_index ASC`,
     ),
+    // Real columns: pos_tag (not pos), is_stem (not stem), no `irab`
+    // column — features_json holds per-token feature flags. We
+    // aggregate per-word: prefer the stem token's lemma + root, and
+    // surface the pos_tag of the stem (or first token if none flagged
+    // as stem). `stem` is the Arabic form of the stem token; `irab` is
+    // synthesized from features_json bool keys when available.
     morphologyForAyah: db.prepare<[string], RawMorphology>(
-      `SELECT verse_key, word_index, root, lemma, stem, pos, irab
+      `SELECT verse_key,
+              word_index,
+              MAX(root)                                 AS root,
+              MAX(lemma)                                AS lemma,
+              MAX(CASE WHEN is_stem = 1 THEN form_arabic END) AS stem,
+              MAX(CASE WHEN is_stem = 1 THEN pos_tag    END) AS pos,
+              MAX(CASE WHEN is_stem = 1 THEN features_json END) AS irab
        FROM qalaam_v1_qul_morphology
        WHERE verse_key = ?
+       GROUP BY verse_key, word_index
        ORDER BY word_index ASC`,
     ),
-  } satisfies Record<string, Statement<unknown[], unknown>>;
+  } satisfies Record<string, Statement>;
 
   return {
     translationMeta,

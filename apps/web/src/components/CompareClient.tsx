@@ -47,23 +47,30 @@ const MAX_ROWS = 4;
 
 export function CompareClient({ verseKey, verseText, reciters }: Props): ReactNode {
   const apiBase = resolveApiBase();
+  // Hydration-safe: deterministic initial state (no localStorage during
+  // SSR), then sync from localStorage in a useEffect after mount. The
+  // SSR HTML and the first client render both produce the same string.
   const [picked, setPicked] = useState<readonly string[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const raw = window.localStorage.getItem(STORE_KEY);
-        if (raw) {
-          const arr = JSON.parse(raw) as string[];
-          if (Array.isArray(arr) && arr.length > 0) return arr.slice(0, MAX_ROWS);
-        }
-      } catch {
-        /* ignore */
-      }
-    }
     const defaults = ['sudais', 'husary', 'mishary-alafasy', 'maher-muaiqly'].filter((s) =>
       reciters.some((r) => r.slug === s),
     );
     return defaults.slice(0, 3);
   });
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const arr = JSON.parse(raw) as string[];
+        if (Array.isArray(arr) && arr.length > 0) {
+          // Filter to the reciters list to avoid stale entries
+          const valid = arr.filter((s) => reciters.some((r) => r.slug === s)).slice(0, MAX_ROWS);
+          if (valid.length > 0) setPicked(valid);
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
   const [rows, setRows] = useState<readonly RowState[]>([]);
   // Index into the `picked` array of whichever row is currently
   // playing (or paused mid-track). null = nobody's playing.
