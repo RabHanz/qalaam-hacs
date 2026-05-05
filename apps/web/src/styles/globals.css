@@ -32,6 +32,39 @@
   font-weight: 400;
 }
 
+/*
+ * QalaamNaskhMarks — Noto Naskh Arabic with GSUB stripped, used
+ * EXCLUSIVELY by .silent-mark spans to draw the isolated small-high
+ * pause / sajda / silent-letter codepoints (U+06D6–U+06DC, U+06DF–
+ * U+06E5, U+06E7–U+06E8, U+06EA–U+06ED) as the discreet superscript
+ * dots that frontier Quran apps use.
+ *
+ * Why this font, not the OS fallback: when the silent-mark span has
+ * `font-family: 'Noto Naskh Arabic', serif` and Naskh isn't installed,
+ * the browser falls back to system serif → which has no glyph for
+ * U+06ED etc. → the OS Arabic font kicks in (Geeza Pro / Segoe UI
+ * Arabic / Noto Sans Arabic) and draws them at FULL SIZE because
+ * those fonts treat them as substantive glyphs. That was the user's
+ * "obnoxious marker" / "tofu box" / "overlapping م" complaint —
+ * the wrapping span was correct but had no font to render with.
+ *
+ * The font is a stripped TTF (GSUB removed) — fine here because
+ * silent marks always render as ISOLATED single codepoints inside
+ * the span; we never need joining or contextual shaping for them.
+ *
+ * unicode-range constrains the font to ONLY the silent-mark block,
+ * so the browser doesn't pull this 263KB file for any other Arabic
+ * rendering. unicode-range is the canonical mechanism — Quran.com
+ * uses the same approach.
+ */
+@font-face {
+  font-family: 'QalaamNaskhMarks';
+  src: url('/fonts/quran-marks/noto-naskh-marks.ttf') format('truetype');
+  font-display: swap;
+  font-weight: 400;
+  unicode-range: U+06D6-06DC, U+06DF-06E5, U+06E7-06E8, U+06EA-06ED;
+}
+
 @theme {
   /* — Brand palette (raw values, never used directly in JSX) — */
   --color-paper-50: #fbf9f4;
@@ -753,7 +786,12 @@
      * + custom fonts). font-feature-settings: "calt" off prevents
      * Naskh-family OpenType substitutions from re-enlarging the
      * mark via contextual alternates. */
-    font-family: 'Noto Naskh Arabic', 'Amiri Quran', 'Amiri', serif;
+    /* QalaamNaskhMarks is our self-hosted Naskh covering the silent-
+     * mark unicode-range. If the user's OS happens to ship a true
+     * Naskh family we accept it as a fallback before degrading to
+     * generic serif (which produces the "obnoxious marker" failure
+     * mode the user reported). */
+    font-family: 'QalaamNaskhMarks', 'Noto Naskh Arabic', 'Amiri Quran', 'Amiri', serif;
     font-size: 0.4em;
     display: inline-block;
     transform: translateY(-0.95em);

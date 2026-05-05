@@ -96,8 +96,8 @@ export default async function ReadSurahPage({ params }: PageProps): Promise<Reac
           <SiteNav />
           <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6">
             <EmptyState
-              title="Quran data not yet downloaded"
-              hint="Run `make data-fetch` from the repo root to download the QUL data substrate."
+              title="This page is preparing"
+              hint="We're getting things ready for you. Please check back in a moment."
             />
           </div>
         </>

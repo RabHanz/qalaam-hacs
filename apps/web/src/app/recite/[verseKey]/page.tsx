@@ -9,7 +9,6 @@
  * Per strategy §8.7. Privacy posture per ADR-0005: realtime-feedback
  * lives on-device or on the family LAN. WS default is localhost.
  */
-import type { ReactNode } from 'react';
 
 import { QalaamError, parseVerseKey } from '@qalaam/core';
 import { FeedbackSession } from '@qalaam/ui-recite';
@@ -20,12 +19,14 @@ import { HairlineDivider, ThreadGlyph } from '../../../components/Glyph.js';
 import { SiteNav } from '../../../components/SiteNav.js';
 import { qalaamClient } from '../../../lib/qalaam-client.js';
 
+import type { ReactNode } from 'react';
+
 interface PageProps {
   readonly params: Promise<{ verseKey: string }>;
 }
 
 const DEFAULT_WS_URL =
-  process.env['NEXT_PUBLIC_REALTIME_FEEDBACK_WS_URL'] ?? 'ws://localhost:5003/v1/feedback';
+  process.env.NEXT_PUBLIC_REALTIME_FEEDBACK_WS_URL ?? 'ws://localhost:5003/v1/feedback';
 
 export default async function RecitePage({ params }: PageProps): Promise<ReactNode> {
   const { verseKey: rawKey } = await params;
@@ -53,8 +54,8 @@ export default async function RecitePage({ params }: PageProps): Promise<ReactNo
           <SiteNav />
           <div className="mx-auto max-w-3xl px-6 py-20">
             <EmptyState
-              title="Verse not bundled yet"
-              hint="Run `make data-fetch` to download the full QUL data substrate (per ADR-0002)."
+              title="This verse is preparing"
+              hint="We're getting things ready for you. Please check back in a moment."
             />
           </div>
         </>
@@ -76,18 +77,18 @@ export default async function RecitePage({ params }: PageProps): Promise<ReactNo
     <>
       <SiteNav />
 
-      <header className="border-b border-hairline">
+      <header className="border-hairline border-b">
         <div className="mx-auto max-w-5xl px-6 py-10">
           <div className="flex items-center gap-3">
             <ThreadGlyph size={20} className="text-leaf" />
             <span className="smallcaps text-leaf text-xs">Recite · تَرْتِيل</span>
           </div>
-          <div className="mt-4 flex items-end justify-between gap-6 flex-wrap">
-            <h1 className="font-display text-5xl md:text-6xl font-light tracking-tight text-ink-strong">
+          <div className="mt-4 flex flex-wrap items-end justify-between gap-6">
+            <h1 className="font-display text-ink-strong text-5xl font-light tracking-tight md:text-6xl">
               Verse-pause drill
             </h1>
             <p
-              className="font-display text-7xl md:text-8xl font-light text-ink-strong tabular-nums"
+              className="font-display text-ink-strong text-7xl font-light tabular-nums md:text-8xl"
               style={{ lineHeight: 0.9 }}
             >
               {surah}:{ayah}
@@ -96,11 +97,11 @@ export default async function RecitePage({ params }: PageProps): Promise<ReactNo
         </div>
       </header>
 
-      <section className="mx-auto max-w-5xl px-6 py-12 grid grid-cols-12 gap-10">
-        <article className="col-span-12 lg:col-span-8 reveal">
+      <section className="mx-auto grid max-w-5xl grid-cols-12 gap-10 px-6 py-12">
+        <article className="reveal col-span-12 lg:col-span-8">
           <div className="paper-card-raised relative overflow-hidden p-10 md:p-14">
             <div
-              className="absolute right-0 top-0 h-full w-1/2 opacity-30 pointer-events-none"
+              className="pointer-events-none absolute right-0 top-0 h-full w-1/2 opacity-30"
               style={{
                 background:
                   'radial-gradient(circle at 75% 30%, var(--color-leaf-300) 0%, transparent 60%)',
@@ -108,7 +109,7 @@ export default async function RecitePage({ params }: PageProps): Promise<ReactNo
               aria-hidden
             />
             <div className="relative">
-              <p className="smallcaps text-leaf text-xs mb-6">Expected text · Uthmani</p>
+              <p className="smallcaps text-leaf mb-6 text-xs">Expected text · Uthmani</p>
               <p
                 dir="rtl"
                 className="font-arabic text-ink-strong text-center"
@@ -125,48 +126,51 @@ export default async function RecitePage({ params }: PageProps): Promise<ReactNo
             </div>
           </div>
 
-          <div className="mt-8 reveal reveal-2">
+          <div className="reveal reveal-2 mt-8">
             <FeedbackSession verseKey={key} expectedTextUthmani={arabic} wsUrl={DEFAULT_WS_URL} />
           </div>
         </article>
 
-        <aside className="col-span-12 lg:col-span-4 reveal reveal-3">
-          <div className="paper-card p-8 sticky top-24">
+        <aside className="reveal reveal-3 col-span-12 lg:col-span-4">
+          <div className="paper-card sticky top-24 p-8">
             <p className="smallcaps text-leaf text-xs">Privacy</p>
-            <p className="mt-3 text-sm text-ink leading-relaxed">
-              Audio stays on this device. Mistake feedback comes back only from
-              your local realtime-feedback worker — nothing leaves your home.
+            <p className="text-ink mt-3 text-sm leading-relaxed">
+              Audio stays on this device. Mistake feedback comes back only from your local
+              realtime-feedback worker — nothing leaves your home.
             </p>
             <HairlineDivider />
             <p className="smallcaps text-leaf text-xs">Adab</p>
-            <p className="mt-3 text-sm text-ink leading-relaxed">
-              No score. No grade. The phrasing — "let's try once more"
-              vs "perfect" — is the only signal you'll see. The mistakes
-              you encounter become tomorrow's portion.
+            <p className="text-ink mt-3 text-sm leading-relaxed">
+              No score. No grade. The phrasing — "let's try once more" vs "perfect" — is the only
+              signal you'll see. The mistakes you encounter become tomorrow's portion.
             </p>
             <HairlineDivider />
             <p className="smallcaps text-leaf text-xs">Mistake colors</p>
-            <ul className="mt-3 space-y-2 text-sm text-ink">
+            <ul className="text-ink mt-3 space-y-2 text-sm">
               <li>
-                <span className="inline-block w-2 h-2 rounded-full mr-2 align-middle"
+                <span
+                  className="mr-2 inline-block h-2 w-2 rounded-full align-middle"
                   style={{ background: '#c75450' }}
                 />
                 Substitution
               </li>
               <li>
-                <span className="inline-block w-2 h-2 rounded-full mr-2 align-middle"
+                <span
+                  className="mr-2 inline-block h-2 w-2 rounded-full align-middle"
                   style={{ background: '#5a9c6a' }}
                 />
                 Insertion
               </li>
               <li>
-                <span className="inline-block w-2 h-2 rounded-full mr-2 align-middle"
+                <span
+                  className="mr-2 inline-block h-2 w-2 rounded-full align-middle"
                   style={{ background: '#d4a23a' }}
                 />
                 Deletion
               </li>
               <li>
-                <span className="inline-block w-2 h-2 rounded-full mr-2 align-middle"
+                <span
+                  className="mr-2 inline-block h-2 w-2 rounded-full align-middle"
                   style={{ background: '#8a6f3c' }}
                 />
                 Tajweed slip
