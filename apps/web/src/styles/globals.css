@@ -42,37 +42,14 @@
 }
 
 /*
- * QalaamNaskhMarks — Noto Naskh Arabic with GSUB stripped, used
- * EXCLUSIVELY by .silent-mark spans to draw the isolated small-high
- * pause / sajda / silent-letter codepoints (U+06D6–U+06DC, U+06DF–
- * U+06E5, U+06E7–U+06E8, U+06EA–U+06ED) as the discreet superscript
- * dots that frontier Quran apps use.
- *
- * Why this font, not the OS fallback: when the silent-mark span has
- * `font-family: 'Noto Naskh Arabic', serif` and Naskh isn't installed,
- * the browser falls back to system serif → which has no glyph for
- * U+06ED etc. → the OS Arabic font kicks in (Geeza Pro / Segoe UI
- * Arabic / Noto Sans Arabic) and draws them at FULL SIZE because
- * those fonts treat them as substantive glyphs. That was the user's
- * "obnoxious marker" / "tofu box" / "overlapping م" complaint —
- * the wrapping span was correct but had no font to render with.
- *
- * The font is a stripped TTF (GSUB removed) — fine here because
- * silent marks always render as ISOLATED single codepoints inside
- * the span; we never need joining or contextual shaping for them.
- *
- * unicode-range constrains the font to ONLY the silent-mark block,
- * so the browser doesn't pull this 263KB file for any other Arabic
- * rendering. unicode-range is the canonical mechanism — Quran.com
- * uses the same approach.
+ * Silent-mark rendering relies on Noto Naskh Arabic (loaded via
+ * Google Fonts in apps/web/src/app/layout.tsx <head>), with Amiri
+ * Quran as fallback. We previously self-hosted a stripped Naskh TTF
+ * here — but the over-stripped file (originally built for Satori)
+ * had no glyphs for U+06D6–U+06ED, so its `unicode-range` claim was
+ * a lie that caused browsers to draw .notdef tofu boxes instead of
+ * falling through to Noto Naskh Arabic. Removed.
  */
-@font-face {
-  font-family: 'QalaamNaskhMarks';
-  src: url('/fonts/quran-marks/noto-naskh-marks.ttf') format('truetype');
-  font-display: swap;
-  font-weight: 400;
-  unicode-range: U+06D6-06DC, U+06DF-06E5, U+06E7-06E8, U+06EA-06ED;
-}
 
 @theme {
   /* — Brand palette (raw values, never used directly in JSX) — */
@@ -795,12 +772,11 @@
      * + custom fonts). font-feature-settings: "calt" off prevents
      * Naskh-family OpenType substitutions from re-enlarging the
      * mark via contextual alternates. */
-    /* QalaamNaskhMarks is our self-hosted Naskh covering the silent-
-     * mark unicode-range. If the user's OS happens to ship a true
-     * Naskh family we accept it as a fallback before degrading to
-     * generic serif (which produces the "obnoxious marker" failure
-     * mode the user reported). */
-    font-family: 'QalaamNaskhMarks', 'Noto Naskh Arabic', 'Amiri Quran', 'Amiri', serif;
+    /* Noto Naskh Arabic (Google Fonts via <link> in <head>) draws
+     * U+06D6–U+06ED as the small Naskh-style glyphs Quran.com /
+     * Tarteel / Quranly use. Amiri Quran as next fallback. Generic
+     * serif last — only kicks in if BOTH webfonts fail to load. */
+    font-family: 'Noto Naskh Arabic', 'Amiri Quran', 'Amiri', serif;
     font-size: 0.4em;
     display: inline-block;
     transform: translateY(-0.95em);

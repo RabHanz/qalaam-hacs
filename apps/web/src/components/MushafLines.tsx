@@ -93,7 +93,11 @@ function fontStackFor(layoutSlug: string): string {
       // IndoPak Nastaleeq → Noto Nastaliq Urdu (the authentic Nastaleeq
       // calligraphic style used in Sub-Continental mushafs). Falls back
       // to Scheherazade New / Noto Naskh Arabic if Nastaliq fails.
-      return '"Noto Nastaliq Urdu", "Scheherazade New", "Noto Naskh Arabic", "Amiri", serif';
+      // IndoPak Quran is NASKH with Indo-Pak orthographic conventions —
+      // Scheherazade New is the canonical open-source IndoPak Naskh.
+      // Nastaliq is Persian/Urdu calligraphy (used for Urdu poetry, NOT
+      // for Quran orthography); kept only as a last-ditch fallback.
+      return '"Scheherazade New", "Noto Naskh Arabic", "Amiri", "Noto Nastaliq Urdu", serif';
     case 'kfgqpc_v4':
     case 'madani_15':
     default:

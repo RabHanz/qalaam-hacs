@@ -197,7 +197,11 @@ export function AyahCard({
 }: AyahCardProps): ReactNode {
   const fontFamily =
     layoutSlug === 'kfgqpc_v1' || layoutSlug === 'indopak'
-      ? '"Noto Nastaliq Urdu", "Scheherazade New", "Noto Naskh Arabic", serif'
+      ? // IndoPak Quran is NASKH with Indo-Pak orthographic conventions —
+        // Scheherazade New is the canonical open-source IndoPak Naskh.
+        // Nastaliq is Persian/Urdu calligraphy (used for Urdu poetry, NOT
+        // for Quran orthography); kept only as a last-ditch fallback.
+        '"Scheherazade New", "Noto Naskh Arabic", "Amiri", "Noto Nastaliq Urdu", serif'
       : '"UthmanicHafs", "Amiri Quran", "Noto Naskh Arabic", serif';
   const apiBase = resolveApiBase();
   const [playing, setPlaying] = useState(false);
