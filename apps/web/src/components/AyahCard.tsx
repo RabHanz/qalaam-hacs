@@ -587,21 +587,33 @@ export function AyahCard({
             return words.map((w, i) => {
               const isActive = idx !== null && i === idx;
               const sep = i < words.length - 1 ? ' ' : '';
+              const [sn, an] = verseKey.split(':');
+              // Wrap each PUA glyph in an <a> so the word remains
+              // tappable even on the V4 tajweed render path —
+              // matches the mushaf-word anchor pattern used in the
+              // page-faithful MushafLines render so word-by-word
+              // study works identically across surfaces.
               return (
-                <span
+                <a
                   key={`qpc-v4-${w.wordIndex.toString()}`}
-                  className={isActive ? 'recite-highlight' : undefined}
+                  href={`/study/${sn ?? '1'}/${an ?? '1'}#w${w.wordIndex.toString()}`}
+                  title={`${verseKey} · word ${w.wordIndex.toString()}`}
+                  className={`mushaf-word${isActive ? 'recite-highlight' : ''}`}
                   style={{
                     fontFamily: `"${fontFamily}"`,
+                    // Qalaam's refined warm-earth palette overrides the
+                    // KFGQPC default CPAL colors so the rendering is
+                    // visibly distinct from Quran.com / verses.quran.foundation.
+                    fontPalette: '--qalaam-tajweed',
                     // The COLR/CPAL color font carries its own coloring;
-                    // we pass color: inherit only as a fallback for the
-                    // very brief frame before the page font lands.
+                    // color: inherit is just a fallback for the brief
+                    // frame before the page font lands.
                     color: 'inherit',
                   }}
                 >
                   {w.text}
                   {sep}
-                </span>
+                </a>
               );
             });
           }

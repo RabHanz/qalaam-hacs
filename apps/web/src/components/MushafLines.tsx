@@ -584,11 +584,20 @@ function renderLineText(
     }
 
     // V4 PUA path — single glyph in the page-specific COLR font.
+    // `font-palette: --qalaam-tajweed` swaps the KFGQPC default CPAL
+    // palette out for our refined warm-earth one (declared in
+    // qpc-v4-fonts.css) — distinguishes the rendering from
+    // Quran.com / verses.quran.foundation while keeping the COLR
+    // pipeline intact.
     if (v4Word && v4Verse?.fontFamily) {
       wordChildren.push(
         <span
           key={`${w.wordId.toString()}-v4`}
-          style={{ fontFamily: `"${v4Verse.fontFamily}"`, color: 'inherit' }}
+          style={{
+            fontFamily: `"${v4Verse.fontFamily}"`,
+            fontPalette: '--qalaam-tajweed',
+            color: 'inherit',
+          }}
         >
           {v4Word.text}
         </span>,

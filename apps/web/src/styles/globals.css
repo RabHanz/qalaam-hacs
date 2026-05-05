@@ -650,20 +650,41 @@
   a.recite-highlight,
   a.recite-highlight * {
     color: var(--color-leaf-500) !important;
-    background-color: transparent !important;
+    /* Soft sand-paper background so the highlight is unmistakable
+     * even on dense mushaf pages where text-shadow alone gets lost
+     * inside the COLR-painted glyph. Warm tone keeps it cohesive
+     * with the brand palette rather than reading as "yellow box". */
+    background-color: color-mix(in srgb, var(--color-leaf-300) 32%, transparent);
+    border-radius: 0.18em;
+    padding: 0 0.08em;
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--color-leaf-500) 28%, transparent) inset,
+      0 0.12em 0.5em -0.18em color-mix(in srgb, var(--color-leaf-500) 38%, transparent);
     text-shadow:
       0 0 0.35em color-mix(in srgb, var(--color-leaf-300) 70%, transparent),
       0 0 0.15em color-mix(in srgb, var(--color-leaf-500) 50%, transparent);
     transition:
       color 80ms ease-out,
+      background-color 120ms ease-out,
       text-shadow 80ms ease-out;
+  }
+  /* When a V4 PUA glyph (rendered by a QPCv4Page<N> COLR font) is
+   * highlighted, swap to the all-gold palette so every CPAL slot in
+   * that glyph paints with brand gold — the COLR colors otherwise
+   * dominate over our `color` cascade and the highlight gets lost
+   * inside the same multicolored glyph it's supposed to call out. */
+  .recite-highlight {
+    font-palette: --qalaam-tajweed-highlight;
   }
   :root[data-theme='dark'] .recite-highlight,
   :root[data-theme='dark'] .recite-highlight *,
   :root[data-theme='dark'] a.recite-highlight,
   :root[data-theme='dark'] a.recite-highlight * {
     color: var(--color-leaf-300) !important;
-    background-color: transparent !important;
+    background-color: color-mix(in srgb, var(--color-leaf-500) 24%, transparent);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--color-leaf-300) 36%, transparent) inset,
+      0 0.12em 0.6em -0.18em color-mix(in srgb, var(--color-leaf-500) 50%, transparent);
     text-shadow:
       0 0 0.4em color-mix(in srgb, var(--color-leaf-500) 75%, transparent),
       0 0 0.18em color-mix(in srgb, var(--color-leaf-300) 60%, transparent);

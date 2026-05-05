@@ -26,16 +26,57 @@ cat > "${OUT_CSS}" <<'HEADER'
  * carrying that page's glyphs at PUA codepoints U+FC41-U+FC64. The
  * frontend AyahCard reads `text_qpc_v4` + `page_qpc_v4` from
  * /v1/qpc-text/:vk, sets fontFamily to `QPCv4Page<N>`, and renders
- * the canonical KFGQPC V4 1441H tajweed mushaf — colors baked into
- * the font, no CSS overlay.
+ * the canonical KFGQPC V4 1441H tajweed mushaf — colors come from
+ * the font's CPAL palette, which we override below for a Qalaam-
+ * specific look.
  *
  * Sourced from Quran Foundation:
  *   https://verses.quran.foundation/fonts/quran/hafs/v4/colrv1/woff2/p{N}.woff2
  *
  * License: KFGQPC reuse terms (kfgqpc-terms LicenseTag).
  * Per-font SHA256 pinned in data/qul-source/qpc-v4-fonts.sha256 (ADR-0002).
+ *
+ * ─────────────────────────────────────────────────────────────────
+ * Qalaam tajweed palette — overrides KFGQPC default CPAL palette 0
+ * via @font-palette-values. The default ships with saturated primary
+ * colors (bright red, royal blue, kelly green) — that's the
+ * Quran.com / verses.quran.foundation look. Distinctive but
+ * commodified.
+ *
+ * Qalaam's signature: warm-earth Persian-illumination palette —
+ * terracotta for qalqalah, sage for ghunnah, bronze for sukun, sand
+ * for silent letters. Reads as a single coherent ink wash with
+ * accent colors only where the rule actually changes pronunciation.
+ *
+ * CPAL slot reference (extracted from QPCv4Page1.woff2 palette 0):
+ *   [0]  base ink              [1,2,15] silent letters / hamzat wasl
+ *   [3]  qalqalah              [4]      madd 4-5
+ *   [5]  madd 2                [6]      ghunnah / nun mushaddadah
+ *   [7]  idghaam-no-ghunnah    [8]      idghaam-shafawi (alt blue)
+ *   [9]  madd 6 (lazim)        [10]     laam (idghaam-mutaqaribayn)
+ *   [11] sukun emphasis        [12]     ikhfa background tint
+ *   [13,14] base ink dup
+ *
+ * `--qalaam-tajweed`           — refined warm-earth palette.
+ * `--qalaam-tajweed-highlight` — every slot collapsed to brand gold,
+ *                                used inside .recite-highlight so the
+ *                                active word reads as ONE highlighted
+ *                                unit even when it crosses several
+ *                                CPAL slots.
  */
 HEADER
+
+# Qalaam refined-earth palette (overrides CPAL palette 0). Design rationale
+# in the header comment above. Hand-tuned against the warm-paper light
+# theme; the same values still read on the dark theme since the glyph
+# strokes are dense enough.
+TAJWEED_PALETTE_LIGHT='    0 #2a201a,    1 #b09a82,    2 #b09a82,    3 #8a3624,    4 #c08428,    5 #d6a657,    6 #4f7f5f,    7 #4a6f8e,    8 #6c93a8,    9 #a8552e,   10 #6e9a78,   11 #a07c3e,   12 #ecdec2,   13 #2a201a,   14 #2a201a,   15 #b09a82'
+
+# Highlight palette — every slot painted brand gold (with a slightly
+# warmer #b6862c → #d6a657 spread) so the active word of the recitation
+# reads as a single highlighted unit even when the glyph spans several
+# CPAL color indices.
+TAJWEED_PALETTE_HIGHLIGHT='    0 #b6862c,    1 #d6a657,    2 #d6a657,    3 #b6862c,    4 #b6862c,    5 #b6862c,    6 #b6862c,    7 #b6862c,    8 #d6a657,    9 #b6862c,   10 #b6862c,   11 #b6862c,   12 #f6e9c8,   13 #b6862c,   14 #b6862c,   15 #d6a657'
 
 for n in $(seq 1 604); do
   cat >> "${OUT_CSS}" <<EOF
@@ -45,6 +86,16 @@ for n in $(seq 1 604); do
   font-display: block;
   font-weight: 400;
   unicode-range: U+FC41-U+FC64;
+}
+@font-palette-values --qalaam-tajweed {
+  font-family: 'QPCv4Page${n}';
+  base-palette: 0;
+  override-colors: ${TAJWEED_PALETTE_LIGHT};
+}
+@font-palette-values --qalaam-tajweed-highlight {
+  font-family: 'QPCv4Page${n}';
+  base-palette: 0;
+  override-colors: ${TAJWEED_PALETTE_HIGHLIGHT};
 }
 EOF
 done
