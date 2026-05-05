@@ -333,7 +333,7 @@ export function TajweedLegend({ inline = false }: Props): ReactNode {
                           <span
                             className={`shrink-0 ${r.className} font-arabic mt-0.5 text-2xl leading-none`}
                             style={{
-                              fontFamily: '"UthmanicHafs", "Amiri Quran", serif',
+                              fontFamily: '"UthmanicHafs"',
                               fontWeight: 600,
                             }}
                             aria-hidden
@@ -349,7 +349,7 @@ export function TajweedLegend({ inline = false }: Props): ReactNode {
                                 dir="rtl"
                                 lang="ar"
                                 className="font-arabic text-ink-muted text-base"
-                                style={{ fontFamily: '"UthmanicHafs", "Amiri Quran", serif' }}
+                                style={{ fontFamily: '"UthmanicHafs"' }}
                               >
                                 {r.nameAr}
                               </span>

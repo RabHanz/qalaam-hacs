@@ -351,7 +351,7 @@ export function CompareClient({ verseKey, verseText, reciters }: Props): ReactNo
           lang="ar"
           className="paper-card-raised text-ink-strong p-5 text-center leading-[1.95] sm:p-8"
           style={{
-            fontFamily: '"UthmanicHafs", "Amiri Quran", serif',
+            fontFamily: '"UthmanicHafs"',
             fontSize: 'clamp(1.4rem, 1rem + 1.5vw, 2.2rem)',
             unicodeBidi: 'plaintext',
             fontWeight: 600,

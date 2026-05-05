@@ -37,15 +37,47 @@ interface ApiResponse {
  * Buckwalter root → human-readable Arabic.
  */
 const BW_TO_AR: Record<string, string> = {
-  "'": 'ء', '|': 'آ', '>': 'أ', '&': 'ؤ', '<': 'إ', '}': 'ئ',
-  A: 'ا', b: 'ب', t: 'ت', v: 'ث', j: 'ج',
-  H: 'ح', x: 'خ', d: 'د', '*': 'ذ', r: 'ر', z: 'ز',
-  s: 'س', $: 'ش', S: 'ص', D: 'ض', T: 'ط', Z: 'ظ',
-  E: 'ع', g: 'غ', f: 'ف', q: 'ق', k: 'ك',
-  l: 'ل', m: 'م', n: 'n'.replace('n', 'ن'), h: 'ه', w: 'و', Y: 'ى', y: 'ي',
+  "'": 'ء',
+  '|': 'آ',
+  '>': 'أ',
+  '&': 'ؤ',
+  '<': 'إ',
+  '}': 'ئ',
+  A: 'ا',
+  b: 'ب',
+  t: 'ت',
+  v: 'ث',
+  j: 'ج',
+  H: 'ح',
+  x: 'خ',
+  d: 'د',
+  '*': 'ذ',
+  r: 'ر',
+  z: 'ز',
+  s: 'س',
+  $: 'ش',
+  S: 'ص',
+  D: 'ض',
+  T: 'ط',
+  Z: 'ظ',
+  E: 'ع',
+  g: 'غ',
+  f: 'ف',
+  q: 'ق',
+  k: 'ك',
+  l: 'ل',
+  m: 'م',
+  n: 'n'.replace('n', 'ن'),
+  h: 'ه',
+  w: 'و',
+  Y: 'ى',
+  y: 'ي',
 };
 function rootToArabic(bw: string): string {
-  return bw.split('').map((c) => BW_TO_AR[c] ?? c).join('');
+  return bw
+    .split('')
+    .map((c) => BW_TO_AR[c] ?? c)
+    .join('');
 }
 
 export default async function RootConcordancePage({ params }: PageProps): Promise<ReactNode> {
@@ -71,16 +103,16 @@ export default async function RootConcordancePage({ params }: PageProps): Promis
   return (
     <>
       <SiteNav />
-      <header className="border-b border-hairline">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-8 sm:py-12">
+      <header className="border-hairline border-b">
+        <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
           <p className="smallcaps text-leaf text-[11px] tracking-widest">Root concordance · جذر</p>
-          <div className="mt-3 flex items-end gap-6 flex-wrap">
+          <div className="mt-3 flex flex-wrap items-end gap-6">
             <p
               dir="rtl"
               lang="ar"
               className="text-ink-strong"
               style={{
-                fontFamily: '"UthmanicHafs", "Amiri Quran", serif',
+                fontFamily: '"UthmanicHafs"',
                 fontSize: 'clamp(3rem, 2rem + 4vw, 5rem)',
                 fontWeight: 700,
                 lineHeight: 1,
@@ -89,43 +121,43 @@ export default async function RootConcordancePage({ params }: PageProps): Promis
             >
               {rootToArabic(body.root)}
             </p>
-            <div className="flex-1 min-w-[10rem]">
-              <h1 className="font-display text-2xl sm:text-3xl font-light tracking-tight text-ink-strong">
+            <div className="min-w-[10rem] flex-1">
+              <h1 className="font-display text-ink-strong text-2xl font-light tracking-tight sm:text-3xl">
                 Root <code className="font-mono">{body.root}</code>
               </h1>
-              <p className="mt-1 text-sm text-ink-muted">
+              <p className="text-ink-muted mt-1 text-sm">
                 {body.count.toString()} occurrences across the Quran
               </p>
             </div>
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8 sm:py-12">
+      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
         {body.occurrences.length === 0 ? (
           <EmptyState title="No occurrences" hint={`Root "${root}" has no recorded uses.`} />
         ) : (
-          <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 list-none p-0 m-0">
+          <ol className="m-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3">
             {body.occurrences.map((o) => (
               <li key={`${o.verseKey}-${o.wordIndex.toString()}`}>
                 <Link
                   href={`/study/${o.verseKey.split(':')[0] ?? '1'}/${o.verseKey.split(':')[1] ?? '1'}`}
                   className="paper-card hover-rise flex items-center justify-between gap-3 px-4 py-3"
                 >
-                  <span className="smallcaps font-mono text-[10px] tabular-nums text-ink-muted shrink-0">
+                  <span className="smallcaps text-ink-muted shrink-0 font-mono text-[10px] tabular-nums">
                     {o.verseKey}
                   </span>
                   <span
                     dir="rtl"
                     lang="ar"
-                    className="font-arabic text-lg sm:text-xl text-ink-strong"
+                    className="font-arabic text-ink-strong text-lg sm:text-xl"
                     style={{
-                      fontFamily: '"UthmanicHafs", "Amiri Quran", serif',
+                      fontFamily: '"UthmanicHafs"',
                       unicodeBidi: 'plaintext',
                     }}
                   >
                     {o.form}
                   </span>
-                  <span className="smallcaps text-[10px] text-leaf tracking-widest shrink-0">
+                  <span className="smallcaps text-leaf shrink-0 text-[10px] tracking-widest">
                     {o.tag}
                   </span>
                 </Link>
@@ -134,7 +166,7 @@ export default async function RootConcordancePage({ params }: PageProps): Promis
           </ol>
         )}
 
-        <p className="mt-8 text-[10px] text-ink-muted text-center italic">
+        <p className="text-ink-muted mt-8 text-center text-[10px] italic">
           {body.source} · {body.license}
         </p>
       </main>

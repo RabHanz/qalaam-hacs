@@ -37,7 +37,36 @@
 @font-face {
   font-family: 'UthmanicHafs';
   src: url('/fonts/quran/UthmanicHafs1Ver18.woff2') format('woff2');
-  font-display: swap;
+  /* `block` (not swap) — Quranic text MUST never render in a fallback
+   * font and then swap. The visual flicker is jarring and reads as
+   * "unpolished platform" (user feedback verbatim). `block` causes
+   * the browser to hold rendering for ≤3s waiting for the font; the
+   * <link rel="preload"> in layout.tsx <head> ensures the file is
+   * fetched in parallel with HTML parse so the wait is unobservable.*/
+  font-display: block;
+  font-weight: 400;
+}
+
+/*
+ * KFGQPCNastaleeq — the canonical IndoPak/Nastaleeq font shipped by
+ * Quran Foundation via QUL (https://qul.tarteel.ai/resources/font/462,
+ * canonical static-cdn.tarteel.ai mirror). 256 Arabic glyphs covering
+ * every silent-mark codepoint (U+06D6–U+06ED), tatweel (U+0640),
+ * superscript alif (U+0670), Farsi yeh (U+06CC), yeh barree (U+06D2),
+ * noon ghunna (U+066E) — the full IndoPak orthography.
+ *
+ * Why this font: previous attempts used Scheherazade New (Latin-Naskh
+ * with no IndoPak conventions) or Noto Nastaliq Urdu (Persian/Urdu
+ * poetry calligraphy, NOT Quran orthography). Both rendered IndoPak
+ * verses as disjointed letters because they treat U+06E1 as a
+ * joining-break. KFGQPCNastaleeq is the actual font Quran.com /
+ * Tarteel use for IndoPak — it handles U+06E1 correctly and joins
+ * letters as expected.
+ */
+@font-face {
+  font-family: 'KFGQPCNastaleeq';
+  src: url('/fonts/quran-indopak/KFGQPCNastaleeq-Regular.ttf') format('truetype');
+  font-display: block;
   font-weight: 400;
 }
 
@@ -48,7 +77,13 @@
  * here — but the over-stripped file (originally built for Satori)
  * had no glyphs for U+06D6–U+06ED, so its `unicode-range` claim was
  * a lie that caused browsers to draw .notdef tofu boxes instead of
- * falling through to Noto Naskh Arabic. Removed.
+ * falling through. Removed.
+ *
+ * NOTE: For IndoPak text, the silent-mark span will inherit
+ * KFGQPCNastaleeq from the surrounding context (it has all silent-
+ * mark glyphs natively) and the .silent-mark CSS rule below shrinks
+ * + lifts them. The font-family chain in .silent-mark only matters
+ * when the surrounding context's font lacks the codepoint.
  */
 
 @theme {
@@ -772,11 +807,13 @@
      * + custom fonts). font-feature-settings: "calt" off prevents
      * Naskh-family OpenType substitutions from re-enlarging the
      * mark via contextual alternates. */
-    /* Noto Naskh Arabic (Google Fonts via <link> in <head>) draws
-     * U+06D6–U+06ED as the small Naskh-style glyphs Quran.com /
-     * Tarteel / Quranly use. Amiri Quran as next fallback. Generic
-     * serif last — only kicks in if BOTH webfonts fail to load. */
-    font-family: 'Noto Naskh Arabic', 'Amiri Quran', 'Amiri', serif;
+    /* Inherit the surrounding context's font (UthmanicHafs for Madani/
+     * Tajweed, KFGQPCNastaleeq for IndoPak — both self-hosted with
+     * full silent-mark glyph coverage). The .silent-mark span ONLY
+     * shrinks + lifts; it doesn't override the family. This is the
+     * frontier-app convention (Quran.com / Tarteel / Quranly) and
+     * eliminates the FOUT-flicker the user reported. */
+    font-family: inherit;
     font-size: 0.4em;
     display: inline-block;
     transform: translateY(-0.95em);

@@ -187,7 +187,7 @@ export default async function SearchPage({ searchParams }: PageProps): Promise<R
                           lang="ar"
                           className="text-ink-strong mb-1 leading-[1.95]"
                           style={{
-                            fontFamily: '"UthmanicHafs", "Amiri Quran", serif',
+                            fontFamily: '"UthmanicHafs"',
                             fontSize: 'clamp(1.05rem, 0.85rem + 0.6vw, 1.35rem)',
                             unicodeBidi: 'plaintext',
                             fontWeight: 600,

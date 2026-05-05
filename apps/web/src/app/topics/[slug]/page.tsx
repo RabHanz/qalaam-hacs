@@ -79,58 +79,61 @@ export default async function TopicPage({ params }: PageProps): Promise<ReactNod
   return (
     <>
       <SiteNav />
-      <header className="border-b border-hairline">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-8 sm:py-12">
+      <header className="border-hairline border-b">
+        <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
           <p className="smallcaps text-leaf text-[11px] tracking-widest">
             <Link href="/topics" className="hover:text-ink">
               ← Topical index
             </Link>
           </p>
-          <h1 className="font-display mt-3 text-3xl sm:text-5xl font-light tracking-tight text-ink-strong">
+          <h1 className="font-display text-ink-strong mt-3 text-3xl font-light tracking-tight sm:text-5xl">
             {topic.nameEn.replace(/ · .*$/, '')}
           </h1>
           {topic.nameAr ? (
             <p
               dir="rtl"
               lang="ar"
-              className="mt-2 text-2xl sm:text-3xl text-leaf"
-              style={{ fontFamily: '"UthmanicHafs", "Amiri Quran", serif', unicodeBidi: 'plaintext' }}
+              className="text-leaf mt-2 text-2xl sm:text-3xl"
+              style={{ fontFamily: '"UthmanicHafs"', unicodeBidi: 'plaintext' }}
             >
               {topic.nameAr}
             </p>
           ) : null}
           {topic.summary ? (
-            <p className="mt-4 max-w-prose text-sm sm:text-base text-ink-muted leading-relaxed">
+            <p className="text-ink-muted mt-4 max-w-prose text-sm leading-relaxed sm:text-base">
               {topic.summary}
             </p>
           ) : null}
-          <p className="mt-3 smallcaps text-leaf text-[11px] tracking-widest">
+          <p className="smallcaps text-leaf mt-3 text-[11px] tracking-widest">
             {topic.verseCount.toString()} {topic.verseCount === 1 ? 'verse' : 'verses'}
           </p>
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 sm:px-6 py-8 sm:py-12">
-        <ol className="list-none p-0 m-0 space-y-4 sm:space-y-6">
+      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+        <ol className="m-0 list-none space-y-4 p-0 sm:space-y-6">
           {topic.verses.map((vk, i) => {
             const verse = versesBody[i];
             const tr = translationsBody[i];
             return (
               <li key={vk}>
-                <Link href={`/study/${vk.replace(':', '/')}`} className="block paper-card-raised hover-rise p-5 sm:p-7">
-                  <div className="flex items-baseline justify-between mb-3">
-                    <span className="smallcaps font-mono text-[10px] tabular-nums text-ink-muted tracking-widest">
+                <Link
+                  href={`/study/${vk.replace(':', '/')}`}
+                  className="paper-card-raised hover-rise block p-5 sm:p-7"
+                >
+                  <div className="mb-3 flex items-baseline justify-between">
+                    <span className="smallcaps text-ink-muted font-mono text-[10px] tabular-nums tracking-widest">
                       {vk}
                     </span>
-                    <span className="smallcaps text-[10px] text-leaf tracking-widest">study →</span>
+                    <span className="smallcaps text-leaf text-[10px] tracking-widest">study →</span>
                   </div>
                   {verse ? (
                     <p
                       dir="rtl"
                       lang="ar"
-                      className="text-ink-strong leading-[1.95] sm:leading-[2.05] mb-3 text-center"
+                      className="text-ink-strong mb-3 text-center leading-[1.95] sm:leading-[2.05]"
                       style={{
-                        fontFamily: '"UthmanicHafs", "Amiri Quran", serif',
+                        fontFamily: '"UthmanicHafs"',
                         fontSize: 'clamp(1.25rem, 0.9rem + 1.3vw, 1.85rem)',
                         unicodeBidi: 'plaintext',
                         fontWeight: 600,
@@ -143,7 +146,7 @@ export default async function TopicPage({ params }: PageProps): Promise<ReactNod
                     <p
                       dir="ltr"
                       lang="en"
-                      className="text-[15px] text-ink/85 leading-relaxed max-w-prose mx-auto text-start"
+                      className="text-ink/85 mx-auto max-w-prose text-start text-[15px] leading-relaxed"
                       style={{ fontFamily: 'var(--font-body)' }}
                     >
                       {tr.text}

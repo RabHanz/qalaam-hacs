@@ -185,7 +185,7 @@ function DhikrCard({
         lang="ar"
         className="font-arabic text-ink-strong text-right text-2xl leading-loose sm:text-3xl"
         style={{
-          fontFamily: '"UthmanicHafs", "Amiri Quran", "Noto Naskh Arabic", serif',
+          fontFamily: '"UthmanicHafs"',
           unicodeBidi: 'plaintext',
           fontWeight: 600,
           lineHeight: 1.95,

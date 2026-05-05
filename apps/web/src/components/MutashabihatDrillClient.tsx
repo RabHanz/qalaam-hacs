@@ -516,7 +516,7 @@ function VerseColumn({ verseKey, tokens, covered, accent, emphasis }: ColProps):
           className="font-arabic flex flex-wrap gap-x-2 gap-y-3 text-right leading-loose"
           style={{
             unicodeBidi: 'plaintext',
-            fontFamily: '"UthmanicHafs", "Amiri Quran", "Noto Naskh Arabic", serif',
+            fontFamily: '"UthmanicHafs"',
             fontSize: 'clamp(1.4rem, 1rem + 1.2vw, 2rem)',
             lineHeight: 1.95,
           }}

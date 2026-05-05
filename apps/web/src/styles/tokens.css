@@ -34,8 +34,8 @@
   --color-surface-overlay: rgba(16, 56, 64, 0.04);
 
   /* legacy font aliases consumed by inline-style packages */
-  --font-arabic-uthmani: 'KFGQPC HAFS Uthmanic Script V2', 'Amiri Quran', serif;
-  --font-arabic-indopak: 'IndoPak', 'Scheherazade New', serif;
+  --font-arabic-uthmani: 'UthmanicHafs';
+  --font-arabic-indopak: 'KFGQPCNastaleeq';
 
   --radius-sm: 0.5rem;
   --radius-md: 1rem;

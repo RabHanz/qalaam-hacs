@@ -139,7 +139,7 @@ export function MorphologyPane({ verseKey }: Props): ReactNode {
               lang="ar"
               className="text-ink-strong text-center leading-tight"
               style={{
-                fontFamily: '"UthmanicHafs", "Amiri Quran", "Noto Naskh Arabic", serif',
+                fontFamily: '"UthmanicHafs"',
                 fontSize: 'clamp(1.6rem, 1.2rem + 1.4vw, 2.3rem)',
                 fontWeight: 600,
                 unicodeBidi: 'plaintext',

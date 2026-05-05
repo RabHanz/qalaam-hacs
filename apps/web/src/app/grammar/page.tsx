@@ -228,7 +228,7 @@ export default function GrammarPrimerPage(): ReactNode {
                       className="font-arabic text-ink-strong text-base sm:text-lg"
                       style={{
                         unicodeBidi: 'plaintext',
-                        fontFamily: '"UthmanicHafs", "Amiri Quran", serif',
+                        fontFamily: '"UthmanicHafs"',
                       }}
                     >
                       {p.example}

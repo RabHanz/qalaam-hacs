@@ -223,7 +223,7 @@ export function HifzCheckClient({ expectedText, verseKey }: Props): ReactNode {
         lang="ar"
         className="text-ink-strong break-words text-center leading-[1.95] sm:leading-[2.05]"
         style={{
-          fontFamily: '"UthmanicHafs", "Amiri Quran", "Noto Naskh Arabic", serif',
+          fontFamily: '"UthmanicHafs"',
           fontSize: 'clamp(1.4rem, 1rem + 1.5vw, 2.2rem)',
           unicodeBidi: 'plaintext',
           fontWeight: 600,

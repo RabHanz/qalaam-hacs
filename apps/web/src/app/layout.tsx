@@ -78,11 +78,46 @@ export default function RootLayout({ children }: { readonly children: ReactNode 
          * by setting up the TCP+TLS handshake before the stylesheet
          * actually fires its sub-requests for the .woff2 files.
          */}
+        {/*
+         * Quran fonts are 100% self-hosted with full glyph coverage:
+         *   - UthmanicHafs   /fonts/quran/UthmanicHafs1Ver18.woff2
+         *     (Madani / Tajweed layouts)
+         *   - KFGQPCNastaleeq /fonts/quran-indopak/KFGQPCNastaleeq-Regular.ttf
+         *     (IndoPak layouts)
+         * Both preloaded so they're in cache by first paint. `font-
+         * display: block` (set in @font-face) holds rendering up to 3s
+         * waiting for the font — but with preload firing in parallel
+         * with HTML parse, the wait is unobservable. No CDN, no FOUT,
+         * no font-flicker the user complained about.
+         */}
+        <link
+          rel="preload"
+          href="/fonts/quran/UthmanicHafs1Ver18.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/fonts/quran-indopak/KFGQPCNastaleeq-Regular.ttf"
+          as="font"
+          type="font/ttf"
+          crossOrigin="anonymous"
+        />
+        {/*
+         * Latin display + body fonts (Fraunces, IBM Plex Sans). These
+         * stay on Google Fonts CDN — they don't render Quranic text
+         * so any FOUT here is invisible (Latin metrics are close
+         * enough that the swap is imperceptible). Dropped Arabic
+         * Google Fonts entries (Amiri, Amiri Quran, Noto Naskh
+         * Arabic, Scheherazade New, Noto Nastaliq Urdu) — fully
+         * superseded by the two self-hosted Arabic fonts above.
+         */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Amiri:wght@400;700&family=Amiri+Quran&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&family=Scheherazade+New:wght@400;500;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap"
         />
         <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
       </head>

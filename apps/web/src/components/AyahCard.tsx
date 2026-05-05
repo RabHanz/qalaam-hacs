@@ -197,12 +197,13 @@ export function AyahCard({
 }: AyahCardProps): ReactNode {
   const fontFamily =
     layoutSlug === 'kfgqpc_v1' || layoutSlug === 'indopak'
-      ? // IndoPak Quran is NASKH with Indo-Pak orthographic conventions —
-        // Scheherazade New is the canonical open-source IndoPak Naskh.
-        // Nastaliq is Persian/Urdu calligraphy (used for Urdu poetry, NOT
-        // for Quran orthography); kept only as a last-ditch fallback.
-        '"Scheherazade New", "Noto Naskh Arabic", "Amiri", "Noto Nastaliq Urdu", serif'
-      : '"UthmanicHafs", "Amiri Quran", "Noto Naskh Arabic", serif';
+      ? // KFGQPCNastaleeq is the official QUL/Quran-Foundation IndoPak
+        // font — self-hosted at /fonts/quran-indopak/. 411 glyphs, full
+        // coverage of every codepoint we render. No fallback needed.
+        '"KFGQPCNastaleeq"'
+      : // UthmanicHafs is the official KFGQPC Hafs Uthmani font from
+        // Quran Foundation, self-hosted. Full Unicode + GSUB coverage.
+        '"UthmanicHafs"';
   const apiBase = resolveApiBase();
   const [playing, setPlaying] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
@@ -632,7 +633,7 @@ export function AyahCard({
                 <span
                   key={i}
                   className={`ayah-end ${className ?? ''}`}
-                  style={{ fontFamily: '"UthmanicHafs", "Amiri Quran", serif' }}
+                  style={{ fontFamily: '"UthmanicHafs"' }}
                   title={`Ayah ${verseKey} — ends here`}
                   aria-label={`End of ayah ${verseKey}`}
                 >

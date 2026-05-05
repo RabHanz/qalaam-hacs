@@ -93,15 +93,14 @@ function fontStackFor(layoutSlug: string): string {
       // IndoPak Nastaleeq → Noto Nastaliq Urdu (the authentic Nastaleeq
       // calligraphic style used in Sub-Continental mushafs). Falls back
       // to Scheherazade New / Noto Naskh Arabic if Nastaliq fails.
-      // IndoPak Quran is NASKH with Indo-Pak orthographic conventions —
-      // Scheherazade New is the canonical open-source IndoPak Naskh.
-      // Nastaliq is Persian/Urdu calligraphy (used for Urdu poetry, NOT
-      // for Quran orthography); kept only as a last-ditch fallback.
-      return '"Scheherazade New", "Noto Naskh Arabic", "Amiri", "Noto Nastaliq Urdu", serif';
+      // KFGQPCNastaleeq self-hosted at /fonts/quran-indopak/ — full
+      // 411-glyph coverage. No fallback needed.
+      return '"KFGQPCNastaleeq"';
     case 'kfgqpc_v4':
     case 'madani_15':
     default:
-      return '"UthmanicHafs", "Amiri Quran", "Noto Naskh Arabic", "Amiri", serif';
+      // UthmanicHafs self-hosted at /fonts/quran/. Full coverage.
+      return '"UthmanicHafs"';
   }
 }
 
@@ -485,7 +484,7 @@ function renderLineText(
           className="ayah-end hover:text-leaf"
           style={
             {
-              fontFamily: '"UthmanicHafs", "Amiri Quran", "Noto Naskh Arabic", serif',
+              fontFamily: '"UthmanicHafs"',
               // Plain inline (not inline-block) keeps the bidi flow
               // intact. !important via inline overrides the parent
               // Nastaliq stack so the rosette glyph from UthmanicHafs

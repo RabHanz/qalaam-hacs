@@ -457,7 +457,7 @@ export function SalahClient(): ReactNode {
                 lang="ar"
                 className="font-arabic text-ink-muted mt-0.5 text-base"
                 style={{
-                  fontFamily: '"UthmanicHafs", "Amiri Quran", serif',
+                  fontFamily: '"UthmanicHafs"',
                   unicodeBidi: 'plaintext',
                 }}
               >
@@ -725,7 +725,7 @@ export function SalahClient(): ReactNode {
             />
             <span
               className="font-arabic text-leaf absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl"
-              style={{ fontFamily: '"UthmanicHafs", "Amiri Quran", serif' }}
+              style={{ fontFamily: '"UthmanicHafs"' }}
             >
               ﷽
             </span>

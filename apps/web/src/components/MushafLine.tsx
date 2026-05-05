@@ -20,6 +20,7 @@
  * rosette → /study/:surah/:ayah for deep dive.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+
 import type { ReactNode } from 'react';
 
 interface LayoutWord {
@@ -122,31 +123,40 @@ export function MushafLine({
     // currently-pending fonts settle) AND fonts.load (forces the
     // specific Arabic font to load if it wasn't yet) so we re-fit
     // after the swap.
-    const docFonts = (document as Document & {
-      fonts?: {
-        ready?: Promise<unknown>;
-        load?: (font: string, text?: string) => Promise<unknown>;
-      };
-    }).fonts;
-    if (docFonts?.ready) {
+    const docFonts = (
+      document as Document & {
+        fonts?: {
+          ready?: Promise<unknown>;
+          load?: (font: string, text?: string) => Promise<unknown>;
+        };
+      }
+    ).fonts;
+    /* eslint-disable @typescript-eslint/no-unnecessary-condition,
+                       @typescript-eslint/no-misused-promises
+        -- @types/web declares Document.fonts as non-optional, but
+           jsdom + older browsers leave it undefined; defensive checks
+           must stay. */
+    if (docFonts && docFonts.ready) {
       void docFonts.ready.then(() => {
         if (!cancelled) fit();
       });
     }
-    if (docFonts?.load) {
-      void docFonts
-        .load('1em "Amiri Quran"')
-        .then(() => {
-          if (!cancelled) fit();
-        })
-        .catch(() => undefined);
-      void docFonts
-        .load('1em "Noto Naskh Arabic"')
-        .then(() => {
-          if (!cancelled) fit();
-        })
-        .catch(() => undefined);
+    if (docFonts && docFonts.load) {
+      // Self-hosted Quran fonts only — KFGQPCNastaleeq for IndoPak,
+      // UthmanicHafs for everything else. Both preloaded in <head>;
+      // we touch them here so the layout fitter re-runs after the
+      // font lands (in case the network was slow).
+      for (const fam of ['"UthmanicHafs"', '"KFGQPCNastaleeq"']) {
+        void docFonts
+          .load(`1em ${fam}`)
+          .then(() => {
+            if (!cancelled) fit();
+          })
+          .catch(() => undefined);
+      }
     }
+    /* eslint-enable @typescript-eslint/no-unnecessary-condition,
+                    @typescript-eslint/no-misused-promises */
     // Belt-and-suspenders: re-fit after delays to catch any font swap
     // that escaped the events above (e.g. font-display: swap firing
     // outside fonts.ready in some browsers).
@@ -166,7 +176,6 @@ export function MushafLine({
     };
     // We deliberately keep deps minimal — `words` are immutable for a
     // given mounted instance because the parent uses `key={lineNumber}`.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

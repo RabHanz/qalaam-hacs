@@ -190,7 +190,7 @@ export function ShazamClient(): ReactNode {
             lang="ar"
             className="text-ink-strong mt-4 text-lg leading-relaxed sm:text-xl"
             style={{
-              fontFamily: '"UthmanicHafs", "Amiri Quran", serif',
+              fontFamily: '"UthmanicHafs"',
               unicodeBidi: 'plaintext',
               fontWeight: 600,
             }}
@@ -250,7 +250,7 @@ export function ShazamClient(): ReactNode {
                     lang="ar"
                     className="text-ink-strong leading-[1.95]"
                     style={{
-                      fontFamily: '"UthmanicHafs", "Amiri Quran", serif',
+                      fontFamily: '"UthmanicHafs"',
                       fontSize: 'clamp(1.05rem, 0.85rem + 0.6vw, 1.35rem)',
                       unicodeBidi: 'plaintext',
                       fontWeight: 600,
