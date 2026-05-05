@@ -7,12 +7,14 @@
 import { existsSync } from 'node:fs';
 
 import { QalaamError } from '@qalaam/core';
-import type { FastifyInstance } from 'fastify';
 
-import type { Config } from '../../config.js';
 import { getQul } from '../../lib/data-loader.js';
 import { fixtureSurah } from '../../lib/fixture-loader.js';
 
+import type { Config } from '../../config.js';
+import type { FastifyInstance } from 'fastify';
+
+// eslint-disable-next-line @typescript-eslint/require-await -- Fastify plugin signature.
 export async function chaptersRoutes(
   fastify: FastifyInstance,
   opts: { config: Config },
@@ -44,7 +46,7 @@ export async function chaptersRoutes(
         if (fixture.length === 0) {
           throw new QalaamError(
             'qalaam.data.not-loaded',
-            `QUL SQLite not present and no fixture for surah ${surahNumber.toString()}. Run 'make data-fetch'.`,
+            `Surah ${surahNumber.toString()} is preparing — please check back in a moment.`,
             { outcomeImpacted: 'O-01' },
           );
         }
@@ -58,7 +60,7 @@ export async function chaptersRoutes(
       // For v0.1 we simply hydrate one verse at a time — performant enough (<10ms per).
       for (let ayah = 1; ayah <= 286; ayah += 1) {
         const key = `${surahNumber.toString()}:${ayah.toString()}`;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+         
         const verse = qul.getVerse(key as never);
         if (!verse) break;
         verses.push(verse);

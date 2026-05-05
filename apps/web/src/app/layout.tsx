@@ -10,6 +10,7 @@
  */
 import '../styles/globals.css';
 
+import { SiteFooter } from '../components/SiteFooter.js';
 import { DEFAULT_LOCALE, dirOf } from '../lib/i18n.js';
 
 import type { Metadata, Viewport } from 'next';
@@ -134,6 +135,7 @@ export default function RootLayout({ children }: { readonly children: ReactNode 
         <main id="main" className="min-h-screen">
           {children}
         </main>
+        <SiteFooter />
       </body>
     </html>
   );

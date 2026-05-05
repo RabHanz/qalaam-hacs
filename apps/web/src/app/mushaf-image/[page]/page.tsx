@@ -76,8 +76,8 @@ export default async function ImageMushafPage({ params }: PageProps): Promise<Re
         <SiteNav />
         <div className="mx-auto max-w-3xl px-6 py-20">
           <EmptyState
-            title="Page not yet ingested"
-            hint={`Run scripts/data/ingest-image-mushaf-overlays.py to populate page ${page.toString()}.`}
+            title={`Page ${page.toString()} is preparing`}
+            hint="This mushaf page isn't ready yet — please try a different page or check back in a moment."
           />
         </div>
       </>

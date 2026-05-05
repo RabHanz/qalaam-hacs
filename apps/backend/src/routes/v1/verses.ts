@@ -9,12 +9,14 @@
 import { existsSync } from 'node:fs';
 
 import { QalaamError, parseVerseKey } from '@qalaam/core';
-import type { FastifyInstance } from 'fastify';
 
-import type { Config } from '../../config.js';
 import { getQul } from '../../lib/data-loader.js';
 import { fixtureVerse } from '../../lib/fixture-loader.js';
 
+import type { Config } from '../../config.js';
+import type { FastifyInstance } from 'fastify';
+
+// eslint-disable-next-line @typescript-eslint/require-await -- Fastify plugin signature.
 export async function versesRoutes(
   fastify: FastifyInstance,
   opts: { config: Config },
@@ -42,7 +44,7 @@ export async function versesRoutes(
         if (!fixture) {
           throw new QalaamError(
             'qalaam.data.not-loaded',
-            `QUL SQLite not present and no fixture for ${key}. Run 'make data-fetch'.`,
+            `Verse ${key} is preparing — please check back in a moment.`,
             { outcomeImpacted: 'O-01' },
           );
         }

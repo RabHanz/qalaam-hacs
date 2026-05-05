@@ -59,8 +59,8 @@ async function StudyBody({
     if (err instanceof QalaamError && err.code === 'qalaam.data.not-loaded') {
       return (
         <EmptyState
-          title="Verse not yet ingested"
-          hint="Run scripts/data/scrape-qul.sh to pull the full Quran from QUL."
+          title="This verse is preparing"
+          hint="We're getting things ready for you. Please check back in a moment."
         />
       );
     }

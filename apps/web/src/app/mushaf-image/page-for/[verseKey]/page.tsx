@@ -47,7 +47,6 @@ export default async function PageForVerse({ params }: PageProps): Promise<React
   // 404 short-circuits to the empty state — that's a real "not in this
   // mushaf" answer.
   let lastStatus = 0;
-  let lastErr = '';
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
       const res = await fetch(
@@ -66,7 +65,9 @@ export default async function PageForVerse({ params }: PageProps): Promise<React
       // `redirect()` throws a NEXT_REDIRECT error that must propagate up
       // to Next's runtime — never swallow it.
       if ((err as { digest?: string }).digest?.startsWith('NEXT_REDIRECT')) throw err;
-      lastErr = (err as Error).message || 'fetch failed';
+      // We swallow the actual error message — surfaced as a generic "couldn't
+      // reach" hint per task #200 (no internal-tooling references in user copy).
+      void err;
       await new Promise((r) => setTimeout(r, 400));
     }
   }
@@ -79,8 +80,8 @@ export default async function PageForVerse({ params }: PageProps): Promise<React
           title={isTransient ? 'Backend not responding' : 'Verse not in this mushaf'}
           hint={
             isTransient
-              ? `Couldn't reach the image-mushaf resolver for ${verseKey} (status ${lastStatus.toString()}${lastErr ? ` — ${lastErr}` : ''}). Try again in a moment.`
-              : `Could not resolve ${verseKey} to a page in the Madani 16-line image overlay. Re-run scripts/data/ingest-image-mushaf-overlays.py if the table is sparse.`
+              ? "We couldn't reach the image-mushaf service just now. Please try again in a moment."
+              : `Verse ${verseKey} isn't available in the page-image mushaf yet — please try a different verse or layout.`
           }
         />
       </div>

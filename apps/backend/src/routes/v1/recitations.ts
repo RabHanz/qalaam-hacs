@@ -35,14 +35,15 @@ function openReadOnly(path: string): DB {
   if (!existsSync(path)) {
     throw new QalaamError(
       'qalaam.data.not-loaded',
-      `QUL SQLite not present at ${path}. Run \`make data-fetch\` then \`python3 scripts/data/ingest-qul-extras.py\`.`,
+      'Recitations are preparing — please check back in a moment.',
     );
   }
   cachedDb ??= new Database(path, { readonly: true, fileMustExist: true });
   return cachedDb;
 }
 
-// eslint-disable-next-line @typescript-eslint/require-await -- fastify register signature requires Promise<void> for symmetry; body does not await.
+ 
+// eslint-disable-next-line @typescript-eslint/require-await -- Fastify plugin signature.
 export async function recitationsRoutes(
   fastify: FastifyInstance,
   opts: { config: Config },

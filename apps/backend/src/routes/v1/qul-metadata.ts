@@ -44,7 +44,7 @@ export async function qulMetadataRoutes(
     if (!existsSync(opts.config.QUL_SQLITE_PATH)) {
       throw new QalaamError(
         'qalaam.data.not-loaded',
-        `QUL SQLite not present at ${opts.config.QUL_SQLITE_PATH}. Run 'make data-fetch'.`,
+        'This data is preparing — please check back in a moment.',
       );
     }
     return getQul(opts.config.QUL_SQLITE_PATH);

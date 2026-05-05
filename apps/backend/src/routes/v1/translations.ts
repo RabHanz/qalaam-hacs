@@ -8,7 +8,6 @@
  * from QUL. Per ADR-0002 + strategy §4.5 / §4.6.
  */
 import { QalaamError, parseVerseKey } from '@qalaam/core';
-import type { FastifyInstance } from 'fastify';
 
 import {
   getTafsirVerse,
@@ -17,6 +16,9 @@ import {
   listTranslations,
 } from '../../lib/translation-loader.js';
 
+import type { FastifyInstance } from 'fastify';
+
+// eslint-disable-next-line @typescript-eslint/require-await -- Fastify plugin signature.
 export async function translationsRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get(
     '/v1/translations',
@@ -54,7 +56,7 @@ export async function translationsRoutes(fastify: FastifyInstance): Promise<void
       if (text === undefined) {
         throw new QalaamError(
           'qalaam.data.not-loaded',
-          `No translation '${request.params.slug}' for verse ${key}. v0.1 ships Al-Fatiha; run 'make data-fetch' for full coverage.`,
+          `This translation isn't available for verse ${key} yet — please check back in a moment.`,
           { outcomeImpacted: 'O-11' },
         );
       }
