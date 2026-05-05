@@ -20,7 +20,15 @@ interface PageProps {
 }
 
 export default async function ComparePage({ params }: PageProps): Promise<ReactNode> {
-  const { verseKey } = await params;
+  const { verseKey: raw } = await params;
+  // Next.js leaves the param percent-encoded when the colon was URL-encoded
+  // upstream (`2%3A6`), so decode defensively before validating.
+  let verseKey = raw;
+  try {
+    verseKey = decodeURIComponent(raw);
+  } catch {
+    /* malformed escape — fall through to regex rejection */
+  }
   if (!/^[0-9]+:[0-9]+$/.test(verseKey)) {
     return (
       <>
@@ -59,20 +67,20 @@ export default async function ComparePage({ params }: PageProps): Promise<ReactN
   return (
     <>
       <SiteNav />
-      <header className="border-b border-hairline">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-6 sm:py-10">
+      <header className="border-hairline border-b">
+        <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
           <p className="smallcaps text-leaf text-[11px] tracking-widest">A / B compare · مقارنة</p>
-          <h1 className="font-display mt-2 text-3xl sm:text-5xl font-light tracking-tight text-ink-strong">
+          <h1 className="font-display text-ink-strong mt-2 text-3xl font-light tracking-tight sm:text-5xl">
             {verseKey}
           </h1>
-          <p className="mt-2 text-sm sm:text-base text-ink-muted leading-relaxed max-w-prose">
-            Listen to the same verse from up to four reciters side-by-side.
-            Tap any verse to seek, tap any reciter to (un)solo.
+          <p className="text-ink-muted mt-2 max-w-prose text-sm leading-relaxed sm:text-base">
+            Listen to the same verse from up to four reciters side-by-side. Tap any verse to seek,
+            tap any reciter to (un)solo.
           </p>
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 sm:px-6 py-6 sm:py-10">
+      <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
         <CompareClient verseKey={verseKey} verseText={verseText} reciters={reciters} />
       </main>
     </>

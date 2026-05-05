@@ -24,7 +24,13 @@ interface PageProps {
 }
 
 export default async function HifzCheckPage({ params }: PageProps): Promise<ReactNode> {
-  const { verseKey } = await params;
+  const { verseKey: raw } = await params;
+  let verseKey = raw;
+  try {
+    verseKey = decodeURIComponent(raw);
+  } catch {
+    /* malformed escape — fall through to regex rejection */
+  }
   if (!/^[1-9][0-9]?[0-9]?:[1-9][0-9]?[0-9]?$/.test(verseKey)) {
     return (
       <>
@@ -69,20 +75,20 @@ export default async function HifzCheckPage({ params }: PageProps): Promise<Reac
   return (
     <>
       <SiteNav />
-      <header className="border-b border-hairline">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-6 sm:py-10">
+      <header className="border-hairline border-b">
+        <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
           <p className="smallcaps text-leaf text-[11px] tracking-widest">Hifz check · حفظ</p>
-          <h1 className="font-display mt-1.5 text-2xl sm:text-4xl font-light text-ink-strong">
+          <h1 className="font-display text-ink-strong mt-1.5 text-2xl font-light sm:text-4xl">
             Recite from memory.
           </h1>
-          <p className="mt-2 text-sm text-ink-muted max-w-prose">
+          <p className="text-ink-muted mt-2 max-w-prose text-sm">
             Tap the mic and recite verse <span className="font-mono">{verseKey}</span>. Your
             recitation is matched word-by-word against the canonical text. Nothing is sent to a
             server — audio is processed in your browser only.
           </p>
         </div>
       </header>
-      <main className="mx-auto max-w-3xl px-4 sm:px-6 py-6 sm:py-10">
+      <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
         <HifzCheckClient expectedText={verse.textUthmani} verseKey={verseKey} />
       </main>
     </>
