@@ -711,6 +711,28 @@ export function AyahCard({
           icon={<ShareIcon />}
           label={shareCopied ? 'Copied' : 'Share'}
         />
+        <a
+          href={`/listen/compare/${encodeURIComponent(verseKey)}`}
+          title="Compare this verse across multiple reciters"
+          className="border-hairline smallcaps text-ink-muted hover:text-leaf hover:border-leaf/40 inline-flex shrink-0 touch-manipulation items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] tracking-widest"
+        >
+          <svg
+            width={14}
+            height={14}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            aria-hidden
+          >
+            <path
+              d="M5 9c2 0 2 6 5 6s2-12 5-12 2 12 5 12"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          Compare
+        </a>
       </nav>
     </article>
   );

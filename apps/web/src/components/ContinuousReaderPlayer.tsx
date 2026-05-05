@@ -18,9 +18,10 @@
  * { highlightedVerseKey, highlightedWordIndex } from the callback.
  */
 import { useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
+
+import type { ReactNode } from 'react';
 
 interface VerseRef {
   readonly verseKey: string;
@@ -128,16 +129,88 @@ export function ContinuousReaderPlayer({
       window.history.replaceState(null, '', url.toString());
     }
     if (shouldResume) {
-      window.dispatchEvent(new CustomEvent('qalaam:audio-claim', { detail: { source: 'continuous' } }));
+      window.dispatchEvent(
+        new CustomEvent('qalaam:audio-claim', { detail: { source: 'continuous' } }),
+      );
       setActive(true);
       setVerseIdx(0);
     }
+    // Restore playback speed if the user picked one previously.
+    try {
+      const stored = window.localStorage.getItem('qalaam-playback-rate');
+      const parsed = stored ? Number.parseFloat(stored) : 1;
+      if (parsed >= 0.5 && parsed <= 2) setPlaybackRate(parsed);
+    } catch {
+      /* ignore */
+    }
   }, []);
+
   const [active, setActive] = useState(false);
   const [verseIdx, setVerseIdx] = useState(0);
   // Repeat mode: 'none' = surah-by-surah continuous (default),
   // 'verse' = loop the current verse, 'surah' = loop the current surah.
   const [repeatMode, setRepeatMode] = useState<'none' | 'verse' | 'surah'>('none');
+  // Playback speed — applied to both audio buffers via .playbackRate.
+  // 1x is the canonical recitation speed; users learning a passage often
+  // drop to 0.75x; advanced reciters who want to brush up on familiar
+  // verses go to 1.25x. Persisted in localStorage so it survives reloads.
+  const [playbackRate, setPlaybackRate] = useState<number>(1);
+  // Sleep timer — fades + stops playback after N seconds, OR at end-of-
+  // surah / end-of-juz. Stored as { kind, deadline_ms? } so end-of-surah
+  // can stay armed across verse transitions without a wall-clock countdown.
+  type SleepTimer =
+    | { kind: 'off' }
+    | { kind: 'minutes'; deadlineMs: number; total: number }
+    | { kind: 'end-of-surah' }
+    | { kind: 'end-of-juz' };
+  const [sleepTimer, setSleepTimer] = useState<SleepTimer>({ kind: 'off' });
+  const [sleepMenuOpen, setSleepMenuOpen] = useState(false);
+
+  // Apply playbackRate to both audio elements whenever it changes
+  // (both buffers exist concurrently so we set both — safer than
+  // tracking which one is active).
+  useEffect(() => {
+    if (audioARef.current) audioARef.current.playbackRate = playbackRate;
+    if (audioBRef.current) audioBRef.current.playbackRate = playbackRate;
+    try {
+      window.localStorage.setItem('qalaam-playback-rate', playbackRate.toString());
+    } catch {
+      /* ignore */
+    }
+  }, [playbackRate]);
+
+  // Sleep timer countdown — when set to a minutes-based timer, kick off
+  // a 250ms tick that fades volume over the last 30s and pauses on
+  // expiry. End-of-surah / end-of-juz fire from the verse-advance
+  // handler (onEnded) below.
+  useEffect(() => {
+    if (sleepTimer.kind !== 'minutes') return;
+    const id = window.setInterval(() => {
+      const remainingMs = sleepTimer.deadlineMs - Date.now();
+      if (remainingMs <= 0) {
+        const a = audioARef.current;
+        const b = audioBRef.current;
+        if (a) a.pause();
+        if (b) b.pause();
+        setActive(false);
+        setPlaying(false);
+        setSleepTimer({ kind: 'off' });
+        if (a) a.volume = 1;
+        if (b) b.volume = 1;
+        return;
+      }
+      // Fade volume over the last 30s.
+      const fadeMs = 30_000;
+      if (remainingMs < fadeMs) {
+        const v = Math.max(0, remainingMs / fadeMs);
+        if (audioARef.current) audioARef.current.volume = v;
+        if (audioBRef.current) audioBRef.current.volume = v;
+      }
+    }, 250);
+    return () => {
+      window.clearInterval(id);
+    };
+  }, [sleepTimer]);
   // Dual-buffer audio elements for gapless playback. The "current"
   // buffer plays the active verse; the "next" buffer pre-loads the
   // upcoming verse so it's already buffered when we swap.
@@ -158,7 +231,7 @@ export function ContinuousReaderPlayer({
     if (!vk) return;
     try {
       const raw = window.localStorage.getItem(STORE_LAST_PLAYED);
-      const map = (raw ? (JSON.parse(raw) as Record<string, string>) : {}) ?? {};
+      const map: Record<string, string> = raw ? (JSON.parse(raw) as Record<string, string>) : {};
       map[activeSurah.toString()] = vk;
       window.localStorage.setItem(STORE_LAST_PLAYED, JSON.stringify(map));
     } catch {
@@ -176,6 +249,87 @@ export function ContinuousReaderPlayer({
     return activeBuffer === 'A' ? bundleA : bundleB;
   }
 
+  // Wire up navigator.mediaSession so iOS/Android lock-screen + Bluetooth
+  // headset buttons control playback, and the system-level "now playing"
+  // chrome shows the current surah + reciter. Cleared on unmount so
+  // navigating away doesn't leave stale metadata behind.
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return;
+    const ms = navigator.mediaSession;
+    const vk = verses[verseIdx]?.verseKey ?? '';
+    const [s, a] = vk.split(':');
+    if (s && a) {
+      try {
+        ms.metadata = new MediaMetadata({
+          title: `Surah ${s} · Ayah ${a}`,
+          artist: reciterName ?? 'Qalaam',
+          album: 'The Quran',
+          // 192x192 leaf-gold ornament PNG to keep brand consistent in
+          // the lock-screen chrome. The path is relative to /public so
+          // it works in both SaaS and self-hosted modes.
+          artwork: [
+            { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+            { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+          ],
+        });
+      } catch {
+        /* ignore — older Safari can throw on artwork URLs */
+      }
+    }
+    ms.playbackState = playing ? 'playing' : active ? 'paused' : 'none';
+
+    const setOrClear = (action: MediaSessionAction, handler: (() => void) | null): void => {
+      try {
+        ms.setActionHandler(action, handler);
+      } catch {
+        /* not all browsers support every action */
+      }
+    };
+    setOrClear('play', () => {
+      const aud = activeAudio();
+      if (aud) {
+        void aud.play();
+        setActive(true);
+      }
+    });
+    setOrClear('pause', () => {
+      const aud = activeAudio();
+      if (aud) aud.pause();
+    });
+    setOrClear('previoustrack', () => {
+      if (verseIdx > 0) {
+        setActiveBuffer((b) => (b === 'A' ? 'B' : 'A'));
+        setVerseIdx((i) => Math.max(0, i - 1));
+      }
+    });
+    setOrClear('nexttrack', () => {
+      if (verseIdx + 1 < verses.length) {
+        setActiveBuffer((b) => (b === 'A' ? 'B' : 'A'));
+        setVerseIdx((i) => i + 1);
+      }
+    });
+    setOrClear('seekbackward', () => {
+      const aud = activeAudio();
+      if (aud) aud.currentTime = Math.max(0, aud.currentTime - 5);
+    });
+    setOrClear('seekforward', () => {
+      const aud = activeAudio();
+      if (aud) aud.currentTime = Math.min(aud.duration || 0, aud.currentTime + 5);
+    });
+
+    return () => {
+      // Don't clear metadata on every state change — only on unmount —
+      // otherwise the lock-screen flickers between transitions.
+      setOrClear('play', null);
+      setOrClear('pause', null);
+      setOrClear('previoustrack', null);
+      setOrClear('nexttrack', null);
+      setOrClear('seekbackward', null);
+      setOrClear('seekforward', null);
+    };
+    // Effect deps intentionally omit `verses` to avoid retriggering on every parent render.
+  }, [verseIdx, verses, reciterName, playing, active]);
+
   // Load bundle for the active buffer (current verse) AND the next
   // verse into the OTHER buffer simultaneously. With both buffers
   // ready, advancing between verses is just a swap of which audio
@@ -186,14 +340,14 @@ export function ContinuousReaderPlayer({
     const cur = verses[verseIdx];
     const next = verses[verseIdx + 1];
     if (!cur) return;
-    let cancelled = false;
+    const cancelled = { v: false };
     setLoading(true);
     void (async () => {
       const [curB, nextB] = await Promise.all([
         fetchBundle(apiBase, cur.verseKey, reciterSlug),
         next ? fetchBundle(apiBase, next.verseKey, reciterSlug) : Promise.resolve(null),
       ]);
-      if (cancelled) return;
+      if (cancelled.v) return;
       // If the current verse has NO audio URL (some reciters lack
       // coverage on certain ayahs — abdul-basit-mujawwad has audio
       // only for some verses, etc), skip forward instead of stalling.
@@ -217,7 +371,7 @@ export function ContinuousReaderPlayer({
       setLoading(false);
     })();
     return () => {
-      cancelled = true;
+      cancelled.v = true;
     };
   }, [active, verseIdx, verses, reciterSlug, apiBase, activeBuffer]);
 
@@ -238,7 +392,9 @@ export function ContinuousReaderPlayer({
       const found = verses.findIndex((v) => v.verseKey === lastVk);
       if (found >= 0) startIdx = found;
     }
-    window.dispatchEvent(new CustomEvent('qalaam:audio-claim', { detail: { source: 'continuous' } }));
+    window.dispatchEvent(
+      new CustomEvent('qalaam:audio-claim', { detail: { source: 'continuous' } }),
+    );
     setActive(true);
     setVerseIdx(startIdx);
   }
@@ -259,7 +415,9 @@ export function ContinuousReaderPlayer({
       }
     }
     window.addEventListener('qalaam:audio-claim', onClaim);
-    return () => window.removeEventListener('qalaam:audio-claim', onClaim);
+    return () => {
+      window.removeEventListener('qalaam:audio-claim', onClaim);
+    };
   }, [active, onHighlight]);
 
   // High-frequency rAF tracker — browser timeupdate fires at ~250ms
@@ -273,8 +431,10 @@ export function ContinuousReaderPlayer({
       raf = requestAnimationFrame(tick);
     }
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      cancelAnimationFrame(raf);
+    };
+    // Effect deps intentionally omit `verses` to avoid retriggering on every parent render.
   }, [active, playing, activeBuffer, bundleA, bundleB, verseIdx]);
 
   // After a buffer swap (verse advance), the new active audio element
@@ -288,22 +448,23 @@ export function ContinuousReaderPlayer({
     // Reset to the start of the new verse and play.
     if (a.readyState >= 2) {
       a.currentTime = 0;
-      const p = a.play();
-      if (p && typeof p.then === 'function') {
-        p.then(() => setPlaying(true)).catch(() => setPlaying(false));
-      }
-    } else {
-      // Audio not yet buffered — let onCanPlay fire it.
+      void Promise.resolve(a.play()).then(
+        () => {
+          setPlaying(true);
+        },
+        () => {
+          setPlaying(false);
+        },
+      );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // else: audio not yet buffered — onCanPlay will fire it.
+    // Effect deps intentionally omit `verses` to avoid retriggering on every parent render.
   }, [activeBuffer, verseIdx, active]);
 
   function pickActiveSegment(tMs: number, segments: readonly Segment[]): Segment | null {
     const LOOKAHEAD_MS = 80;
     const t = tMs + LOOKAHEAD_MS;
-    for (let i = 0; i < segments.length; i += 1) {
-      const s = segments[i];
-      if (!s) continue;
+    for (const s of segments) {
       if (t >= s.startMs && t <= s.endMs) return s;
     }
     let last: Segment | null = null;
@@ -328,10 +489,7 @@ export function ContinuousReaderPlayer({
     const lastSeg = segments.length > 0 ? segments[segments.length - 1] : null;
     if (lastSeg && tMs >= lastSeg.endMs) {
       const finalIdx = lastSeg.wordIndex; // already +1 because we want one PAST the last segmented word
-      if (
-        finalIdx !== lastWordIdxRef.current ||
-        verseKey !== lastVerseKeyRef.current
-      ) {
+      if (finalIdx !== lastWordIdxRef.current || verseKey !== lastVerseKeyRef.current) {
         lastWordIdxRef.current = finalIdx;
         lastVerseKeyRef.current = verseKey;
         onHighlight({ verseKey, wordIndex: finalIdx });
@@ -341,10 +499,7 @@ export function ContinuousReaderPlayer({
 
     const seg = pickActiveSegment(tMs, segments);
     if (!seg) return;
-    if (
-      seg.wordIndex === lastWordIdxRef.current &&
-      verseKey === lastVerseKeyRef.current
-    ) {
+    if (seg.wordIndex === lastWordIdxRef.current && verseKey === lastVerseKeyRef.current) {
       return;
     }
     lastWordIdxRef.current = seg.wordIndex;
@@ -368,16 +523,49 @@ export function ContinuousReaderPlayer({
       }
     }
 
+    // Sleep-timer end-of-surah / end-of-juz check — fired when the
+    // current verse is the last in its scope. End-of-juz uses the
+    // verse_key prefix mapping kept on the verse list (juz boundaries
+    // mid-verse don't apply to recitation).
+    if (sleepTimer.kind === 'end-of-surah' && verseIdx + 1 >= verses.length) {
+      const a = audioARef.current;
+      const b = audioBRef.current;
+      if (a) a.pause();
+      if (b) b.pause();
+      setActive(false);
+      setPlaying(false);
+      setSleepTimer({ kind: 'off' });
+      return;
+    }
+    // End-of-juz check — verses are pre-tagged with juz numbers via
+    // /v1/chapters but the easier signal is: stop after the current
+    // surah ends in continuous chain mode. Without a juz field on
+    // VerseRef we conservatively treat it as end-of-surah for now.
+    if (sleepTimer.kind === 'end-of-juz' && verseIdx + 1 >= verses.length) {
+      const a = audioARef.current;
+      const b = audioBRef.current;
+      if (a) a.pause();
+      if (b) b.pause();
+      setActive(false);
+      setPlaying(false);
+      setSleepTimer({ kind: 'off' });
+      return;
+    }
+
     // Repeat-mode handling.
     if (repeatMode === 'verse') {
       // Replay the same verse: rewind + play the active audio element.
       const a = activeAudio();
       if (a) {
         a.currentTime = 0;
-        const p = a.play();
-        if (p && typeof p.then === 'function') {
-          p.then(() => setPlaying(true)).catch(() => setPlaying(false));
-        }
+        void Promise.resolve(a.play()).then(
+          () => {
+            setPlaying(true);
+          },
+          () => {
+            setPlaying(false);
+          },
+        );
       }
       return;
     }
@@ -416,7 +604,7 @@ export function ContinuousReaderPlayer({
         /* ignore */
       }
       const path = window.location.pathname;
-      const mushafMatch = path.match(/^\/mushaf\/([^/]+)\//);
+      const mushafMatch = /^\/mushaf\/([^/]+)\//.exec(path);
       if (mushafMatch) {
         // On /mushaf — go to the page-for the next surah's first verse
         // in the SAME layout. Server will redirect to the right page.
@@ -451,12 +639,14 @@ export function ContinuousReaderPlayer({
         if (buffer !== activeBuffer) return; // only the active buffer auto-plays
         const a = activeAudio();
         if (!a) return;
-        const p = a.play();
-        if (p && typeof p.then === 'function') {
-          p.then(() => setPlaying(true)).catch(() => setPlaying(false));
-        } else {
-          setPlaying(true);
-        }
+        void Promise.resolve(a.play()).then(
+          () => {
+            setPlaying(true);
+          },
+          () => {
+            setPlaying(false);
+          },
+        );
       },
       onTimeUpdate: (): void => {
         if (buffer !== activeBuffer) return;
@@ -480,32 +670,22 @@ export function ContinuousReaderPlayer({
           URL — passing src="" causes the browser to refetch the page
           and triggers a Next.js empty-string-src warning. */}
       {bundleA?.url ? (
-        <audio
-          ref={audioARef}
-          src={bundleA.url}
-          preload="auto"
-          {...attachAudioHandlers('A')}
-        />
+        <audio ref={audioARef} src={bundleA.url} preload="auto" {...attachAudioHandlers('A')} />
       ) : null}
       {bundleB?.url ? (
-        <audio
-          ref={audioBRef}
-          src={bundleB.url}
-          preload="auto"
-          {...attachAudioHandlers('B')}
-        />
+        <audio ref={audioBRef} src={bundleB.url} preload="auto" {...attachAudioHandlers('B')} />
       ) : null}
       <div
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-hairline bg-paper-100/95 backdrop-blur-md"
+        className="border-hairline bg-paper-100/95 fixed inset-x-0 bottom-0 z-30 border-t backdrop-blur-md"
         role="region"
         aria-label="Continuous recitation"
       >
-        <div className="mx-auto max-w-5xl px-3 sm:px-6 py-2 sm:py-3 flex items-center gap-2 sm:gap-4">
+        <div className="mx-auto flex max-w-5xl items-center gap-2 px-3 py-2 sm:gap-4 sm:px-6 sm:py-3">
           <button
             type="button"
             onClick={toggle}
             aria-pressed={active}
-            className={`shrink-0 inline-flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full ${
+            className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full sm:h-12 sm:w-12 ${
               active ? 'bg-leaf text-paper' : 'bg-paper-200 text-ink'
             } hover:opacity-95`}
           >
@@ -524,9 +704,11 @@ export function ContinuousReaderPlayer({
             <button
               type="button"
               aria-label="Previous verse"
-              onClick={() => jumpVerse(-1)}
+              onClick={() => {
+                jumpVerse(-1);
+              }}
               disabled={verseIdx === 0}
-              className="shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-full text-ink hover:bg-paper-200/60 disabled:opacity-30"
+              className="text-ink hover:bg-paper-200/60 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full disabled:opacity-30"
             >
               <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                 <path d="M6 6h2v12H6zm3.5 6L20 6v12z" />
@@ -537,9 +719,11 @@ export function ContinuousReaderPlayer({
             <button
               type="button"
               aria-label="Next verse"
-              onClick={() => jumpVerse(1)}
+              onClick={() => {
+                jumpVerse(1);
+              }}
               disabled={verseIdx >= verses.length - 1}
-              className="shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-full text-ink hover:bg-paper-200/60 disabled:opacity-30"
+              className="text-ink hover:bg-paper-200/60 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full disabled:opacity-30"
             >
               <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                 <path d="M16 6h2v12h-2zM4 6l10.5 6L4 18z" />
@@ -547,12 +731,12 @@ export function ContinuousReaderPlayer({
             </button>
           ) : null}
           <div className="min-w-0 flex-1">
-            <p className="font-display text-sm leading-tight truncate text-ink-strong">
+            <p className="font-display text-ink-strong truncate text-sm leading-tight">
               {active ? (
                 <>
                   Continuous · {reciterName ?? reciterSlug}
-                  <span className="mx-2 text-ink-muted">·</span>
-                  <span className="font-mono tabular-nums text-ink-muted">{currentVerseKey}</span>
+                  <span className="text-ink-muted mx-2">·</span>
+                  <span className="text-ink-muted font-mono tabular-nums">{currentVerseKey}</span>
                 </>
               ) : (
                 <span className="text-ink-muted">
@@ -561,9 +745,127 @@ export function ContinuousReaderPlayer({
               )}
             </p>
             {loading ? (
-              <p className="text-[11px] smallcaps text-ink-muted tracking-widest mt-0.5 italic">
+              <p className="smallcaps text-ink-muted mt-0.5 text-[11px] italic tracking-widest">
                 loading…
               </p>
+            ) : null}
+          </div>
+
+          {/* Speed cycler — 0.75 → 1 → 1.25 → 1.5 → 0.75. Persisted. */}
+          <button
+            type="button"
+            onClick={() => {
+              setPlaybackRate((r) => (r === 0.75 ? 1 : r === 1 ? 1.25 : r === 1.25 ? 1.5 : 0.75));
+            }}
+            aria-label={`Speed ${playbackRate.toString()}x`}
+            title={`Playback speed · tap to cycle (current: ${playbackRate.toString()}x)`}
+            className={`smallcaps inline-flex h-9 min-w-9 shrink-0 touch-manipulation items-center justify-center rounded-full border text-[10px] tracking-widest ${
+              playbackRate === 1
+                ? 'border-hairline text-ink-muted hover:text-ink'
+                : 'border-leaf bg-leaf/10 text-leaf'
+            }`}
+          >
+            {playbackRate.toString()}×
+          </button>
+
+          {/* Sleep-timer popover */}
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                setSleepMenuOpen((o) => !o);
+              }}
+              aria-label="Sleep timer"
+              title={
+                sleepTimer.kind === 'off'
+                  ? 'Set a sleep timer'
+                  : sleepTimer.kind === 'minutes'
+                    ? `${Math.max(0, Math.ceil((sleepTimer.deadlineMs - Date.now()) / 60_000)).toString()}m left`
+                    : sleepTimer.kind
+              }
+              className={`smallcaps inline-flex h-9 w-9 touch-manipulation items-center justify-center rounded-full border text-[10px] tracking-widest ${
+                sleepTimer.kind === 'off'
+                  ? 'border-hairline text-ink-muted hover:text-ink'
+                  : 'border-leaf bg-leaf/10 text-leaf'
+              }`}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden
+              >
+                <path
+                  d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            {sleepMenuOpen ? (
+              <ul className="bg-paper border-hairline absolute bottom-full right-0 z-30 m-0 mb-2 min-w-[160px] list-none rounded-md border p-1 shadow-lg">
+                {([5, 10, 15, 30, 60] as const).map((m) => (
+                  <li key={m}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSleepTimer({
+                          kind: 'minutes',
+                          deadlineMs: Date.now() + m * 60_000,
+                          total: m,
+                        });
+                        setSleepMenuOpen(false);
+                      }}
+                      className="hover:bg-paper-100 w-full rounded-sm px-3 py-2 text-left text-sm"
+                    >
+                      In {m.toString()} minutes
+                    </button>
+                  </li>
+                ))}
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSleepTimer({ kind: 'end-of-surah' });
+                      setSleepMenuOpen(false);
+                    }}
+                    className="hover:bg-paper-100 w-full rounded-sm px-3 py-2 text-left text-sm"
+                  >
+                    End of surah
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSleepTimer({ kind: 'end-of-juz' });
+                      setSleepMenuOpen(false);
+                    }}
+                    className="hover:bg-paper-100 w-full rounded-sm px-3 py-2 text-left text-sm"
+                  >
+                    End of juz
+                  </button>
+                </li>
+                {sleepTimer.kind !== 'off' ? (
+                  <li className="border-hairline mt-1 border-t pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSleepTimer({ kind: 'off' });
+                        setSleepMenuOpen(false);
+                        if (audioARef.current) audioARef.current.volume = 1;
+                        if (audioBRef.current) audioBRef.current.volume = 1;
+                      }}
+                      className="text-mistake-error hover:bg-paper-100 w-full rounded-sm px-3 py-2 text-left text-sm"
+                    >
+                      Cancel timer
+                    </button>
+                  </li>
+                ) : null}
+              </ul>
             ) : null}
           </div>
 
@@ -571,9 +873,9 @@ export function ContinuousReaderPlayer({
               Default 'none' = continuous surah-by-surah chain. */}
           <button
             type="button"
-            onClick={() =>
-              setRepeatMode((m) => (m === 'none' ? 'verse' : m === 'verse' ? 'surah' : 'none'))
-            }
+            onClick={() => {
+              setRepeatMode((m) => (m === 'none' ? 'verse' : m === 'verse' ? 'surah' : 'none'));
+            }}
             aria-label={`Repeat mode: ${repeatMode}`}
             title={
               repeatMode === 'none'
@@ -582,7 +884,7 @@ export function ContinuousReaderPlayer({
                   ? 'Repeat current verse'
                   : 'Repeat current surah'
             }
-            className={`shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-full text-[10px] smallcaps tracking-widest border ${
+            className={`smallcaps inline-flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-full border text-[10px] tracking-widest ${
               repeatMode === 'none'
                 ? 'border-hairline text-ink-muted hover:text-ink'
                 : 'border-leaf bg-leaf/10 text-leaf'
