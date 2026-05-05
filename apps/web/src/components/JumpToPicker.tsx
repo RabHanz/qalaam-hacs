@@ -57,6 +57,9 @@ export function JumpToPicker({ mode, layoutSlug = 'madani_15' }: Props): ReactNo
   const [ayah, setAyah] = useState<string>('1');
   const inputRef = useRef<HTMLInputElement | null>(null);
   const ayahRef = useRef<HTMLInputElement | null>(null);
+  // Active surah index for keyboard navigation in the surah list.
+  const [activeIdx, setActiveIdx] = useState(0);
+  const listRef = useRef<HTMLUListElement | null>(null);
 
   // Fetch surah index lazily — only when the user opens the sheet.
   useEffect(() => {
@@ -77,17 +80,35 @@ export function JumpToPicker({ mode, layoutSlug = 'madani_15' }: Props): ReactNo
     };
   }, [open, surahs.length, apiBase]);
 
-  // Esc closes; focus the search box on open
+  // Esc closes; arrow keys navigate the surah list; Enter picks active surah
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') {
+        setOpen(false);
+        return;
+      }
+      // Arrow nav only applies before a surah is picked
+      if (picked) return;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActiveIdx((i) => {
+          const len = filteredLenRef.current;
+          if (len === 0) return 0;
+          return e.key === 'ArrowDown' ? Math.min(i + 1, len - 1) : Math.max(i - 1, 0);
+        });
+      } else if (e.key === 'Enter' && document.activeElement === inputRef.current) {
+        const item = filteredRef.current[activeIdx];
+        if (item) {
+          e.preventDefault();
+          go(item.surah, 1);
+        }
+      }
     };
     document.addEventListener('keydown', onKey);
     // Skip auto-focus on mobile so the keyboard doesn't pop up over the
     // sheet immediately on open. Desktop keeps the focus for keyboard nav.
-    const isMobile =
-      typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches;
+    const isMobile = window.matchMedia('(max-width: 640px)').matches;
     if (!isMobile) {
       requestAnimationFrame(() => inputRef.current?.focus());
     }
@@ -124,6 +145,27 @@ export function JumpToPicker({ mode, layoutSlug = 'madani_15' }: Props): ReactNo
       );
     });
   }, [surahs, filter]);
+
+  // Keep refs to filtered list + length for the global keydown handler
+  // (registered once per `open`); without these the handler would close
+  // over a stale `filtered` reference and arrow nav would freeze.
+  const filteredRef = useRef<readonly SurahMeta[]>(filtered);
+  const filteredLenRef = useRef(filtered.length);
+  filteredRef.current = filtered;
+  filteredLenRef.current = filtered.length;
+
+  // Reset active index whenever the visible filter set changes
+  useEffect(() => {
+    setActiveIdx(0);
+  }, [filter, surahs]);
+
+  // Scroll the active surah into view when arrow keys move it
+  useEffect(() => {
+    const container = listRef.current;
+    if (!container) return;
+    const item = container.querySelector<HTMLLIElement>(`li[data-idx="${activeIdx.toString()}"]`);
+    if (item) item.scrollIntoView({ block: 'nearest' });
+  }, [activeIdx]);
 
   function go(targetSurah: number, targetAyah: number): void {
     const vk = `${targetSurah.toString()}:${targetAyah.toString()}`;
@@ -249,6 +291,7 @@ export function JumpToPicker({ mode, layoutSlug = 'madani_15' }: Props): ReactNo
                   />
                 </div>
                 <ul
+                  ref={listRef}
                   className="divide-hairline/60 flex-1 divide-y overflow-y-auto px-2 pb-4 sm:px-3"
                   style={{
                     WebkitOverflowScrolling: 'touch',
@@ -262,8 +305,14 @@ export function JumpToPicker({ mode, layoutSlug = 'madani_15' }: Props): ReactNo
                   {filtered.length === 0 && surahs.length === 0 ? (
                     <li className="text-ink-muted py-6 text-center text-sm italic">Loading…</li>
                   ) : null}
-                  {filtered.map((s) => (
-                    <li key={s.surah} className="flex items-stretch gap-1">
+                  {filtered.map((s, idx) => (
+                    <li
+                      key={s.surah}
+                      data-idx={idx.toString()}
+                      className={`flex items-stretch gap-1 rounded-md ${
+                        idx === activeIdx ? 'ring-leaf/50 bg-paper-100/60 ring-1' : ''
+                      }`}
+                    >
                       {/* Tap surah → navigate immediately to verse 1.
                           The "+verse" pill on the right opens the inline
                           picker for users who want a specific ayah. */}

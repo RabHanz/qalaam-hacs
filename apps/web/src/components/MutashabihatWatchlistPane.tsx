@@ -99,6 +99,12 @@ export async function MutashabihatWatchlistPane({
           );
         })}
       </ul>
+      <a
+        href={`/drill/mutashabihat/${encodeURIComponent(verseKey)}`}
+        className="smallcaps text-leaf hover:bg-leaf hover:text-paper border-leaf mt-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] tracking-widest transition-colors"
+      >
+        Side-by-side drill →
+      </a>
       <p className="mt-3 text-[10px] smallcaps text-ink-muted">{payload.attribution}</p>
     </aside>
   );

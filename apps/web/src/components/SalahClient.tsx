@@ -122,15 +122,18 @@ export function SalahClient(): ReactNode {
   }, []);
 
   // Acquire geolocation on demand. Browser Geolocation API is gated to
-  // secure origins (HTTPS or http://localhost / 127.0.0.1) — when the
-  // page is served over a LAN IP we surface the IP-fallback / manual
-  // entry instead of the confusing "Only secure origins are allowed"
-  // error users were hitting on the dev box.
+  // secure origins (HTTPS, http://localhost, http://127.0.0.1). LAN
+  // hostnames like "onnyx", "onnyx.local", and bare LAN IPs are NOT
+  // treated as secure by browsers — adding them to an allowlist on our
+  // side wouldn't help because window.isSecureContext is the gate. We
+  // surface a clear path-forward instead of the cryptic "Only secure
+  // origins are allowed" error.
   const acquireLocation = useCallback(() => {
     setPermError(null);
     if (typeof window !== 'undefined' && !window.isSecureContext) {
+      const host = window.location.hostname;
       setPermError(
-        'Browser geolocation is blocked outside HTTPS or localhost. Use the IP fallback or manual entry below.',
+        `Browser geolocation is blocked on ${host}. Use the IP fallback or enter coordinates manually below — or open http://localhost:${window.location.port || '3111'} for full geolocation.`,
       );
       return;
     }
@@ -155,27 +158,90 @@ export function SalahClient(): ReactNode {
     );
   }, []);
 
-  // IP-based geolocation fallback (~city-level). Hits ipapi.co's free
-  // tier — no key, ~1k req/day. Privacy: only the user's IP leaves the
-  // device, and only when they tap the button.
+  // IP-based geolocation fallback (~city-level). Tries multiple free
+  // CORS-friendly providers in order — if one is rate-limited or
+  // network-blocked, we fall through to the next. Privacy: only the
+  // user's public IP leaves the device, and only on explicit click.
   const acquireLocationByIp = useCallback(async () => {
     setPermError(null);
-    try {
-      const res = await fetch('https://ipapi.co/json/');
-      if (!res.ok) throw new Error(`ipapi ${res.status.toString()}`);
-      const body = (await res.json()) as { latitude?: number; longitude?: number };
-      if (typeof body.latitude !== 'number' || typeof body.longitude !== 'number') {
-        throw new Error('ipapi returned no coordinates');
-      }
-      const next = { lat: body.latitude, lon: body.longitude };
-      setCoords(next);
+    interface Provider {
+      readonly name: string;
+      readonly url: string;
+      readonly extract: (b: unknown) => { lat: number; lon: number } | null;
+    }
+    const providers: readonly Provider[] = [
+      {
+        name: 'ipapi.co',
+        url: 'https://ipapi.co/json/',
+        extract: (b) => {
+          const x = b as { latitude?: unknown; longitude?: unknown };
+          return typeof x.latitude === 'number' && typeof x.longitude === 'number'
+            ? { lat: x.latitude, lon: x.longitude }
+            : null;
+        },
+      },
+      {
+        name: 'ipwho.is',
+        url: 'https://ipwho.is/',
+        extract: (b) => {
+          const x = b as { latitude?: unknown; longitude?: unknown; success?: unknown };
+          if (x.success === false) return null;
+          return typeof x.latitude === 'number' && typeof x.longitude === 'number'
+            ? { lat: x.latitude, lon: x.longitude }
+            : null;
+        },
+      },
+      {
+        name: 'ipinfo.io',
+        url: 'https://ipinfo.io/json',
+        extract: (b) => {
+          const x = b as { loc?: unknown };
+          if (typeof x.loc !== 'string') return null;
+          const [latStr, lonStr] = x.loc.split(',');
+          const lat = Number.parseFloat(latStr ?? '');
+          const lon = Number.parseFloat(lonStr ?? '');
+          return Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null;
+        },
+      },
+    ];
+    const failures: string[] = [];
+    for (const p of providers) {
       try {
-        window.localStorage.setItem(STORE_LOC, JSON.stringify(next));
-      } catch {
-        /* ignore */
+        const res = await fetch(p.url, { signal: AbortSignal.timeout(5000) });
+        if (!res.ok) {
+          failures.push(`${p.name} HTTP ${res.status.toString()}`);
+          continue;
+        }
+        const body = (await res.json()) as unknown;
+        const coords = p.extract(body);
+        if (!coords) {
+          failures.push(`${p.name} no coords`);
+          continue;
+        }
+        setCoords(coords);
+        try {
+          window.localStorage.setItem(STORE_LOC, JSON.stringify(coords));
+        } catch {
+          /* ignore */
+        }
+        return;
+      } catch (err) {
+        failures.push(`${p.name} ${(err as Error).message}`);
       }
-    } catch (err) {
-      setPermError(`IP lookup failed: ${(err as Error).message}`);
+    }
+    setPermError(`IP lookup failed (${failures.join('; ')}). Enter coordinates manually below.`);
+  }, []);
+
+  // Reset location — clear stored coordinates so the user can pick again.
+  const resetLocation = useCallback(() => {
+    setCoords(null);
+    setTimes(null);
+    setQibla(null);
+    setPermError(null);
+    try {
+      window.localStorage.removeItem(STORE_LOC);
+    } catch {
+      /* ignore */
     }
   }, []);
 
@@ -214,13 +280,19 @@ export function SalahClient(): ReactNode {
     if (!coords) return;
     const cancelled = { v: false };
     void (async () => {
-      const url = new URL(`${apiBase}/v1/prayer-times`);
-      url.searchParams.set('lat', coords.lat.toString());
-      url.searchParams.set('lon', coords.lon.toString());
-      url.searchParams.set('method', method);
-      url.searchParams.set('asr_school', asrSchool);
+      // apiBase is "/api" (relative) on the client, which `new URL()`
+      // can't parse standalone. Compose the query string manually so it
+      // works for both relative ("/api") and absolute (PUBLIC_API_URL)
+      // bases.
+      const params = new URLSearchParams({
+        lat: coords.lat.toString(),
+        lon: coords.lon.toString(),
+        method,
+        asr_school: asrSchool,
+      });
+      const url = `${apiBase}/v1/prayer-times?${params.toString()}`;
       const [pt, qb, hj] = await Promise.all([
-        fetch(url.toString())
+        fetch(url)
           .then(async (r) => (r.ok ? ((await r.json()) as PrayerTimesResponse) : null))
           .catch(() => null),
         fetch(`${apiBase}/v1/qibla?lat=${coords.lat.toString()}&lon=${coords.lon.toString()}`)
@@ -240,28 +312,70 @@ export function SalahClient(): ReactNode {
     };
   }, [coords, method, asrSchool, apiBase]);
 
-  // Compass: subscribe to DeviceOrientationEvent.alpha (rotational angle
-  // from compass north). Safari requires a user-gesture prompt that we
-  // surface as a button.
+  // Compass: subscribe to DeviceOrientationEvent.alpha (rotational
+  // angle from compass north). The API is gnarly across browsers:
+  //   - iOS Safari: needs requestPermission() + HTTPS + user gesture
+  //   - Android Chrome: works without permission but emits 0 if device
+  //     lacks magnetometer; needs HTTPS (insecure context blocks it)
+  //   - Desktop: API exists but events never fire (no sensor)
+  //   - SSR: DeviceOrientationEvent is undefined
+  //
+  // We expose three states via `compassStatus`:
+  //   "idle"        — user hasn't tapped yet
+  //   "unavailable" — API missing OR insecure origin OR no events after 3s
+  //   "denied"      — iOS user denied permission
+  //   "active"      — events firing
+  const [compassStatus, setCompassStatus] = useState<'idle' | 'unavailable' | 'denied' | 'active'>(
+    'idle',
+  );
+  const [manualQiblaOffset, setManualQiblaOffset] = useState(0);
   const enableCompass = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    if (typeof window.DeviceOrientationEvent === 'undefined') {
+      setCompassStatus('unavailable');
+      return;
+    }
+    if (!window.isSecureContext) {
+      // Most browsers block the sensor outside HTTPS/localhost. Surface
+      // the manual-rotation fallback rather than silently failing.
+      setCompassStatus('unavailable');
+      return;
+    }
     interface OrientationEventClass {
       requestPermission?: () => Promise<'granted' | 'denied'>;
     }
-    const D = DeviceOrientationEvent as unknown as OrientationEventClass;
+    const D = window.DeviceOrientationEvent as unknown as OrientationEventClass;
+    let firstEventTimer: number | null = null;
+    const onOrientation = (e: DeviceOrientationEvent): void => {
+      const alpha = e.alpha;
+      if (typeof alpha === 'number') {
+        setDeviceHeading(alpha);
+        setCompassStatus('active');
+        if (firstEventTimer !== null) {
+          window.clearTimeout(firstEventTimer);
+          firstEventTimer = null;
+        }
+      }
+    };
     const subscribe = (): void => {
-      window.addEventListener(
-        'deviceorientation',
-        (e) => {
-          const alpha = e.alpha;
-          if (typeof alpha === 'number') setDeviceHeading(alpha);
-        },
-        true,
-      );
+      // Mark unavailable if no event fires within 3 seconds — typical
+      // signal that the device has no magnetometer.
+      firstEventTimer = window.setTimeout(() => {
+        setCompassStatus('unavailable');
+        window.removeEventListener('deviceorientation', onOrientation, true);
+      }, 3000);
+      window.addEventListener('deviceorientation', onOrientation, true);
     };
     if (typeof D.requestPermission === 'function') {
-      void D.requestPermission().then((res) => {
-        if (res === 'granted') subscribe();
-      });
+      void D.requestPermission().then(
+        (res) => {
+          if (res === 'granted') subscribe();
+          else setCompassStatus('denied');
+        },
+        () => {
+          setCompassStatus('unavailable');
+        },
+      );
     } else {
       subscribe();
     }
@@ -444,6 +558,38 @@ export function SalahClient(): ReactNode {
               );
             })}
           </ul>
+          {/* Location strip — shows current coords + a Change/Refresh
+              button so the user can re-pick without reloading. */}
+          {coords ? (
+            <div className="border-hairline mt-4 flex flex-wrap items-baseline justify-between gap-3 border-t pt-3">
+              <p className="text-ink-muted/80 text-[11px]">
+                <span className="smallcaps text-leaf tracking-widest">Location</span>{' '}
+                <span className="font-mono tabular-nums">
+                  {coords.lat.toFixed(3)}, {coords.lon.toFixed(3)}
+                </span>
+              </p>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    void acquireLocationByIp();
+                  }}
+                  className="text-ink-muted/80 hover:text-leaf smallcaps text-[10px] tracking-widest"
+                  title="Refresh from IP"
+                >
+                  Refresh
+                </button>
+                <span className="text-ink-muted/40">·</span>
+                <button
+                  type="button"
+                  onClick={resetLocation}
+                  className="text-ink-muted/80 hover:text-leaf smallcaps text-[10px] tracking-widest"
+                >
+                  Change
+                </button>
+              </div>
+            </div>
+          ) : null}
           <div className="mt-4 flex flex-wrap items-baseline justify-between gap-3">
             <div className="flex flex-wrap items-baseline gap-3">
               <label className="smallcaps text-ink-muted text-[10px] tracking-widest">
@@ -522,7 +668,7 @@ export function SalahClient(): ReactNode {
               style={{
                 width: '4px',
                 height: '45%',
-                transform: `translate(-50%, -100%) rotate(${(qibla.bearingDegrees - (deviceHeading ?? 0)).toString()}deg)`,
+                transform: `translate(-50%, -100%) rotate(${(qibla.bearingDegrees - (deviceHeading ?? 0) + manualQiblaOffset).toString()}deg)`,
                 transformOrigin: 'bottom center',
                 background: 'linear-gradient(to top, transparent, var(--color-leaf-500))',
                 transition: 'transform 200ms ease',
@@ -539,7 +685,8 @@ export function SalahClient(): ReactNode {
           <p className="smallcaps text-ink-muted mt-4 text-[11px] tracking-widest">
             {qibla.bearingDegrees.toFixed(1)}° · {qibla.bearingCompass}
           </p>
-          {deviceHeading === null ? (
+          {/* Compass control surface — three-mode UI. */}
+          {compassStatus === 'idle' && deviceHeading === null ? (
             <button
               type="button"
               onClick={enableCompass}
@@ -547,6 +694,43 @@ export function SalahClient(): ReactNode {
             >
               Use device compass
             </button>
+          ) : null}
+          {compassStatus === 'denied' ? (
+            <p className="text-ink-muted mt-3 text-xs italic">
+              Compass permission denied. Use the manual rotation slider below.
+            </p>
+          ) : null}
+          {compassStatus === 'unavailable' ? (
+            <p className="text-ink-muted mx-auto mt-3 max-w-xs text-xs italic">
+              Device compass not available here (desktop, insecure origin, or no magnetometer). The
+              needle below points to absolute compass bearing — face that direction with a real
+              compass, or use the slider.
+            </p>
+          ) : null}
+          {compassStatus === 'active' ? (
+            <p className="text-leaf smallcaps mt-3 text-[10px] tracking-widest">
+              Compass active · device heading {deviceHeading?.toFixed(0) ?? '?'}°
+            </p>
+          ) : null}
+          {/* Manual offset slider — always available. Useful when the
+              compass is unavailable, or to nudge the needle if the
+              device's magnetometer is calibrated wrong. */}
+          {compassStatus !== 'active' ? (
+            <div className="mt-4">
+              <label className="smallcaps text-ink-muted text-[10px] tracking-widest">
+                Manual rotation
+                <input
+                  type="range"
+                  min={0}
+                  max={360}
+                  value={manualQiblaOffset}
+                  onChange={(e) => {
+                    setManualQiblaOffset(Number(e.target.value));
+                  }}
+                  className="mx-auto mt-2 block w-full max-w-xs"
+                />
+              </label>
+            </div>
           ) : null}
         </section>
       ) : null}

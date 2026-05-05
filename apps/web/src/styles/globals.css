@@ -64,7 +64,9 @@
    * Fonts, full Quranic glyph support, 1 weight only) → Noto Naskh
    * Arabic (Google Fonts, 4 weights, robust fallback) → system serif.
    */
-  --font-arabic: 'KFGQPC HAFS Uthmanic Script V2', 'Amiri Quran', 'Noto Naskh Arabic', 'Scheherazade New', 'Amiri', serif;
+  --font-arabic:
+    'KFGQPC HAFS Uthmanic Script V2', 'Amiri Quran', 'Noto Naskh Arabic', 'Scheherazade New',
+    'Amiri', serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
 
@@ -76,15 +78,15 @@
  * Dark mode:     ink-900 page, paper-50 text, brighter gold.
  */
 :root {
-  --c-bg: #fbf9f4;            /* page */
-  --c-bg-soft: #f3eee2;       /* slight inset / nav */
-  --c-bg-deep: #e8dfc8;       /* hairlines */
-  --c-surface: #ffffff;       /* raised cards */
-  --c-text: #103840;          /* body text */
-  --c-text-strong: #04181d;   /* primary headings, Arabic */
-  --c-text-muted: #4d7e8a;    /* captions, meta */
-  --c-accent: #c69426;        /* gold */
-  --c-accent-soft: #e2b46a;   /* gold tints */
+  --c-bg: #fbf9f4; /* page */
+  --c-bg-soft: #f3eee2; /* slight inset / nav */
+  --c-bg-deep: #e8dfc8; /* hairlines */
+  --c-surface: #ffffff; /* raised cards */
+  --c-text: #103840; /* body text */
+  --c-text-strong: #04181d; /* primary headings, Arabic */
+  --c-text-muted: #4d7e8a; /* captions, meta */
+  --c-accent: #c69426; /* gold */
+  --c-accent-soft: #e2b46a; /* gold tints */
   --c-rule: rgba(16, 56, 64, 0.14);
   --c-rule-strong: rgba(16, 56, 64, 0.22);
   --c-shadow: rgba(4, 24, 29, 0.07);
@@ -114,8 +116,8 @@
   --c-text-muted: #92a8ae;
   --c-accent: #e8c478;
   --c-accent-soft: #d6a657;
-  --c-rule: rgba(255, 255, 255, 0.10);
-  --c-rule-strong: rgba(255, 255, 255, 0.20);
+  --c-rule: rgba(255, 255, 255, 0.1);
+  --c-rule-strong: rgba(255, 255, 255, 0.2);
   --c-shadow: rgba(0, 0, 0, 0.36);
   --c-shadow-strong: rgba(0, 0, 0, 0.55);
 }
@@ -150,7 +152,12 @@
     overflow-x: hidden;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-display);
     font-weight: 400;
     letter-spacing: -0.01em;
@@ -171,7 +178,9 @@
    * against cream backgrounds. We use 500 globally and 600 on the
    * largest verse settings (handled inline). Noto Naskh has 400-700.
    */
-  .font-arabic { font-weight: 500; }
+  .font-arabic {
+    font-weight: 500;
+  }
 
   ::selection {
     background: color-mix(in srgb, var(--c-accent) 28%, transparent);
@@ -186,7 +195,7 @@
 
   .smallcaps {
     font-variant-caps: all-small-caps;
-    letter-spacing: 0.10em;
+    letter-spacing: 0.1em;
     font-weight: 500;
   }
 
@@ -209,19 +218,29 @@
       transparent 100%
     );
     background-size: 200% 100%;
-    animation: paper-fade 2.4s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
+    animation: paper-fade 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
     border-radius: 2px;
   }
   @keyframes paper-fade {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
-    .skeleton { animation: none; }
+    .skeleton {
+      animation: none;
+    }
   }
 
-  .rule-hairline { border-top: 1px solid var(--c-rule); }
-  .rule-medium { border-top: 1px solid var(--c-rule-strong); }
+  .rule-hairline {
+    border-top: 1px solid var(--c-rule);
+  }
+  .rule-medium {
+    border-top: 1px solid var(--c-rule-strong);
+  }
 
   .pull-quote {
     font-family: var(--font-display);
@@ -238,8 +257,16 @@
   .paper-texture {
     background-color: var(--c-bg);
     background-image:
-      radial-gradient(at 18% 8%, color-mix(in srgb, var(--c-accent-soft) 9%, transparent) 0%, transparent 50%),
-      radial-gradient(at 82% 92%, color-mix(in srgb, var(--c-accent) 6%, transparent) 0%, transparent 55%);
+      radial-gradient(
+        at 18% 8%,
+        color-mix(in srgb, var(--c-accent-soft) 9%, transparent) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        at 82% 92%,
+        color-mix(in srgb, var(--c-accent) 6%, transparent) 0%,
+        transparent 55%
+      );
   }
 
   /* Cards */
@@ -258,8 +285,9 @@
     background: var(--c-surface);
     border: 1px solid var(--c-rule);
     border-radius: 8px;
-    box-shadow: 0 12px 32px -16px var(--c-shadow-strong),
-                0 1px 2px var(--c-shadow);
+    box-shadow:
+      0 12px 32px -16px var(--c-shadow-strong),
+      0 1px 2px var(--c-shadow);
   }
 
   .rosette {
@@ -275,35 +303,77 @@
 }
 
 @layer utilities {
-  .font-display { font-family: var(--font-display); }
-  .font-sans { font-family: var(--font-sans); }
-  .font-arabic { font-family: var(--font-arabic); }
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .font-sans {
+    font-family: var(--font-sans);
+  }
+  .font-arabic {
+    font-family: var(--font-arabic);
+  }
 
   /* Semantic color utilities — flip in dark mode automatically. */
-  .text-ink { color: var(--c-text); }
-  .text-ink-strong { color: var(--c-text-strong); }
-  .text-ink-muted { color: var(--c-text-muted); }
-  .text-leaf { color: var(--c-accent); }
-  .text-leaf-soft { color: var(--c-accent-soft); }
+  .text-ink {
+    color: var(--c-text);
+  }
+  .text-ink-strong {
+    color: var(--c-text-strong);
+  }
+  .text-ink-muted {
+    color: var(--c-text-muted);
+  }
+  .text-leaf {
+    color: var(--c-accent);
+  }
+  .text-leaf-soft {
+    color: var(--c-accent-soft);
+  }
 
-  .bg-paper { background: var(--c-bg); }
-  .bg-paper-100 { background: var(--c-bg-soft); }
-  .bg-paper-200 { background: var(--c-bg-deep); }
-  .bg-surface { background: var(--c-surface); }
-  .bg-ink { background: var(--c-text-strong); }
-  .bg-leaf { background: var(--c-accent); }
+  .bg-paper {
+    background: var(--c-bg);
+  }
+  .bg-paper-100 {
+    background: var(--c-bg-soft);
+  }
+  .bg-paper-200 {
+    background: var(--c-bg-deep);
+  }
+  .bg-surface {
+    background: var(--c-surface);
+  }
+  .bg-ink {
+    background: var(--c-text-strong);
+  }
+  .bg-leaf {
+    background: var(--c-accent);
+  }
 
-  .border-hairline { border-color: var(--c-rule); }
-  .border-rule { border-color: var(--c-rule-strong); }
-  .border-leaf { border-color: var(--c-accent); }
+  .border-hairline {
+    border-color: var(--c-rule);
+  }
+  .border-rule {
+    border-color: var(--c-rule-strong);
+  }
+  .border-leaf {
+    border-color: var(--c-accent);
+  }
 
   /* RTL-mirror */
-  [dir='rtl'] .rtl-flip { transform: scaleX(-1); }
+  [dir='rtl'] .rtl-flip {
+    transform: scaleX(-1);
+  }
 
   /* Editorial grid */
-  .grid-editorial { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+  .grid-editorial {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+  }
   @media (min-width: 1024px) {
-    .grid-editorial-3 { grid-template-columns: 1.1fr 1fr 1.4fr; }
+    .grid-editorial-3 {
+      grid-template-columns: 1.1fr 1fr 1.4fr;
+    }
   }
 
   /* Staggered entrance */
@@ -312,29 +382,54 @@
     transform: translateY(8px);
     animation: reveal-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
   }
-  .reveal-1 { animation-delay: 60ms; }
-  .reveal-2 { animation-delay: 120ms; }
-  .reveal-3 { animation-delay: 180ms; }
-  .reveal-4 { animation-delay: 240ms; }
-  .reveal-5 { animation-delay: 300ms; }
+  .reveal-1 {
+    animation-delay: 60ms;
+  }
+  .reveal-2 {
+    animation-delay: 120ms;
+  }
+  .reveal-3 {
+    animation-delay: 180ms;
+  }
+  .reveal-4 {
+    animation-delay: 240ms;
+  }
+  .reveal-5 {
+    animation-delay: 300ms;
+  }
   @keyframes reveal-in {
-    to { opacity: 1; transform: translateY(0); }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   @media (prefers-reduced-motion: reduce) {
-    .reveal, .reveal-1, .reveal-2, .reveal-3, .reveal-4, .reveal-5 {
-      animation: none; opacity: 1; transform: none;
+    .reveal,
+    .reveal-1,
+    .reveal-2,
+    .reveal-3,
+    .reveal-4,
+    .reveal-5 {
+      animation: none;
+      opacity: 1;
+      transform: none;
     }
   }
 
   .hover-rise {
-    transition: transform 220ms cubic-bezier(0.2, 0, 0, 1), box-shadow 220ms;
+    transition:
+      transform 220ms cubic-bezier(0.2, 0, 0, 1),
+      box-shadow 220ms;
   }
   .hover-rise:hover {
     transform: translateY(-1px);
     box-shadow: 0 12px 28px -14px var(--c-shadow-strong);
   }
   @media (prefers-reduced-motion: reduce) {
-    .hover-rise:hover { transform: none; box-shadow: none; }
+    .hover-rise:hover {
+      transform: none;
+      box-shadow: none;
+    }
   }
 
   /* Ayah / page slide transitions — used by SingleAyahView and the
@@ -349,16 +444,31 @@
     animation: slide-in-from-left 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
   @keyframes slide-in-from-right {
-    from { opacity: 0; transform: translate3d(24px, 0, 0); }
-    to   { opacity: 1; transform: translate3d(0, 0, 0); }
+    from {
+      opacity: 0;
+      transform: translate3d(24px, 0, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
   }
   @keyframes slide-in-from-left {
-    from { opacity: 0; transform: translate3d(-24px, 0, 0); }
-    to   { opacity: 1; transform: translate3d(0, 0, 0); }
+    from {
+      opacity: 0;
+      transform: translate3d(-24px, 0, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
   }
   @media (prefers-reduced-motion: reduce) {
-    .slide-in-next, .slide-in-prev {
-      animation: none; opacity: 1; transform: none;
+    .slide-in-next,
+    .slide-in-prev {
+      animation: none;
+      opacity: 1;
+      transform: none;
     }
   }
 
@@ -387,19 +497,30 @@
     margin: 0 0.15em;
     border-radius: 9999px;
     background:
-      radial-gradient(closest-side, color-mix(in srgb, var(--color-leaf-300) 22%, transparent) 0%, transparent 75%),
+      radial-gradient(
+        closest-side,
+        color-mix(in srgb, var(--color-leaf-300) 22%, transparent) 0%,
+        transparent 75%
+      ),
       transparent;
     border: 1.5px solid color-mix(in srgb, var(--color-leaf-500) 70%, transparent);
     color: var(--color-leaf-700);
     vertical-align: -0.4em;
     line-height: 1;
-    transition: background-color 220ms, transform 220ms, border-color 220ms;
+    transition:
+      background-color 220ms,
+      transform 220ms,
+      border-color 220ms;
     text-decoration: none;
     flex-shrink: 0;
   }
   .ayah-rosette:hover {
     background:
-      radial-gradient(closest-side, color-mix(in srgb, var(--color-leaf-300) 36%, transparent) 0%, transparent 75%),
+      radial-gradient(
+        closest-side,
+        color-mix(in srgb, var(--color-leaf-300) 36%, transparent) 0%,
+        transparent 75%
+      ),
       var(--color-paper-100);
     border-color: var(--color-leaf-500);
     transform: scale(1.04);
@@ -411,16 +532,20 @@
     line-height: 1;
     letter-spacing: 0;
   }
-  :root[data-theme="dark"] .ayah-rosette {
+  :root[data-theme='dark'] .ayah-rosette {
     border-color: color-mix(in srgb, var(--color-leaf-300) 60%, transparent);
     color: var(--color-leaf-300);
   }
-  :root[data-theme="dark"] .ayah-rosette-num {
+  :root[data-theme='dark'] .ayah-rosette-num {
     color: var(--color-leaf-300);
   }
   @media (prefers-reduced-motion: reduce) {
-    .ayah-rosette { transition: none; }
-    .ayah-rosette:hover { transform: none; }
+    .ayah-rosette {
+      transition: none;
+    }
+    .ayah-rosette:hover {
+      transform: none;
+    }
   }
 
   /* Mushaf justification — KFGQPC pages use full justification with
@@ -439,10 +564,12 @@
    * enhancements on top of authentic glyphs. */
 
   /* madani_15 (KFGQPC v2) — default treatment, no extra tweak */
-  .mushaf-layout-v2 { /* baseline */ }
+  .mushaf-layout-v2 {
+    /* baseline */
+  }
 
   /* kfgqpc_v1 — visibly heavier, tighter density via word-spacing */
-  .mushaf-layout-v1 [dir="rtl"] {
+  .mushaf-layout-v1 [dir='rtl'] {
     word-spacing: -0.06em;
   }
   .mushaf-layout-v1 .ayah-rosette {
@@ -462,21 +589,28 @@
   a.recite-highlight * {
     color: var(--color-leaf-500) !important;
     background-color: transparent !important;
-    text-shadow: 0 0 0.35em color-mix(in srgb, var(--color-leaf-300) 70%, transparent),
-                 0 0 0.15em color-mix(in srgb, var(--color-leaf-500) 50%, transparent);
-    transition: color 80ms ease-out, text-shadow 80ms ease-out;
+    text-shadow:
+      0 0 0.35em color-mix(in srgb, var(--color-leaf-300) 70%, transparent),
+      0 0 0.15em color-mix(in srgb, var(--color-leaf-500) 50%, transparent);
+    transition:
+      color 80ms ease-out,
+      text-shadow 80ms ease-out;
   }
-  :root[data-theme="dark"] .recite-highlight,
-  :root[data-theme="dark"] .recite-highlight *,
-  :root[data-theme="dark"] a.recite-highlight,
-  :root[data-theme="dark"] a.recite-highlight * {
+  :root[data-theme='dark'] .recite-highlight,
+  :root[data-theme='dark'] .recite-highlight *,
+  :root[data-theme='dark'] a.recite-highlight,
+  :root[data-theme='dark'] a.recite-highlight * {
     color: var(--color-leaf-300) !important;
     background-color: transparent !important;
-    text-shadow: 0 0 0.4em color-mix(in srgb, var(--color-leaf-500) 75%, transparent),
-                 0 0 0.18em color-mix(in srgb, var(--color-leaf-300) 60%, transparent);
+    text-shadow:
+      0 0 0.4em color-mix(in srgb, var(--color-leaf-500) 75%, transparent),
+      0 0 0.18em color-mix(in srgb, var(--color-leaf-300) 60%, transparent);
   }
   @media (prefers-reduced-motion: reduce) {
-    .recite-highlight, .recite-highlight * { transition: none; }
+    .recite-highlight,
+    .recite-highlight * {
+      transition: none;
+    }
   }
 
   /* Word-by-word morphology POS chips — semantic color groups inspired
@@ -496,34 +630,70 @@
     border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
     background: color-mix(in srgb, currentColor 5%, transparent);
     cursor: pointer;
-    transition: background-color 160ms ease-out, border-color 160ms ease-out;
+    transition:
+      background-color 160ms ease-out,
+      border-color 160ms ease-out;
     line-height: 1.2;
   }
-  .pos-chip:hover, .pos-chip-open {
+  .pos-chip:hover,
+  .pos-chip-open {
     background: color-mix(in srgb, currentColor 16%, transparent);
     border-color: color-mix(in srgb, currentColor 60%, transparent);
   }
-  .pos-verb     { color: #c0392b; }       /* red */
-  .pos-noun     { color: #1e7a8a; }       /* teal */
-  .pos-adj      { color: #4f80a4; }       /* steel blue */
-  .pos-pronoun  { color: #6e4caf; }       /* violet */
-  .pos-particle { color: #6b6b6b; }       /* gray */
-  .pos-det      { color: #8a6d3b; }       /* warm gray */
-  .pos-neg      { color: #b04194; }       /* magenta */
-  .pos-other    { color: #6b6b6b; }
-  :root[data-theme="dark"] .pos-verb     { color: #ff7763; }
-  :root[data-theme="dark"] .pos-noun     { color: #4fc6d8; }
-  :root[data-theme="dark"] .pos-adj      { color: #7eb6da; }
-  :root[data-theme="dark"] .pos-pronoun  { color: #c89bff; }
-  :root[data-theme="dark"] .pos-particle { color: #b8b8b8; }
-  :root[data-theme="dark"] .pos-det      { color: #d4b07b; }
-  :root[data-theme="dark"] .pos-neg      { color: #e08fcc; }
-  :root[data-theme="dark"] .pos-other    { color: #b8b8b8; }
+  .pos-verb {
+    color: #c0392b;
+  } /* red */
+  .pos-noun {
+    color: #1e7a8a;
+  } /* teal */
+  .pos-adj {
+    color: #4f80a4;
+  } /* steel blue */
+  .pos-pronoun {
+    color: #6e4caf;
+  } /* violet */
+  .pos-particle {
+    color: #6b6b6b;
+  } /* gray */
+  .pos-det {
+    color: #8a6d3b;
+  } /* warm gray */
+  .pos-neg {
+    color: #b04194;
+  } /* magenta */
+  .pos-other {
+    color: #6b6b6b;
+  }
+  :root[data-theme='dark'] .pos-verb {
+    color: #ff7763;
+  }
+  :root[data-theme='dark'] .pos-noun {
+    color: #4fc6d8;
+  }
+  :root[data-theme='dark'] .pos-adj {
+    color: #7eb6da;
+  }
+  :root[data-theme='dark'] .pos-pronoun {
+    color: #c89bff;
+  }
+  :root[data-theme='dark'] .pos-particle {
+    color: #b8b8b8;
+  }
+  :root[data-theme='dark'] .pos-det {
+    color: #d4b07b;
+  }
+  :root[data-theme='dark'] .pos-neg {
+    color: #e08fcc;
+  }
+  :root[data-theme='dark'] .pos-other {
+    color: #b8b8b8;
+  }
 
   /* Hifz-check word states (browser-side recite-and-check). */
   .recite-matched {
     color: var(--color-mistake-correct, #2e7d4f);
-    text-shadow: 0 0 0.18em color-mix(in srgb, var(--color-mistake-correct, #2e7d4f) 35%, transparent);
+    text-shadow: 0 0 0.18em
+      color-mix(in srgb, var(--color-mistake-correct, #2e7d4f) 35%, transparent);
   }
   .recite-mismatch {
     color: var(--color-mistake-error, #c0392b);
@@ -548,13 +718,15 @@
   .mushaf-word {
     color: inherit;
     text-decoration: none;
-    transition: color 160ms ease-out, text-shadow 160ms ease-out;
+    transition:
+      color 160ms ease-out,
+      text-shadow 160ms ease-out;
   }
   .mushaf-word:hover {
     color: var(--color-leaf-500);
     text-shadow: 0 0 0.25em color-mix(in srgb, var(--color-leaf-300) 50%, transparent);
   }
-  :root[data-theme="dark"] .mushaf-word:hover {
+  :root[data-theme='dark'] .mushaf-word:hover {
     color: var(--color-leaf-300);
     text-shadow: 0 0 0.3em color-mix(in srgb, var(--color-leaf-500) 60%, transparent);
   }
@@ -579,7 +751,9 @@
   /* Inside the v4 tajweed layout the rule may also tag the silent
    * mark — keep it neutral regardless of rule color. */
   .mushaf-layout-tajweed .silent-mark,
-  .mushaf-layout-tajweed .tajweed-silent { color: #909090; }
+  .mushaf-layout-tajweed .tajweed-silent {
+    color: #909090;
+  }
 
   /* Tajweed palette — annotation-driven (cpfair/quran-tajweed MIT).
    * 18 rules from the source dataset, mapped to the Quran.com /
@@ -597,42 +771,141 @@
    *   Ikhfa family (concealment)                                → teal
    *   Iqlab (lip conversion)                                    → magenta
    */
-  .tajweed-ghunnah               { color: #2e7d4f; } /* green */
-  .tajweed-idghaam_ghunnah       { color: #2e7d4f; }
-  .tajweed-idghaam_no_ghunnah    { color: #4f80a4; } /* steel blue */
-  .tajweed-idghaam_shafawi       { color: #4f80a4; }
-  .tajweed-idghaam_mutajanisayn  { color: #4f80a4; }
-  .tajweed-idghaam_mutaqaribayn  { color: #4f80a4; }
-  .tajweed-ikhfa                 { color: #1e7a8a; } /* teal */
-  .tajweed-ikhfa_shafawi         { color: #1e7a8a; }
-  .tajweed-iqlab                 { color: #b04194; } /* magenta */
-  .tajweed-qalqalah              { color: #c0392b; } /* red */
-  .tajweed-madd_2                { color: #d97706; } /* orange — 2 harakat */
-  .tajweed-madd_246              { color: #d97706; }
-  .tajweed-madd_6                { color: #c0392b; } /* red — required 6 harakat */
-  .tajweed-madd_munfasil         { color: #d97706; }
-  .tajweed-madd_muttasil         { color: #c0392b; }
-  .tajweed-hamzat_wasl           { color: #909090; } /* grey */
-  .tajweed-silent                { color: #909090; }
-  .tajweed-lam_shamsiyyah        { color: #b8b8b8; }
+  .tajweed-ghunnah {
+    color: #2e7d4f;
+  } /* green */
+  .tajweed-idghaam_ghunnah {
+    color: #2e7d4f;
+  }
+  .tajweed-idghaam_no_ghunnah {
+    color: #4f80a4;
+  } /* steel blue */
+  .tajweed-idghaam_shafawi {
+    color: #4f80a4;
+  }
+  .tajweed-idghaam_mutajanisayn {
+    color: #4f80a4;
+  }
+  .tajweed-idghaam_mutaqaribayn {
+    color: #4f80a4;
+  }
+  .tajweed-ikhfa {
+    color: #1e7a8a;
+  } /* teal */
+  .tajweed-ikhfa_shafawi {
+    color: #1e7a8a;
+  }
+  .tajweed-iqlab {
+    color: #b04194;
+  } /* magenta */
+  .tajweed-qalqalah {
+    color: #c0392b;
+  } /* red */
+  .tajweed-madd_2 {
+    color: #d97706;
+  } /* orange — 2 harakat */
+  .tajweed-madd_246 {
+    color: #d97706;
+  }
+  .tajweed-madd_6 {
+    color: #c0392b;
+  } /* red — required 6 harakat */
+  .tajweed-madd_munfasil {
+    color: #d97706;
+  }
+  .tajweed-madd_muttasil {
+    color: #c0392b;
+  }
+  .tajweed-hamzat_wasl {
+    color: #909090;
+  } /* grey */
+  .tajweed-silent {
+    color: #909090;
+  }
+  .tajweed-lam_shamsiyyah {
+    color: #b8b8b8;
+  }
 
   /* Dark-mode contrast tweaks */
-  :root[data-theme="dark"] .tajweed-ghunnah,
-  :root[data-theme="dark"] .tajweed-idghaam_ghunnah          { color: #5fc28a; }
-  :root[data-theme="dark"] .tajweed-idghaam_no_ghunnah,
-  :root[data-theme="dark"] .tajweed-idghaam_shafawi,
-  :root[data-theme="dark"] .tajweed-idghaam_mutajanisayn,
-  :root[data-theme="dark"] .tajweed-idghaam_mutaqaribayn      { color: #7eb6da; }
-  :root[data-theme="dark"] .tajweed-ikhfa,
-  :root[data-theme="dark"] .tajweed-ikhfa_shafawi             { color: #4fc6d8; }
-  :root[data-theme="dark"] .tajweed-iqlab                     { color: #e08fcc; }
-  :root[data-theme="dark"] .tajweed-qalqalah,
-  :root[data-theme="dark"] .tajweed-madd_6,
-  :root[data-theme="dark"] .tajweed-madd_muttasil             { color: #ff7763; }
-  :root[data-theme="dark"] .tajweed-madd_2,
-  :root[data-theme="dark"] .tajweed-madd_246,
-  :root[data-theme="dark"] .tajweed-madd_munfasil             { color: #ffb454; }
-  :root[data-theme="dark"] .tajweed-hamzat_wasl,
-  :root[data-theme="dark"] .tajweed-silent,
-  :root[data-theme="dark"] .tajweed-lam_shamsiyyah            { color: #b8b8b8; }
+  :root[data-theme='dark'] .tajweed-ghunnah,
+  :root[data-theme='dark'] .tajweed-idghaam_ghunnah {
+    color: #5fc28a;
+  }
+  :root[data-theme='dark'] .tajweed-idghaam_no_ghunnah,
+  :root[data-theme='dark'] .tajweed-idghaam_shafawi,
+  :root[data-theme='dark'] .tajweed-idghaam_mutajanisayn,
+  :root[data-theme='dark'] .tajweed-idghaam_mutaqaribayn {
+    color: #7eb6da;
+  }
+  :root[data-theme='dark'] .tajweed-ikhfa,
+  :root[data-theme='dark'] .tajweed-ikhfa_shafawi {
+    color: #4fc6d8;
+  }
+  :root[data-theme='dark'] .tajweed-iqlab {
+    color: #e08fcc;
+  }
+  :root[data-theme='dark'] .tajweed-qalqalah,
+  :root[data-theme='dark'] .tajweed-madd_6,
+  :root[data-theme='dark'] .tajweed-madd_muttasil {
+    color: #ff7763;
+  }
+  :root[data-theme='dark'] .tajweed-madd_2,
+  :root[data-theme='dark'] .tajweed-madd_246,
+  :root[data-theme='dark'] .tajweed-madd_munfasil {
+    color: #ffb454;
+  }
+  :root[data-theme='dark'] .tajweed-hamzat_wasl,
+  :root[data-theme='dark'] .tajweed-silent,
+  :root[data-theme='dark'] .tajweed-lam_shamsiyyah {
+    color: #b8b8b8;
+  }
+
+  /* Tafsir prose — scholarly tafsirs from QUL ship inline HTML
+     (paragraphs, embedded ayah quotes via .qpc-hafs spans, footnotes).
+     Style block-level structure restrainedly so the markup adds rhythm
+     without clashing with the ink-on-paper aesthetic. */
+  .tafsir-prose p {
+    margin-bottom: 0.85em;
+  }
+  .tafsir-prose p:last-child {
+    margin-bottom: 0;
+  }
+  .tafsir-prose .qpc-hafs,
+  .tafsir-prose span[class*='qpc'] {
+    color: var(--color-leaf, #1b4d5a);
+    font-weight: 600;
+  }
+  :root[data-theme='dark'] .tafsir-prose .qpc-hafs,
+  :root[data-theme='dark'] .tafsir-prose span[class*='qpc'] {
+    color: #6cc1d6;
+  }
+  .tafsir-prose sup,
+  .tafsir-prose sub {
+    font-size: 0.7em;
+    opacity: 0.75;
+  }
+  .tafsir-prose em,
+  .tafsir-prose i {
+    font-style: italic;
+  }
+  .tafsir-prose strong,
+  .tafsir-prose b {
+    font-weight: 700;
+  }
+  .tafsir-prose blockquote {
+    border-inline-start: 2px solid var(--color-leaf, #1b4d5a);
+    padding-inline-start: 0.85em;
+    margin: 0.5em 0;
+    opacity: 0.85;
+  }
+  .tafsir-prose ul,
+  .tafsir-prose ol {
+    padding-inline-start: 1.5em;
+    margin: 0.5em 0;
+  }
+  .tafsir-prose a {
+    color: var(--color-leaf, #1b4d5a);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
 }

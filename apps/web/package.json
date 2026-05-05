@@ -24,6 +24,7 @@
     "@qalaam/ui-learn": "workspace:*",
     "@qalaam/ui-quran": "workspace:*",
     "@qalaam/ui-recite": "workspace:*",
+    "arabic-persian-reshaper": "^1.0.1",
     "babel-plugin-react-compiler": "^1.0.0",
     "next": "^15.1.0",
     "react": "^19.0.0",

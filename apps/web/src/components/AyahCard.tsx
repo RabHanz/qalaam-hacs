@@ -29,6 +29,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
+import { sanitizeHtml } from '../lib/sanitize-html.js';
 
 import type { ReactNode } from 'react';
 
@@ -635,23 +636,26 @@ export function AyahCard({
             <p className="text-ink-muted text-sm italic">Loading…</p>
           ) : tafsir?.text ? (
             tafsir.lang === 'ar' ? (
-              <p
+              <div
                 dir="rtl"
                 lang="ar"
-                className="font-arabic text-ink mx-auto max-w-prose text-base leading-loose sm:text-lg"
+                className="font-arabic tafsir-prose text-ink mx-auto max-w-prose text-base leading-loose sm:text-lg"
                 style={{ unicodeBidi: 'plaintext', fontWeight: 500 }}
-              >
-                {tafsir.text}
-              </p>
+                // Tafsir text from QUL contains scholar-grade markup
+                // (`<span class="qpc-hafs">…</span>` for embedded ayah
+                // quotes, `<p>`, `<sup>` for footnotes). Sanitize
+                // through an allowlist before rendering — see
+                // ../lib/sanitize-html.ts.
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(tafsir.text) }}
+              />
             ) : (
-              <p
+              <div
                 dir="ltr"
                 lang={tafsir.lang || 'en'}
-                className="text-ink mx-auto max-w-prose text-sm leading-relaxed sm:text-base"
+                className="text-ink tafsir-prose mx-auto max-w-prose text-sm leading-relaxed sm:text-base"
                 style={{ fontFamily: 'var(--font-body)' }}
-              >
-                {tafsir.text}
-              </p>
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(tafsir.text) }}
+              />
             )
           ) : (
             <p className="text-ink-muted text-sm italic">Tafsir not available for this ayah yet.</p>

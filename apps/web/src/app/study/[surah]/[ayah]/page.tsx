@@ -291,6 +291,38 @@ async function StudyBody({
   );
 }
 
+// OG metadata — produces the <meta property="og:image"> + Twitter card
+// pointing at our Satori-rendered ayah card so social shares render
+// the verse instead of a generic Qalaam preview.
+export async function generateMetadata({ params }: PageProps): Promise<{
+  title: string;
+  description: string;
+  openGraph: { title: string; description: string; images: string[]; type: 'article' };
+  twitter: { card: 'summary_large_image'; title: string; description: string; images: string[] };
+}> {
+  const { surah, ayah } = await params;
+  const verseKey = `${surah}:${ayah}`;
+  const ogUrl = `/og/ayah/${encodeURIComponent(verseKey)}`;
+  const title = `${verseKey} · Qalaam`;
+  const description = `Read, listen, and study verse ${verseKey} of the Holy Quran with translations, tafsir, and word-by-word grammar.`;
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [ogUrl],
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogUrl],
+    },
+  };
+}
+
 export default async function StudyPage({ params }: PageProps): Promise<ReactNode> {
   const { surah, ayah } = await params;
   const surahNumber = Number.parseInt(surah, 10);

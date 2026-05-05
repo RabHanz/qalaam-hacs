@@ -18,9 +18,10 @@
  * Reduced-motion-aware. Dark-mode AA contrast.
  */
 import { useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
+
+import type { ReactNode } from 'react';
 
 interface ApiToken {
   readonly tokenIndex: number;
@@ -113,7 +114,8 @@ function posClass(tag: string): string {
   if (tag === 'N' || tag === 'PN') return 'pos-noun';
   if (tag === 'ADJ') return 'pos-adj';
   if (tag === 'PRON' || tag === 'REL' || tag === 'DEM') return 'pos-pronoun';
-  if (tag === 'P' || tag === 'CONJ' || tag === 'SUB' || tag === 'REM' || tag === 'CIRC') return 'pos-particle';
+  if (tag === 'P' || tag === 'CONJ' || tag === 'SUB' || tag === 'REM' || tag === 'CIRC')
+    return 'pos-particle';
   if (tag === 'DET') return 'pos-det';
   if (tag === 'NEG' || tag === 'PRO') return 'pos-neg';
   return 'pos-other';
@@ -127,6 +129,51 @@ function lemmaDisplay(lemma: string): string {
   return lemma.replace(/^\{/, '').replace(/[~`]/g, '');
 }
 
+/**
+ * I'rab feature-key → human-readable label. The corpus encodes case,
+ * gender, number, definiteness, mood, voice etc. as terse abbreviations
+ * (MS, GEN, NOM, FS…). Students learning Arabic grammar need to see the
+ * full label or they can't read the chip.
+ */
+const FEATURE_LABEL: Record<string, string> = {
+  // Case
+  NOM: 'nominative · مرفوع',
+  ACC: 'accusative · منصوب',
+  GEN: 'genitive · مجرور',
+  // Gender + number
+  M: 'masculine',
+  F: 'feminine',
+  MS: 'masc · sing',
+  FS: 'fem · sing',
+  MD: 'masc · dual',
+  FD: 'fem · dual',
+  MP: 'masc · plural',
+  FP: 'fem · plural',
+  // Verbal mood + voice + form
+  MOOD_IND: 'indicative · مرفوع',
+  MOOD_SUB: 'subjunctive · منصوب',
+  MOOD_JUS: 'jussive · مجزوم',
+  ACT: 'active voice',
+  PASS: 'passive voice',
+  // Person
+  '1ST': '1st person',
+  '2ND': '2nd person',
+  '3RD': '3rd person',
+  // Definiteness
+  DEF: 'definite (al-)',
+  INDEF: 'indefinite',
+  // Verb tense / aspect
+  PERF: 'perfect tense',
+  IMPF: 'imperfect tense',
+  IMPV: 'imperative',
+};
+
+function featureChipLabel(key: string, value: unknown): string {
+  if (FEATURE_LABEL[key]) return FEATURE_LABEL[key];
+  if (typeof value === 'boolean') return key;
+  return `${key}:${String(value)}`;
+}
+
 interface Props {
   readonly verseKey: string;
 }
@@ -138,38 +185,42 @@ export function MorphologyPane({ verseKey }: Props): ReactNode {
   const [expanded, setExpanded] = useState<string | null>(null); // "wordIdx-tokenIdx"
 
   useEffect(() => {
-    let cancelled = false;
+    // Use a boxed flag so the closure sees the same reference TypeScript
+    // knows can be mutated (raw `let` flips to "always falsy" in strict
+    // narrowing because the assignment happens via the cleanup callback,
+    // not the async body).
+    const cancelled = { v: false };
     setLoading(true);
     setError(null);
     void (async () => {
       try {
-        const res = await fetch(`${resolveApiBase()}/v1/morphology/${encodeURIComponent(verseKey)}`);
+        const res = await fetch(
+          `${resolveApiBase()}/v1/morphology/${encodeURIComponent(verseKey)}`,
+        );
         if (!res.ok) {
           throw new Error(`HTTP ${res.status.toString()}`);
         }
         const body = (await res.json()) as ApiResponse;
-        if (!cancelled) setData(body);
+        if (!cancelled.v) setData(body);
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'unknown');
+        if (!cancelled.v) setError(err instanceof Error ? err.message : 'unknown');
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled.v) setLoading(false);
       }
     })();
     return () => {
-      cancelled = true;
+      cancelled.v = true;
     };
   }, [verseKey]);
 
   if (loading) {
-    return (
-      <div className="text-sm text-ink-muted italic">Loading morphology…</div>
-    );
+    return <div className="text-ink-muted text-sm italic">Loading morphology…</div>;
   }
   if (error) {
-    return <p className="text-sm text-ink-muted italic">Morphology unavailable ({error}).</p>;
+    return <p className="text-ink-muted text-sm italic">Morphology unavailable ({error}).</p>;
   }
   if (!data || data.words.length === 0) {
-    return <p className="text-sm text-ink-muted italic">No morphology data for {verseKey}.</p>;
+    return <p className="text-ink-muted text-sm italic">No morphology data for {verseKey}.</p>;
   }
 
   return (
@@ -177,20 +228,20 @@ export function MorphologyPane({ verseKey }: Props): ReactNode {
       <ol
         dir="rtl"
         lang="ar"
-        className="flex flex-wrap-reverse gap-3 list-none p-0 m-0 justify-center"
+        className="m-0 flex list-none flex-wrap justify-center gap-3 p-0"
         style={{ unicodeBidi: 'plaintext' }}
       >
         {data.words.map((w) => (
           <li
             key={w.wordIndex}
-            className="paper-card hover-rise px-3 py-3 sm:px-4 sm:py-4 min-w-[5.5rem] flex flex-col items-center gap-1.5"
+            className="paper-card hover-rise flex min-w-[5.5rem] flex-col items-center gap-1.5 px-3 py-3 sm:px-4 sm:py-4"
           >
             {/* Combined Arabic word — concatenated tokens (prefix +
                 stem + suffix) so the user sees the natural mushaf word. */}
             <p
               dir="rtl"
               lang="ar"
-              className="text-ink-strong leading-tight text-center"
+              className="text-ink-strong text-center leading-tight"
               style={{
                 fontFamily: '"UthmanicHafs", "Amiri Quran", "Noto Naskh Arabic", serif',
                 fontSize: 'clamp(1.6rem, 1.2rem + 1.4vw, 2.3rem)',
@@ -202,7 +253,7 @@ export function MorphologyPane({ verseKey }: Props): ReactNode {
             </p>
 
             {/* Per-token chips */}
-            <div className="flex flex-wrap-reverse justify-center gap-1 mt-1.5">
+            <div className="mt-1.5 flex flex-wrap justify-center gap-1">
               {w.tokens.map((t) => {
                 const key = `${w.wordIndex.toString()}-${t.tokenIndex.toString()}`;
                 const isOpen = expanded === key;
@@ -210,7 +261,9 @@ export function MorphologyPane({ verseKey }: Props): ReactNode {
                   <button
                     key={key}
                     type="button"
-                    onClick={() => setExpanded(isOpen ? null : key)}
+                    onClick={() => {
+                      setExpanded(isOpen ? null : key);
+                    }}
                     className={`pos-chip ${posClass(t.tag)} ${isOpen ? 'pos-chip-open' : ''}`}
                     title={POS_LABEL[t.tag] ?? t.tag}
                     aria-expanded={isOpen}
@@ -224,21 +277,31 @@ export function MorphologyPane({ verseKey }: Props): ReactNode {
             {/* Expanded detail panel for the active token */}
             {expanded?.startsWith(`${w.wordIndex.toString()}-`)
               ? w.tokens
-                  .filter((t) => `${w.wordIndex.toString()}-${t.tokenIndex.toString()}` === expanded)
+                  .filter(
+                    (t) => `${w.wordIndex.toString()}-${t.tokenIndex.toString()}` === expanded,
+                  )
                   .map((t) => (
                     <div
                       key={`${t.tokenIndex.toString()}-detail`}
                       dir="ltr"
-                      className="mt-2 w-full text-left text-[11px] text-ink-muted leading-relaxed border-t border-hairline pt-2"
+                      className="text-ink-muted border-hairline mt-2 w-full border-t pt-2 text-left text-[11px] leading-relaxed"
                     >
-                      <p className="smallcaps text-leaf text-[10px] tracking-widest mb-1">
+                      <p className="smallcaps text-leaf mb-1 text-[10px] tracking-widest">
                         {POS_LABEL[t.tag] ?? t.tag}
-                        {t.isPrefix ? ' · prefix' : t.isStem ? ' · stem' : t.isSuffix ? ' · suffix' : ''}
+                        {t.isPrefix
+                          ? ' · prefix'
+                          : t.isStem
+                            ? ' · stem'
+                            : t.isSuffix
+                              ? ' · suffix'
+                              : ''}
                       </p>
                       {t.lemma ? (
                         <p>
                           <span className="text-ink/60">lemma · </span>
-                          <span dir="rtl" className="font-arabic text-ink">{lemmaDisplay(t.lemma)}</span>
+                          <span dir="rtl" className="font-arabic text-ink">
+                            {lemmaDisplay(t.lemma)}
+                          </span>
                         </p>
                       ) : null}
                       {t.root ? (
@@ -246,7 +309,7 @@ export function MorphologyPane({ verseKey }: Props): ReactNode {
                           <span className="text-ink/60">root · </span>
                           <a
                             href={`/concordance/root/${encodeURIComponent(t.root)}`}
-                            className="font-mono tabular-nums text-leaf hover:underline"
+                            className="text-leaf font-mono tabular-nums hover:underline"
                             title={`Concordance: every word from root ${t.root}`}
                           >
                             {t.root}
@@ -254,13 +317,20 @@ export function MorphologyPane({ verseKey }: Props): ReactNode {
                         </p>
                       ) : null}
                       {/* Selected features (gender / number / case / mood / voice). */}
-                      <p className="mt-1 flex flex-wrap gap-1">
+                      <p className="mt-1 flex flex-wrap gap-1.5">
                         {Object.entries(t.features)
-                          .filter(([k]) => !['STEM', 'PREFIX', 'SUFFIX', 'POS', 'LEM', 'ROOT'].includes(k))
+                          .filter(
+                            ([k]) =>
+                              !['STEM', 'PREFIX', 'SUFFIX', 'POS', 'LEM', 'ROOT'].includes(k),
+                          )
                           .slice(0, 6)
                           .map(([k, v]) => (
-                            <span key={k} className="text-[10px] smallcaps text-ink-muted/80 tracking-widest">
-                              {typeof v === 'boolean' ? k : `${k}:${String(v)}`}
+                            <span
+                              key={k}
+                              className="border-hairline text-ink-muted/90 inline-block rounded border px-1.5 py-0.5 text-[10px] tracking-wide"
+                              title={featureChipLabel(k, v)}
+                            >
+                              {featureChipLabel(k, v)}
                             </span>
                           ))}
                       </p>
@@ -271,7 +341,7 @@ export function MorphologyPane({ verseKey }: Props): ReactNode {
         ))}
       </ol>
 
-      <p className="text-[10px] text-ink-muted text-center italic mt-2">
+      <p className="text-ink-muted mt-2 text-center text-[10px] italic">
         {data.source} ·{' '}
         <a
           href={data.sourceUrl}
