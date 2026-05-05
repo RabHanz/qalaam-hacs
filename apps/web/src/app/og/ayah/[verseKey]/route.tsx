@@ -247,6 +247,9 @@ export async function GET(req: NextRequest, ctx: RouteCtx): Promise<Response> {
   }
   const url = new URL(req.url);
   const variant = asVariant(url.searchParams.get('variant'));
+  // Layout — set by the share button so the card eyebrow reflects what
+  // the user is actually reading (madani_15, indopak_16, qpc_v1, etc.)
+  const layoutSlug = (url.searchParams.get('layout') ?? '').replace(/[^a-z0-9_]/g, '');
   const surah = Number.parseInt(verseKey.split(':')[0] ?? '1', 10);
 
   // Fetch what each variant needs in parallel.
@@ -633,6 +636,25 @@ export async function GET(req: NextRequest, ctx: RouteCtx): Promise<Response> {
                 }}
               >
                 {variant.toUpperCase()}
+              </span>
+            ) : null}
+            {layoutSlug ? (
+              <span
+                style={{
+                  fontSize: 9,
+                  letterSpacing: 3,
+                  textTransform: 'uppercase',
+                  color: '#1b4d5a',
+                  opacity: 0.55,
+                  padding: '4px 9px',
+                  background: 'rgba(27,77,90,0.06)',
+                  borderRadius: 999,
+                  display: 'flex',
+                  alignItems: 'center',
+                  fontWeight: 700,
+                }}
+              >
+                {layoutSlug.replace(/_/g, ' ')}
               </span>
             ) : null}
             <span

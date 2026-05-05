@@ -476,17 +476,65 @@ export function AyahCard({
     }
   }
 
-  function copyShareLink(): void {
-    try {
-      const url = `${window.location.origin}/read/${verseKey.split(':')[0] ?? '1'}#${verseKey}`;
-      void navigator.clipboard.writeText(url);
-      setShareCopied(true);
-      setTimeout(() => {
-        setShareCopied(false);
-      }, 1800);
-    } catch {
-      /* ignore */
+  async function copyShareLink(): Promise<void> {
+    const studyUrl = `${window.location.origin}/read/${verseKey.split(':')[0] ?? '1'}#${verseKey}`;
+    const cardUrl = `${window.location.origin}/og/ayah/${encodeURIComponent(verseKey)}`;
+    // Try Web Share API with the rendered card image — gives a native
+    // share sheet on iOS/Android with the visual preview. Falls back
+    // to clipboard copy on desktop or when share is blocked.
+    // navigator.share + canShare guard for files (iOS 15+/Android 12+).
+    // We try image-share first (best UX), fall back to URL-share, then
+    // fall back to clipboard.
+    interface NavWithShare extends Navigator {
+      share?: (d: ShareData & { files?: File[] }) => Promise<void>;
+      canShare?: (d: ShareData & { files?: File[] }) => boolean;
     }
+    const nav: NavWithShare = navigator as NavWithShare;
+    const tryImageShare = async (): Promise<boolean> => {
+      if (!nav.share) return false;
+      try {
+        const res = await fetch(cardUrl);
+        if (!res.ok) return false;
+        const blob = await res.blob();
+        const file = new File([blob], `qalaam-${verseKey}.png`, { type: 'image/png' });
+        const data = {
+          title: `Quran ${verseKey}`,
+          text: studyUrl,
+          files: [file],
+        };
+        const canShareFn = nav.canShare;
+        if (canShareFn && !canShareFn(data)) return false;
+        await nav.share(data);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    const tryUrlShare = async (): Promise<boolean> => {
+      if (!nav.share) return false;
+      try {
+        await nav.share({ title: `Quran ${verseKey}`, url: studyUrl });
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    const fallbackCopy = async (): Promise<void> => {
+      try {
+        await navigator.clipboard.writeText(studyUrl);
+        setShareCopied(true);
+        setTimeout(() => {
+          setShareCopied(false);
+        }, 1800);
+      } catch {
+        /* clipboard blocked too — open the OG card in a new tab as
+           last-resort so the user can save it manually */
+        window.open(cardUrl, '_blank', 'noopener,noreferrer');
+      }
+    };
+    if (await tryImageShare()) return;
+    if (await tryUrlShare()) return;
+    await fallbackCopy();
   }
 
   return (
@@ -710,7 +758,9 @@ export function AyahCard({
           label={bookmarked ? 'Saved' : 'Save'}
         />
         <ChipButton
-          onClick={copyShareLink}
+          onClick={() => {
+            void copyShareLink();
+          }}
           active={shareCopied}
           icon={<ShareIcon />}
           label={shareCopied ? 'Copied' : 'Share'}
