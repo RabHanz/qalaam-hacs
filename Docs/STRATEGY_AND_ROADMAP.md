@@ -2683,8 +2683,16 @@ initialized` + `tools/list` + `tools/call` (single + batch). Tool
    `tawhid + names-of-allah + dua`; `qalaam_root_concordance {root:"rHm"}`
    → 339 mercy-root occurrences. Discovery endpoint `GET /mcp` for
    probing clients.
-9. **Image-mushaf overlay** — `mushaf-layout-12.sqlite/6/{N}.png|json`
-   we already have + ayah-detection scripts.
+9. ✅ **Image-mushaf overlay** — `scripts/data/ingest-image-mushaf-overlays.py`
+   ingests QUL `mushaf-layout-12` (Madani 16-line) into
+   `qalaam_v1_qul_image_overlays` (610 pages × 83,668 word rectangles)
+   and stages the 610 KFGQPC PNGs to `apps/web/public/mushaf-images/madani-16/`.
+   Backend `/v1/image-mushaf/:layout/:page` returns image URL + word
+   rectangles; `/v1/image-mushaf/:layout/page-for/:vk` resolves verse →
+   page. Frontend `/mushaf-image/:page` (`ImageMushafCanvas`) renders the
+   PNG with absolute-positioned, percentage-scaled word overlays —
+   hover/tap an ayah to glow leaf-gold, tap to deep-link `/study/:s/:a`.
+   PNGs are .gitignored (63MB) — re-run the script to repopulate.
 10. **More mushaf layouts** — IndoPak 16-line, Qatar 15-line, DigitalKhatt.
 11. ✅ **Transliteration ingest** — 3 alquran.cloud editions ingested
     (en.transliteration, tr.transliteration, ru.transliteration) into
