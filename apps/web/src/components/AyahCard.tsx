@@ -197,10 +197,10 @@ export function AyahCard({
 }: AyahCardProps): ReactNode {
   const fontFamily =
     layoutSlug === 'kfgqpc_v1' || layoutSlug === 'indopak'
-      ? // KFGQPCNastaleeq is the official QUL/Quran-Foundation IndoPak
+      ? // AlQuranIndoPak is the official QUL/Quran-Foundation IndoPak
         // font — self-hosted at /fonts/quran-indopak/. 411 glyphs, full
         // coverage of every codepoint we render. No fallback needed.
-        '"KFGQPCNastaleeq"'
+        '"AlQuranIndoPak"'
       : // UthmanicHafs is the official KFGQPC Hafs Uthmani font from
         // Quran Foundation, self-hosted. Full Unicode + GSUB coverage.
         '"UthmanicHafs"';

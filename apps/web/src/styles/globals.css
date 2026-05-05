@@ -48,24 +48,31 @@
 }
 
 /*
- * KFGQPCNastaleeq — the canonical IndoPak/Nastaleeq font shipped by
- * Quran Foundation via QUL (https://qul.tarteel.ai/resources/font/462,
- * canonical static-cdn.tarteel.ai mirror). 256 Arabic glyphs covering
- * every silent-mark codepoint (U+06D6–U+06ED), tatweel (U+0640),
- * superscript alif (U+0670), Farsi yeh (U+06CC), yeh barree (U+06D2),
- * noon ghunna (U+066E) — the full IndoPak orthography.
+ * AlQuranIndoPak — the canonical IndoPak Naskh font for printed-
+ * mushaf-style rendering. Sourced from QUL resource #242
+ * (https://qul.tarteel.ai/resources/font/242), aka "AlQuran IndoPak
+ * by QuranWBW", Hanafi tradition v4.2.2, with-waqf-lazmi variant.
+ * 835 glyphs, complete IndoPak coverage including U+06CC Farsi yeh,
+ * U+06D2 yeh barree, U+0670 superscript alif, U+0640 tatweel, U+06E1
+ * sukun, all pause/sajda/iqlab marks.
  *
- * Why this font: previous attempts used Scheherazade New (Latin-Naskh
- * with no IndoPak conventions) or Noto Nastaliq Urdu (Persian/Urdu
- * poetry calligraphy, NOT Quran orthography). Both rendered IndoPak
- * verses as disjointed letters because they treat U+06E1 as a
- * joining-break. KFGQPCNastaleeq is the actual font Quran.com /
- * Tarteel use for IndoPak — it handles U+06E1 correctly and joins
- * letters as expected.
+ * Why this and not KFGQPCNastaleeq: this is the most comprehensive
+ * IndoPak font shipped by QUL — 835 vs 411 glyphs. Rendering matches
+ * what printed sub-continental mushafs use.
+ *
+ * AmiriQuran kept as a Naskh fallback (open-source, well-shaped Naskh
+ * joining) for any codepoint AlQuranIndoPak doesn't cover.
  */
 @font-face {
-  font-family: 'KFGQPCNastaleeq';
-  src: url('/fonts/quran-indopak/KFGQPCNastaleeq-Regular.ttf') format('truetype');
+  font-family: 'AlQuranIndoPak';
+  src: url('/fonts/quran-indopak/IndopakNastaleeqHanafi-v422.ttf') format('truetype');
+  font-display: block;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'AmiriQuran';
+  src: url('/fonts/quran-indopak/AmiriQuran-Regular.woff2') format('woff2');
   font-display: block;
   font-weight: 400;
 }

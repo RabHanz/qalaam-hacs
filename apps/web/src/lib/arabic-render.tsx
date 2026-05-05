@@ -1,46 +1,55 @@
 /**
  * Arabic text rendering helpers.
  *
- * `renderWithSilentMarks(text)` wraps every "small-high" / "small-low"
- * silent / pause / sajda mark in a `<span class="silent-mark">` so the
- * global CSS rule (apps/web/src/styles/globals.css) can shrink + lift
- * them above the baseline like Quran.com / Tarteel / Quranly do.
+ * `renderWithSilentMarks(text)` wraps every truly-DECORATIVE pause /
+ * sajda mark in a `<span class="silent-mark">` so the global CSS rule
+ * (apps/web/src/styles/globals.css) can shrink + lift them above the
+ * baseline — the way Quran.com / Tarteel / Quranly do.
  *
- * Why this matters: Uthmani / IndoPak / Nastaliq fonts draw a wide
- * range of "small high" codepoints as full-size mid-line glyphs that
- * inline they read as spurious rosettes (or, where the font lacks the
- * glyph, as `.notdef` tofu boxes overlapping the base letter). The
- * frontier-app convention is to shrink + lift them so they read as
- * scaffolding, not as text.
+ * CRITICAL: this regex covers ONLY decorative scaffolding (waqf,
+ * sajda, iqlab indicators). It does NOT include substantive Uthmani
+ * orthography (sukun, madda, replacement waw) — those MUST stay at
+ * full size or the reading is broken. An earlier version greedily
+ * shrank U+06E1 sukun + U+06E4 madda + U+06E5 waw, which is what the
+ * user kept reporting as "obnoxious markers" — actually the markers
+ * weren't obnoxious, they were correctly-large *substantive*
+ * orthography that we were wrongly trying to hide.
  *
- * Codepoints wrapped (single source of truth across the codebase):
+ * Codepoints wrapped (DECORATIVE — shrunk):
  *   U+06D6 – U+06DC   small high pause / sajda / safha marks
- *   U+06DF – U+06E5   small high rounded-zero / sukun / madda / waw
- *   U+06E7            small high yeh
- *   U+06E8            small high noon
- *   U+06EA – U+06ED   empty-centre low/high stop, rounded high stop,
- *                     small low meem
+ *                     (sad-lam-yeh, qaf-lam-yeh, meem-initial,
+ *                      lam-alef, jeem, three-dots, seen)
+ *   U+06DF            small high rounded zero (saktah-zero waqf)
+ *   U+06E0            small high upright rectangular zero (saktah)
+ *   U+06E2            small high meem isolated form (iqlab)
+ *   U+06E3            small low seen (decorative gloss)
+ *   U+06E7            small high yeh (decorative)
+ *   U+06E8            small high noon (decorative)
+ *   U+06EA – U+06EC   empty-centre low/high stops, rounded high stop
+ *   U+06ED            small low meem (iqlab indicator)
  *
- * INTENTIONALLY EXCLUDED — these must remain at full size:
+ * INTENTIONALLY EXCLUDED — substantive orthography (full size):
  *   U+06DD  Arabic end-of-ayah marker (the rosette anchor)
- *   U+06DE  Arabic rub-el-hizb (quarter marker)
- *   U+06E6  small yeh — used as base, not as decoration
- *   U+06E9  Arabic place-of-sajdah symbol (substantive marker)
+ *   U+06DE  Arabic rub-el-hizb (quarter marker — substantive)
+ *   U+06E1  small high dotless head of khah — Uthmani sukun
+ *           ("no vowel here" — substantive). Quran.com keeps full size.
+ *   U+06E4  small high madda — vowel elongation. Substantive.
+ *   U+06E5  small waw — replacement waw. Substantive.
+ *   U+06E6  small yeh — base letter, not decoration.
+ *   U+06E9  Arabic place-of-sajdah symbol (substantive).
  */
 import type { ReactNode } from 'react';
 
-// Built programmatically from individual codepoint numbers so that the
-// regex SOURCE string (used by ESLint's no-misleading-character-class
-// to lint character classes for combining marks) never contains the
-// raw combining-mark characters. Same final regex as if we'd typed
-// the literals — but keeps the linter happy.
+// Built programmatically from numeric codepoints so the regex SOURCE
+// string never contains literal combining marks → eslint's
+// no-misleading-character-class is satisfied without a noisy disable.
 function buildSilentMarkRegex(): RegExp {
   const ranges: readonly (readonly [number, number])[] = [
-    [0x06d6, 0x06dc],
-    [0x06df, 0x06e5],
-    [0x06e7, 0x06e7],
-    [0x06e8, 0x06e8],
-    [0x06ea, 0x06ed],
+    [0x06d6, 0x06dc], // pause / sajda / safha marks
+    [0x06df, 0x06e0], // saktah waqf zeros (NOT 06E1 sukun)
+    [0x06e2, 0x06e3], // small high meem-iso, small low seen
+    [0x06e7, 0x06e8], // small high yeh, small high noon
+    [0x06ea, 0x06ed], // empty-centre stops, rounded high stop, small low meem
   ];
   let cls = '';
   for (const [lo, hi] of ranges) {
@@ -50,16 +59,15 @@ function buildSilentMarkRegex(): RegExp {
       cls += `${String.fromCodePoint(lo)}-${String.fromCodePoint(hi)}`;
     }
   }
-   
   return new RegExp(`([${cls}])`, 'u');
 }
 
 const SILENT_MARK_RE = buildSilentMarkRegex();
 
 /**
- * Render Arabic text as a fragment, wrapping every silent-mark
+ * Render Arabic text as a fragment, wrapping every decorative mark
  * codepoint in `<span class="silent-mark">` so the global CSS rule
- * lifts + shrinks them. Pass-through for non-Arabic strings.
+ * shrinks + lifts them. Pass-through for non-Arabic strings.
  */
 export function renderWithSilentMarks(text: string, keyPrefix = 'sm'): ReactNode {
   if (!text) return null;

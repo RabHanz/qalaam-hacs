@@ -142,11 +142,11 @@ export function MushafLine({
       });
     }
     if (docFonts && docFonts.load) {
-      // Self-hosted Quran fonts only — KFGQPCNastaleeq for IndoPak,
+      // Self-hosted Quran fonts only — AlQuranIndoPak for IndoPak,
       // UthmanicHafs for everything else. Both preloaded in <head>;
       // we touch them here so the layout fitter re-runs after the
       // font lands (in case the network was slow).
-      for (const fam of ['"UthmanicHafs"', '"KFGQPCNastaleeq"']) {
+      for (const fam of ['"UthmanicHafs"', '"AlQuranIndoPak"']) {
         void docFonts
           .load(`1em ${fam}`)
           .then(() => {

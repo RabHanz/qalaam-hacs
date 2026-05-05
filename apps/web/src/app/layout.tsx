@@ -82,7 +82,7 @@ export default function RootLayout({ children }: { readonly children: ReactNode 
          * Quran fonts are 100% self-hosted with full glyph coverage:
          *   - UthmanicHafs   /fonts/quran/UthmanicHafs1Ver18.woff2
          *     (Madani / Tajweed layouts)
-         *   - KFGQPCNastaleeq /fonts/quran-indopak/KFGQPCNastaleeq-Regular.ttf
+         *   - AlQuranIndoPak /fonts/quran-indopak/AlQuranIndoPak-Regular.ttf
          *     (IndoPak layouts)
          * Both preloaded so they're in cache by first paint. `font-
          * display: block` (set in @font-face) holds rendering up to 3s
@@ -99,7 +99,7 @@ export default function RootLayout({ children }: { readonly children: ReactNode 
         />
         <link
           rel="preload"
-          href="/fonts/quran-indopak/KFGQPCNastaleeq-Regular.ttf"
+          href="/fonts/quran-indopak/IndopakNastaleeqHanafi-v422.ttf"
           as="font"
           type="font/ttf"
           crossOrigin="anonymous"

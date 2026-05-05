@@ -93,9 +93,9 @@ function fontStackFor(layoutSlug: string): string {
       // IndoPak Nastaleeq → Noto Nastaliq Urdu (the authentic Nastaleeq
       // calligraphic style used in Sub-Continental mushafs). Falls back
       // to Scheherazade New / Noto Naskh Arabic if Nastaliq fails.
-      // KFGQPCNastaleeq self-hosted at /fonts/quran-indopak/ — full
+      // AlQuranIndoPak self-hosted at /fonts/quran-indopak/ — full
       // 411-glyph coverage. No fallback needed.
-      return '"KFGQPCNastaleeq"';
+      return '"AlQuranIndoPak"';
     case 'kfgqpc_v4':
     case 'madani_15':
     default:

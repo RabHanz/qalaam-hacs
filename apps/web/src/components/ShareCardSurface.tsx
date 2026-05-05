@@ -126,8 +126,8 @@ function arabicTextFor(verse: Verse, layoutSlug: string): string {
 
 function fontFamilyFor(layoutSlug: string): string {
   if (layoutSlug === 'kfgqpc_v1' || layoutSlug === 'indopak') {
-    // KFGQPCNastaleeq self-hosted, full coverage.
-    return '"KFGQPCNastaleeq"';
+    // AlQuranIndoPak self-hosted, full coverage.
+    return '"AlQuranIndoPak"';
   }
   // UthmanicHafs self-hosted, full coverage.
   return '"UthmanicHafs"';

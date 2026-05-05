@@ -35,7 +35,7 @@
 
   /* legacy font aliases consumed by inline-style packages */
   --font-arabic-uthmani: 'UthmanicHafs';
-  --font-arabic-indopak: 'KFGQPCNastaleeq';
+  --font-arabic-indopak: 'AlQuranIndoPak';
 
   --radius-sm: 0.5rem;
   --radius-md: 1rem;
