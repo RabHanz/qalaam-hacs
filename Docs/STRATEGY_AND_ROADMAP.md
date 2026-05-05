@@ -15,7 +15,7 @@ Qalaam is a **family-aware, smart-home-aware, AI-augmented Quran and Hifdh platf
 
 1. **SaaS** — cloud-hosted backend + web/mobile clients + optional self-hosted device-bridge for LAN devices.
 2. **Self-hosted** — all packages on user hardware (Pi/NAS), no cloud dependency.
-3. **Home Assistant native** — Qalaam runs inside HA via the integration; HA is *one of many* device adapters (alongside Cast, Sonos, AirPlay, Web/PWA, MQTT, Bluetooth A2DP).
+3. **Home Assistant native** — Qalaam runs inside HA via the integration; HA is _one of many_ device adapters (alongside Cast, Sonos, AirPlay, Web/PWA, MQTT, Bluetooth A2DP).
 
 It combines features that have never been combined in one product:
 
@@ -31,14 +31,14 @@ It combines features that have never been combined in one product:
 
 **Estimated trajectory:**
 
-| Milestone | Time |
-|---|---|
-| v0.1 foundation (monorepo, data layer, basic web reader, HA-as-adapter) | 4-6 weeks |
-| v0.5 Hifdh core (FSRS, parent dashboard, mutashabihat, deep-study) | 4-6 weeks |
-| v1.0 smart-home & casting (Cast/Sonos/AirPlay, ASR drill, HA integration shipped) | 6-8 weeks |
-| v1.5 mobile + breadth (Expo apps, Snapcast, word-level mistake detection, family khatm) | 6-8 weeks |
-| v2.0 AI cloning + teach-back + Arabic curriculum | 3-6 months |
-| Scale to 10K paying users | 12 months from v0.1 |
+| Milestone                                                                               | Time                |
+| --------------------------------------------------------------------------------------- | ------------------- |
+| v0.1 foundation (monorepo, data layer, basic web reader, HA-as-adapter)                 | 4-6 weeks           |
+| v0.5 Hifdh core (FSRS, parent dashboard, mutashabihat, deep-study)                      | 4-6 weeks           |
+| v1.0 smart-home & casting (Cast/Sonos/AirPlay, ASR drill, HA integration shipped)       | 6-8 weeks           |
+| v1.5 mobile + breadth (Expo apps, Snapcast, word-level mistake detection, family khatm) | 6-8 weeks           |
+| v2.0 AI cloning + teach-back + Arabic curriculum                                        | 3-6 months          |
+| Scale to 10K paying users                                                               | 12 months from v0.1 |
 
 ---
 
@@ -51,6 +51,7 @@ Users hire Qalaam to do these jobs (from the prior strategy doc, preserved verba
 **Primary Job:** "Help me recite Quran correctly like my favorite reciter."
 
 **Functional Jobs:**
+
 - Hear how a specific reciter would recite any verse.
 - Get feedback on my recitation accuracy.
 - Learn Quranic Arabic progressively.
@@ -59,11 +60,13 @@ Users hire Qalaam to do these jobs (from the prior strategy doc, preserved verba
 - Help my children memorize without burning out — gentle, smart, family-aware.
 
 **Emotional Jobs:**
+
 - Feel confident in my recitation.
 - Connect spiritually through beautiful recitation.
 - Honor the tradition of Quranic preservation.
 
 **Social Jobs:**
+
 - Recite correctly in congregation.
 - Teach my children proper recitation.
 - Participate meaningfully in Ramadan prayers.
@@ -81,44 +84,44 @@ Users hire Qalaam to do these jobs (from the prior strategy doc, preserved verba
 
 ### 1.3 What Qalaam does that competitors don't
 
-| Feature | Tarteel | Quran.com | Ayat (KSU) | Quran Companion | **Qalaam** |
-|---|---|---|---|---|---|
-| Mistake detection | ✅ | ❌ | ❌ | ❌ | ✅ (on-device) |
-| Word-by-word follow | ✅ | ✅ | ✅ | ⚠️ | ✅ |
-| **Voice cloning** | ❌ | ❌ | ❌ | ❌ | ✅ **36+ reciters** |
-| **Teach-back / prosody feedback** | ❌ | ❌ | ❌ | ❌ | ✅ **F0+energy+tajweed** |
-| **Progressive Arabic curriculum** | ⚠️ | ❌ | ⚠️ | ❌ | ✅ **100+ lessons** |
-| Multi-reciter comparison | ❌ | ⚠️ | ⚠️ | ❌ | ✅ side-by-side |
-| **Hifdh FSRS scheduler** | ⚠️ | ❌ | ❌ | ❌ | ✅ FSRS + mutashabihat |
-| **Parent dashboard** | ❌ | ❌ | ❌ | ❌ | ✅ daily summary, no surveillance |
-| **Smart-home integration** | ❌ | ❌ | ❌ | ❌ | ✅ Cast/Sonos/AirPlay/HA/Web |
-| **Adhan-aware scheduling** | ❌ | ❌ | ❌ | ❌ | ✅ |
-| **Family khatm** | ❌ | ❌ | ❌ | ❌ | ✅ |
-| **Offline-first** | ⚠️ | ❌ | ⚠️ | ✅ | ✅ |
-| **Self-hostable** | ❌ | ❌ | ❌ | N/A | ✅ |
-| **Custom voice training (Pro)** | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Feature                           | Tarteel | Quran.com | Ayat (KSU) | Quran Companion | **Qalaam**                        |
+| --------------------------------- | ------- | --------- | ---------- | --------------- | --------------------------------- |
+| Mistake detection                 | ✅      | ❌        | ❌         | ❌              | ✅ (on-device)                    |
+| Word-by-word follow               | ✅      | ✅        | ✅         | ⚠️              | ✅                                |
+| **Voice cloning**                 | ❌      | ❌        | ❌         | ❌              | ✅ **36+ reciters**               |
+| **Teach-back / prosody feedback** | ❌      | ❌        | ❌         | ❌              | ✅ **F0+energy+tajweed**          |
+| **Progressive Arabic curriculum** | ⚠️      | ❌        | ⚠️         | ❌              | ✅ **100+ lessons**               |
+| Multi-reciter comparison          | ❌      | ⚠️        | ⚠️         | ❌              | ✅ side-by-side                   |
+| **Hifdh FSRS scheduler**          | ⚠️      | ❌        | ❌         | ❌              | ✅ FSRS + mutashabihat            |
+| **Parent dashboard**              | ❌      | ❌        | ❌         | ❌              | ✅ daily summary, no surveillance |
+| **Smart-home integration**        | ❌      | ❌        | ❌         | ❌              | ✅ Cast/Sonos/AirPlay/HA/Web      |
+| **Adhan-aware scheduling**        | ❌      | ❌        | ❌         | ❌              | ✅                                |
+| **Family khatm**                  | ❌      | ❌        | ❌         | ❌              | ✅                                |
+| **Offline-first**                 | ⚠️      | ❌        | ⚠️         | ✅              | ✅                                |
+| **Self-hostable**                 | ❌      | ❌        | ❌         | N/A             | ✅                                |
+| **Custom voice training (Pro)**   | ❌      | ❌        | ❌         | ❌              | ✅                                |
 
 ---
 
 ## 2. Architectural pillars
 
-| # | Pillar | Why |
-|---|---|---|
-| 1 | **Protocol-agnostic core** — adapter pattern; HA, Cast, Sonos, AirPlay, Web, MQTT, BT-A2DP all conform to one `Speaker` / `Adapter` interface | Music Assistant proves this scales; locks no user into HA |
-| 2 | **Three deployment modes share one codebase** — SaaS, self-hosted, HA-native | Same Hifdh engine runs on a Pi or in the cloud; HA users don't get a worse product |
-| 3 | **Two-tier auth from day one** — Quran.Foundation Content (M2M) and User (PKCE+OIDC); Tier B deferred to v2 to avoid scope sprawl | QF API mandates it; bookmarks/sync valuable but not v0.1-critical |
-| 4 | **Offline canonical layer = QUL + quran-align + quran-tajweed (license-clean)** with QF API as live overlay (≤1 week cache per ToS) | ToS-compliant, legally redistributable, integrity-checked, mushaf-agnostic |
-| 5 | **Mushaf-agnostic ayah-range data model** | Same data renders Madani 15-line, Indo-Pak 16-line, etc. — preserves the visual anchor for memorizers |
-| 6 | **FSRS over SM-2; unit = page or half-page (configurable)** | Anki's published benchmarks; matches what teachers actually use |
-| 7 | **Mutashabihat as a first-class entity** — cluster library + per-user confusion graph | Single most-cited Hifdh pitfall; no app surfaces it as data |
-| 8 | **Privacy-first ML — Tarteel Whisper + custom models on-device only** for recall checks | Family ASR audio never leaves LAN. The defensible moat. |
-| 9 | **Voice cloning as opt-in cloud feature** | F5-TTS needs GPU; ship as cloud SaaS feature, with optional self-hosted GPU mode for advanced users |
-| 10 | **Adhan-aware everything** — no Hifdh actions trigger in prayer windows | Non-negotiable for the target audience |
-| 11 | **Codegen for shared types from one schema** — JSON Schema → TS types + Pydantic models + OpenAPI | Single source of truth; SDKs in TS and Python stay in sync |
-| 12 | **No real-time parent surveillance, no public leaderboards, no AI sheikh chatbot** | Daily summaries only; private family-only stats; LLMs hallucinate Quran text — fitnah risk |
-| 13 | **Quality-first, then optimize** — F5-TTS even if slower initially, fine-tune later | Per the Technical Decision Framework: "make it work, make it right, make it fast" |
-| 14 | **Aggressive caching for AI generation** — pre-gen common verses, Redis + CDN multi-tier | 60% cost reduction; per-request infra savings dominate user economics |
-| 15 | **Brand and adab matter** — design choices around riya', surveillance, real Hifdh methodology, and Islamic ethics inform every UX decision | Target audience will reject Western edtech instincts; the product must feel right to a teacher and a parent |
+| #   | Pillar                                                                                                                                        | Why                                                                                                         |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| 1   | **Protocol-agnostic core** — adapter pattern; HA, Cast, Sonos, AirPlay, Web, MQTT, BT-A2DP all conform to one `Speaker` / `Adapter` interface | Music Assistant proves this scales; locks no user into HA                                                   |
+| 2   | **Three deployment modes share one codebase** — SaaS, self-hosted, HA-native                                                                  | Same Hifdh engine runs on a Pi or in the cloud; HA users don't get a worse product                          |
+| 3   | **Two-tier auth from day one** — Quran.Foundation Content (M2M) and User (PKCE+OIDC); Tier B deferred to v2 to avoid scope sprawl             | QF API mandates it; bookmarks/sync valuable but not v0.1-critical                                           |
+| 4   | **Offline canonical layer = QUL + quran-align + quran-tajweed (license-clean)** with QF API as live overlay (≤1 week cache per ToS)           | ToS-compliant, legally redistributable, integrity-checked, mushaf-agnostic                                  |
+| 5   | **Mushaf-agnostic ayah-range data model**                                                                                                     | Same data renders Madani 15-line, Indo-Pak 16-line, etc. — preserves the visual anchor for memorizers       |
+| 6   | **FSRS over SM-2; unit = page or half-page (configurable)**                                                                                   | Anki's published benchmarks; matches what teachers actually use                                             |
+| 7   | **Mutashabihat as a first-class entity** — cluster library + per-user confusion graph                                                         | Single most-cited Hifdh pitfall; no app surfaces it as data                                                 |
+| 8   | **Privacy-first ML — Tarteel Whisper + custom models on-device only** for recall checks                                                       | Family ASR audio never leaves LAN. The defensible moat.                                                     |
+| 9   | **Voice cloning as opt-in cloud feature**                                                                                                     | F5-TTS needs GPU; ship as cloud SaaS feature, with optional self-hosted GPU mode for advanced users         |
+| 10  | **Adhan-aware everything** — no Hifdh actions trigger in prayer windows                                                                       | Non-negotiable for the target audience                                                                      |
+| 11  | **Codegen for shared types from one schema** — JSON Schema → TS types + Pydantic models + OpenAPI                                             | Single source of truth; SDKs in TS and Python stay in sync                                                  |
+| 12  | **No real-time parent surveillance, no public leaderboards, no AI sheikh chatbot**                                                            | Daily summaries only; private family-only stats; LLMs hallucinate Quran text — fitnah risk                  |
+| 13  | **Quality-first, then optimize** — F5-TTS even if slower initially, fine-tune later                                                           | Per the Technical Decision Framework: "make it work, make it right, make it fast"                           |
+| 14  | **Aggressive caching for AI generation** — pre-gen common verses, Redis + CDN multi-tier                                                      | 60% cost reduction; per-request infra savings dominate user economics                                       |
+| 15  | **Brand and adab matter** — design choices around riya', surveillance, real Hifdh methodology, and Islamic ethics inform every UX decision    | Target audience will reject Western edtech instincts; the product must feel right to a teacher and a parent |
 
 ---
 
@@ -210,32 +213,32 @@ qalaam/
 
 ### 4.1 Offline canonical layer (license-clean, ship in `data/`)
 
-| Source | License | Role |
-|---|---|---|
-| **TarteelAI/quranic-universal-library (QUL)** — github.com/TarteelAI/quranic-universal-library | MIT | Canonical store: Arabic in multiple scripts (Uthmani, Indo-Pak, Imlaei, QPC Hafs), juz/hizb/page/ruku/manzil indices, mushaf layouts, **mutashabihat clusters**, root/morphology, surah info, audio segments with word-level timestamps (machine + human-corrected). Replaces ~80% of what you'd otherwise stitch together. |
-| **cpfair/quran-align** — github.com/cpfair/quran-align | CC-BY-4.0 | Word-end timestamps (start_ms, end_ms) per ayah; ~73 ms accuracy; fallback for reciters QUL doesn't cover. |
-| **quran/quran-tajweed** — github.com/quran/quran-tajweed | CC-BY-4.0 | 5.5 MB JSON of per-character tajweed rule annotations (17 rule classes: madd_2/4/5/6, ghunnah, qalqalah, idghaam variants, ikhfa, izhar, iqlab, lam shamsiyyah, etc.) indexed against Tanzil Uthmani. |
+| Source                                                                                         | License   | Role                                                                                                                                                                                                                                                                                                                        |
+| ---------------------------------------------------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **TarteelAI/quranic-universal-library (QUL)** — github.com/TarteelAI/quranic-universal-library | MIT       | Canonical store: Arabic in multiple scripts (Uthmani, Indo-Pak, Imlaei, QPC Hafs), juz/hizb/page/ruku/manzil indices, mushaf layouts, **mutashabihat clusters**, root/morphology, surah info, audio segments with word-level timestamps (machine + human-corrected). Replaces ~80% of what you'd otherwise stitch together. |
+| **cpfair/quran-align** — github.com/cpfair/quran-align                                         | CC-BY-4.0 | Word-end timestamps (start_ms, end_ms) per ayah; ~73 ms accuracy; fallback for reciters QUL doesn't cover.                                                                                                                                                                                                                  |
+| **quran/quran-tajweed** — github.com/quran/quran-tajweed                                       | CC-BY-4.0 | 5.5 MB JSON of per-character tajweed rule annotations (17 rule classes: madd_2/4/5/6, ghunnah, qalqalah, idghaam variants, ikhfa, izhar, iqlab, lam shamsiyyah, etc.) indexed against Tanzil Uthmani.                                                                                                                       |
 
 ### 4.2 Mirror lazily on demand
 
-| Source | License | Role |
-|---|---|---|
-| **fawazahmed0/quran-api** | Unlicense | 440+ translations across 98 languages; cached on jsDelivr. |
-| **everyayah.com** | Effectively PD | Per-ayah MP3s for 80+ qaris; lazy-download per reciter selection. |
-| **Quran.Foundation API** | Bespoke ToS | Live fallback for fresh data + Tier B user features. **ToS caps cache at 1 week.** |
-| **`audio.qurancdn.com`** | Bespoke | Stable signed URLs returned by QF API; pass straight to media_player without re-auth. |
-| **`cdn.islamic.network/quran/audio`** | Open | Al Quran Cloud CDN; 32-192 kbps variants; useful as no-auth fallback. |
-| **`download.quranicaudio.com`** | Open | Full-surah MP3 mirror. |
+| Source                                | License        | Role                                                                                  |
+| ------------------------------------- | -------------- | ------------------------------------------------------------------------------------- |
+| **fawazahmed0/quran-api**             | Unlicense      | 440+ translations across 98 languages; cached on jsDelivr.                            |
+| **everyayah.com**                     | Effectively PD | Per-ayah MP3s for 80+ qaris; lazy-download per reciter selection.                     |
+| **Quran.Foundation API**              | Bespoke ToS    | Live fallback for fresh data + Tier B user features. **ToS caps cache at 1 week.**    |
+| **`audio.qurancdn.com`**              | Bespoke        | Stable signed URLs returned by QF API; pass straight to media_player without re-auth. |
+| **`cdn.islamic.network/quran/audio`** | Open           | Al Quran Cloud CDN; 32-192 kbps variants; useful as no-auth fallback.                 |
+| **`download.quranicaudio.com`**       | Open           | Full-surah MP3 mirror.                                                                |
 
 ### 4.3 ML training datasets (used in `ml/datasets/`)
 
-| Dataset | Size | Reciters | License | Purpose |
-|---|---|---|---|---|
-| **tarteel-ai/everyayah** (HuggingFace) | 127K samples, 829 hrs | 36 professional | Open | Voice cloning training, ASR fine-tuning |
-| **AR-DAD (Arabic Diversified Audio Dataset)** | 15,810 clips, 37 chapters | 30 reciters + 12 imitators | Open | Robustness training (imitator handling) |
-| **CQDV1** | 218K files (full Quran) | 35 reciters | Registration required | Comprehensive coverage |
-| **tarteel-ai/tlog** | User submissions | Ordinary Muslims | Gated access | Mistake-detection training |
-| **RetaSy/quranic_audio_dataset** | 7K recordings | Non-Arabic speakers | Open | Mistake-labeled data |
+| Dataset                                       | Size                      | Reciters                   | License               | Purpose                                 |
+| --------------------------------------------- | ------------------------- | -------------------------- | --------------------- | --------------------------------------- |
+| **tarteel-ai/everyayah** (HuggingFace)        | 127K samples, 829 hrs     | 36 professional            | Open                  | Voice cloning training, ASR fine-tuning |
+| **AR-DAD (Arabic Diversified Audio Dataset)** | 15,810 clips, 37 chapters | 30 reciters + 12 imitators | Open                  | Robustness training (imitator handling) |
+| **CQDV1**                                     | 218K files (full Quran)   | 35 reciters                | Registration required | Comprehensive coverage                  |
+| **tarteel-ai/tlog**                           | User submissions          | Ordinary Muslims           | Gated access          | Mistake-detection training              |
+| **RetaSy/quranic_audio_dataset**              | 7K recordings             | Non-Arabic speakers        | Open                  | Mistake-labeled data                    |
 
 ### 4.4 Datasets to avoid
 
@@ -244,19 +247,19 @@ qalaam/
 
 ### 4.5 Translations to ship in v1 (license verified)
 
-| Translation | Status |
-|---|---|
-| Pickthall (1930) | Public domain |
-| Yusuf Ali (1934 original) | Public domain |
-| Hilali-Khan | KFGQPC, redistributable |
-| Mustafa Khattab "Clear Quran" | CC-BY-ND for non-commercial; commercial permission available |
-| Saheeh International | Permission usually granted |
-| Mufti Taqi Usmani | Permission usually granted |
-| Maududi (Urdu) | Mostly redistributable |
-| Kemenag (Indonesian) | Government-issued, free |
-| Hamidullah (French, older edition) | Free |
-| Diyanet (Turkish) | Government, redistributable |
-| Abdullah Basmeih (Malay) | JAKIM, redistributable |
+| Translation                        | Status                                                       |
+| ---------------------------------- | ------------------------------------------------------------ |
+| Pickthall (1930)                   | Public domain                                                |
+| Yusuf Ali (1934 original)          | Public domain                                                |
+| Hilali-Khan                        | KFGQPC, redistributable                                      |
+| Mustafa Khattab "Clear Quran"      | CC-BY-ND for non-commercial; commercial permission available |
+| Saheeh International               | Permission usually granted                                   |
+| Mufti Taqi Usmani                  | Permission usually granted                                   |
+| Maududi (Urdu)                     | Mostly redistributable                                       |
+| Kemenag (Indonesian)               | Government-issued, free                                      |
+| Hamidullah (French, older edition) | Free                                                         |
+| Diyanet (Turkish)                  | Government, redistributable                                  |
+| Abdullah Basmeih (Malay)           | JAKIM, redistributable                                       |
 
 ### 4.6 Tafsirs to ship in v1
 
@@ -287,15 +290,15 @@ qalaam/
 
 ### 5.1 Adapter stack (v1 ships 5-7 adapters)
 
-| # | Adapter | Library | Why |
-|---|---|---|---|
-| 1 | **Google Cast / Chromecast / Google Home / Nest Hub** | `pychromecast` (Python sidecar) or `@foxxmd/castv2` (maintained Node fork) | Biggest install base, zero pairing, mDNS discovery, group casting via virtual device. |
-| 2 | **Sonos** | `node-sonos-ts` (TypeScript-first, MIT, actively maintained) | Best API of any vendor; first-class groups/zones, native queue, native announce-and-restore. |
-| 3 | **AirPlay 2** | `pyatv` (Python sidecar, MIT, very active) | HomePod/Apple TV/AirPlay-2 stereos. PIN pairing once per device. |
-| 4 | **Web/PWA** | HTML5 audio + Web Audio API + Media Session API | Browser as a controllable speaker via WebSocket; lock-screen controls (iOS Safari 16.4+, all Android). Likely the most-used adapter in practice. |
-| 5 | **HA-as-adapter** | `home-assistant-js-websocket` (Apache-2.0, official) | Long-lived access token → call `media_player.play_media` on any HA entity. **Inherits HA's entire device matrix** (LMS, Squeezebox, Roon, Bluesound, Heos, Yamaha MusicCast) without writing more adapters. Highest leverage path. |
-| 6 | **MQTT** | `mqtt` npm | ~50 LoC; pairs with ESPHome `media_player` and Snapcast. |
-| 7 | **Bluetooth A2DP (local)** | `bluetoothctl` + `mpv`/`pw-play` | Pi-in-the-kid's-room fallback. |
+| #   | Adapter                                               | Library                                                                    | Why                                                                                                                                                                                                                                |
+| --- | ----------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Google Cast / Chromecast / Google Home / Nest Hub** | `pychromecast` (Python sidecar) or `@foxxmd/castv2` (maintained Node fork) | Biggest install base, zero pairing, mDNS discovery, group casting via virtual device.                                                                                                                                              |
+| 2   | **Sonos**                                             | `node-sonos-ts` (TypeScript-first, MIT, actively maintained)               | Best API of any vendor; first-class groups/zones, native queue, native announce-and-restore.                                                                                                                                       |
+| 3   | **AirPlay 2**                                         | `pyatv` (Python sidecar, MIT, very active)                                 | HomePod/Apple TV/AirPlay-2 stereos. PIN pairing once per device.                                                                                                                                                                   |
+| 4   | **Web/PWA**                                           | HTML5 audio + Web Audio API + Media Session API                            | Browser as a controllable speaker via WebSocket; lock-screen controls (iOS Safari 16.4+, all Android). Likely the most-used adapter in practice.                                                                                   |
+| 5   | **HA-as-adapter**                                     | `home-assistant-js-websocket` (Apache-2.0, official)                       | Long-lived access token → call `media_player.play_media` on any HA entity. **Inherits HA's entire device matrix** (LMS, Squeezebox, Roon, Bluesound, Heos, Yamaha MusicCast) without writing more adapters. Highest leverage path. |
+| 6   | **MQTT**                                              | `mqtt` npm                                                                 | ~50 LoC; pairs with ESPHome `media_player` and Snapcast.                                                                                                                                                                           |
+| 7   | **Bluetooth A2DP (local)**                            | `bluetoothctl` + `mpv`/`pw-play`                                           | Pi-in-the-kid's-room fallback.                                                                                                                                                                                                     |
 
 ### 5.2 Deferred adapters
 
@@ -314,7 +317,12 @@ interface Speaker {
   name: string;
   room?: string;
   capabilities: Set<'play_url' | 'pause' | 'seek' | 'volume' | 'queue' | 'group' | 'announce'>;
-  state: { status: 'idle' | 'playing' | 'paused'; positionMs?: number; mediaId?: string; volume?: number };
+  state: {
+    status: 'idle' | 'playing' | 'paused';
+    positionMs?: number;
+    mediaId?: string;
+    volume?: number;
+  };
 }
 
 interface Adapter {
@@ -351,6 +359,7 @@ Cast (`pychromecast`) and AirPlay (`pyatv`) have no maintained Node libraries. A
 ### 6.1 Two-tier OAuth (confirmed)
 
 **Base URLs (prod):**
+
 - Content APIs: `https://apis.quran.foundation/content/api/v4/...`
 - User APIs: `https://apis.quran.foundation/auth/v1/...`
 - OAuth token: `https://oauth2.quran.foundation/oauth2/token`
@@ -392,6 +401,7 @@ Credentials are issued via "Request Access" form. Demo credentials exist for pre
 ### 7.1 Methodology baseline (from research, must be respected)
 
 **Three-tier daily structure (non-negotiable):**
+
 - **Sabaq** — new lesson today. Quantum: half-page (~7-8 lines) for kids/casual, one page for serious students, two pages only for full-time intensive.
 - **Sabqi** — last 7-10 days (often "current Juz") recited fresh. Bridges short-term to mid-term.
 - **Manzil/Dhor** — everything else memorized, cycled every 1-3 months.
@@ -430,6 +440,7 @@ FSRS (open-source reference impl). Daily generator produces a session: `[sabaq-p
 ### 7.4 Parent dashboard (`packages/ui-hifdh`)
 
 Per-child:
+
 - Today's status, current sabqi range, manzil cycle position, 7-day streak.
 - Top-5 weakest pages by error rate.
 - Mutashabihat watchlist.
@@ -437,6 +448,7 @@ Per-child:
 - Last 7-day streak with grace-day support (1-2/month).
 
 **Rules:**
+
 - Daily summaries only. **Never real-time mistake notifications** (surveillance, not pedagogy).
 - No public leaderboards (riya' concern). Family-private only, framed as "to encourage each other, not to show off."
 - Streaks have grace days; never punish "you lost your 90-day streak."
@@ -458,19 +470,20 @@ Per-child:
 
 ## 8. AI/ML stack — voice cloning & teach-back (preserved from prior strategy)
 
-This section preserves the AI vision from `quranic_recitation_ai_research_roadmap.md` and `technical_decision_framework.md` *without omission*, integrated into the Qalaam architecture.
+This section preserves the AI vision from `quranic_recitation_ai_research_roadmap.md` and `technical_decision_framework.md` _without omission_, integrated into the Qalaam architecture.
 
 ### 8.1 TTS / Voice cloning model selection
 
-| Model | Quality | Speed | Arabic | License | Training | Best for |
-|---|---|---|---|---|---|---|
-| **F5-TTS** ⭐ WINNER | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ✅ Native | MIT | Zero-shot | **Production (recommended)** |
-| **XTTS-v2** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ✅ Native | CPML (NC base) | Zero-shot, fine-tunable | Battle-tested alternative |
-| **StyleTTS2** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⚠️ Needs fine-tune | MIT | Fine-tuning needed | Highest quality (advanced) |
-| **Bark** | ⭐⭐⭐ | ⭐⭐ | ⚠️ Limited | MIT | Zero-shot | Not recommended |
-| **Tortoise** | ⭐⭐⭐⭐ | ⭐ | ⚠️ Limited | Apache 2.0 | Zero-shot | Too slow |
+| Model                | Quality    | Speed    | Arabic             | License        | Training                | Best for                     |
+| -------------------- | ---------- | -------- | ------------------ | -------------- | ----------------------- | ---------------------------- |
+| **F5-TTS** ⭐ WINNER | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ✅ Native          | MIT            | Zero-shot               | **Production (recommended)** |
+| **XTTS-v2**          | ⭐⭐⭐⭐   | ⭐⭐⭐⭐ | ✅ Native          | CPML (NC base) | Zero-shot, fine-tunable | Battle-tested alternative    |
+| **StyleTTS2**        | ⭐⭐⭐⭐⭐ | ⭐⭐⭐   | ⚠️ Needs fine-tune | MIT            | Fine-tuning needed      | Highest quality (advanced)   |
+| **Bark**             | ⭐⭐⭐     | ⭐⭐     | ⚠️ Limited         | MIT            | Zero-shot               | Not recommended              |
+| **Tortoise**         | ⭐⭐⭐⭐   | ⭐       | ⚠️ Limited         | Apache 2.0     | Zero-shot               | Too slow                     |
 
 **F5-TTS (October 2024)** — winner because:
+
 - Latest tech, flow matching architecture (better quality than autoregressive)
 - 10-15s reference audio sufficient
 - Native Arabic support (16 languages)
@@ -509,14 +522,14 @@ class ReciterVoiceEngine:
 
 ### 8.3 ASR — Whisper Large-v3
 
-| Model | WER (Quran) | Speed | Arabic | Cost | Best for |
-|---|---|---|---|---|---|
-| **Whisper Large-v3** ⭐ | ~5-8% | Fast | ✅ Excellent | Free | **Recommended for cloud** |
-| **Tarteel Custom (NeMo)** | ~3-5% | Very Fast | ✅ Specialized | N/A | Proprietary |
-| **`tarteel-ai/whisper-base-ar-quran`** | ~6-9% | Moderate | ✅ Quranic-fine-tuned | Free | **On-device (LAN) recall checks** |
-| **`tarteel-ai/whisper-tiny-ar-quran`** | ~8-12% | Fast (CPU-OK) | ✅ Quranic-fine-tuned | Free | Constrained hardware |
-| Wav2Vec2 Arabic | ~10-15% | Fast | ✅ Good | Free | Alternative |
-| NeMo ASR | ~5-10% | Very Fast | ✅ Good | Free | Enterprise |
+| Model                                  | WER (Quran) | Speed         | Arabic                | Cost | Best for                          |
+| -------------------------------------- | ----------- | ------------- | --------------------- | ---- | --------------------------------- |
+| **Whisper Large-v3** ⭐                | ~5-8%       | Fast          | ✅ Excellent          | Free | **Recommended for cloud**         |
+| **Tarteel Custom (NeMo)**              | ~3-5%       | Very Fast     | ✅ Specialized        | N/A  | Proprietary                       |
+| **`tarteel-ai/whisper-base-ar-quran`** | ~6-9%       | Moderate      | ✅ Quranic-fine-tuned | Free | **On-device (LAN) recall checks** |
+| **`tarteel-ai/whisper-tiny-ar-quran`** | ~8-12%      | Fast (CPU-OK) | ✅ Quranic-fine-tuned | Free | Constrained hardware              |
+| Wav2Vec2 Arabic                        | ~10-15%     | Fast          | ✅ Good               | Free | Alternative                       |
+| NeMo ASR                               | ~5-10%      | Very Fast     | ✅ Good               | Free | Enterprise                        |
 
 ```python
 import whisper
@@ -533,6 +546,7 @@ result = model.transcribe(
 ### 8.4 Teach-back system (`packages/prosody` + `packages/tajweed-detector`)
 
 **How it works:**
+
 1. User records themselves reciting a verse.
 2. ASR transcribes (Whisper-large-v3 or Tarteel fine-tuned).
 3. System extracts prosody features.
@@ -568,12 +582,14 @@ class TeachBackEngine:
 ### 8.5 Prosody comparison
 
 Features extracted (via librosa):
+
 - **Pitch contour (F0 trajectory)** — `librosa.yin(y, fmin=50, fmax=500)`
 - **Energy envelope** — `librosa.feature.rms(y=y)[0]`
 - **Tempo / rhythm** — `librosa.beat.beat_track(y=y, sr=sr)`
 - **MFCCs (timbre)** — `librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)`
 
 Comparison via Dynamic Time Warping (`fastdtw`) over F0 + energy correlation, returning:
+
 - Overall score 0-100
 - Pitch accuracy
 - Energy matching
@@ -789,7 +805,7 @@ FSRS again — same engine as Hifdh — but operating on letter/word/rule cards.
 
 - **Adhan-aware scheduling** — uses `packages/adhan` (Batoul Apps adhan lib, MIT, supports MWL/Egyptian/Karachi/ISNA/Umm al-Qura/Tehran/Jafari/JAKIM/etc.); no Hifdh actions in prayer windows.
 - **Per-room scheduled "sabaq starts now"** announcement with auto-pause TVs / dim lights / mute other speakers.
-- **Listen mode** — passive low-volume loop of the *current week's portion* (sabaq + sabqi) during chores. Evidence-backed Hifdh technique ("audio bath"); no app does it home-wide.
+- **Listen mode** — passive low-volume loop of the _current week's portion_ (sabaq + sabqi) during chores. Evidence-backed Hifdh technique ("audio bath"); no app does it home-wide.
 - **Sleep/wake routines** — last-revised portion at lights-out and on Fajr alarm with gradual volume.
 - **Verse-pause drill** — speaker recites half an ayah, child completes, on-device ASR judges. Mutashabihat-cluster drills.
 - **Door-LED indicator** — green = wird done, amber = sabqi pending, red = nothing today.
@@ -829,6 +845,7 @@ Categories: morning/evening azkar, post-salah, sleeping, waking, eating, travel,
 A genuinely underserved feature. Mechanics: a group (family/masjid/friend circle) creates a khatm; system slices 30 juz / 604 pages / 6236 ayahs into commitments; members claim ranges; progress aggregates; on completion, trigger celebratory dua announcement.
 
 Common modes:
+
 - **Funeral khatm** (one-time, urgent, often within 3 days)
 - **Ramadan family khatm** (1 juz/person × 30 days)
 - **Rolling weekly khatm** (1/7 manzil/day)
@@ -853,6 +870,7 @@ Common modes:
 ### 11.2 Standalone UI/UX vision
 
 A **beautiful, premium standalone web/mobile UI** that:
+
 - Works fully independently (PWA-installable, offline-first, no HA required)
 - Connects to HA when available (auto-discovery via `home-assistant-js-websocket`) and exposes additional controls
 - Functions as a complete modular framework / SaaS — auth, sync, multi-user, billing, all in one product
@@ -860,6 +878,7 @@ A **beautiful, premium standalone web/mobile UI** that:
 ### 11.3 Deep-study mode
 
 3-pane layout (desktop) / tabbed (mobile):
+
 - Pane 1: Arabic with WBW glosses on tap, tajweed coloring
 - Pane 2: 1-2 stacked translations
 - Pane 3: scrollable tafsir
@@ -1048,6 +1067,7 @@ def cache_audio(text: str, reciter: str, audio: bytes):
 ```
 
 **Cache hit rates (from prior strategy):**
+
 - Al-Fatiha: ~80% (most common)
 - Popular surahs: ~60%
 - Random verses: ~10%
@@ -1068,6 +1088,7 @@ def cache_audio(text: str, reciter: str, audio: bytes):
 ### 13.1 By scale
 
 #### MVP (< 100 users)
+
 ```yaml
 Backend: Modal.com Serverless (~$0.0005/sec, pay per use)
 Frontend: Vercel Free Tier
@@ -1076,6 +1097,7 @@ Cost: $0-50/month
 ```
 
 #### Growth (100-10K users)
+
 ```yaml
 Backend:
   Option A: Modal.com ($200-800/month)
@@ -1087,6 +1109,7 @@ Cost: $400-900/month
 ```
 
 #### Scale (10K+ users)
+
 ```yaml
 Backend: Kubernetes on GCP/AWS, auto-scaling GPU nodes, multi-region
 Frontend: Vercel Enterprise + CDN
@@ -1213,6 +1236,7 @@ Friday + last 10 nights of Ramadan; integrate with reputable charity APIs (Islam
 ## 15. Phased roadmap (synthesizing both plans)
 
 ### v0.1 — Foundation (4-6 weeks)
+
 **Goal:** monorepo scaffold + working web reader + HA-as-adapter
 
 1. Monorepo scaffold (pnpm/turbo + uv workspace, shared lint/format/CI, Docker Compose dev, codegen pipeline).
@@ -1229,6 +1253,7 @@ Friday + last 10 nights of Ramadan; integrate with reputable charity APIs (Islam
 **Deliverable:** working web app + HA integration that plays any verse on any HA-controlled speaker.
 
 ### v0.5 — Hifdh core (4-6 weeks)
+
 1. Full FSRS scheduler in `packages/hifdh-engine` with sabaq/sabqi/manzil daily session generator.
 2. Mutashabihat clusters loaded from QUL; per-user confusion graph.
 3. `packages/ui-hifdh` — parent dashboard (daily summary, no real-time), one-tap rating, streak with grace.
@@ -1242,6 +1267,7 @@ Friday + last 10 nights of Ramadan; integrate with reputable charity APIs (Islam
 **Deliverable:** full Hifdh-tracking + deep-study experience.
 
 ### v1.0 — Smart-home & casting (6-8 weeks)
+
 1. Python device-bridge (`services/device-bridge`) hosting `pychromecast` (Cast) and `pyatv` (AirPlay) via gRPC.
 2. `packages/adapters-ts/sonos` (`node-sonos-ts`).
 3. `packages/adapters-ts/mqtt` (~50 LoC).
@@ -1256,6 +1282,7 @@ Friday + last 10 nights of Ramadan; integrate with reputable charity APIs (Islam
 **Deliverable:** smart-home native experience with Cast/Sonos/AirPlay; first proper HA release on HACS.
 
 ### v1.5 — Mobile + breadth (6-8 weeks)
+
 1. `apps/mobile` Expo app (React Native), reusing `packages/ui*`.
 2. iOS/Android offline package (~1.5GB Opus audio for 1 reciter).
 3. Snapcast adapter (`packages/adapters-ts/snapcast`).
@@ -1270,6 +1297,7 @@ Friday + last 10 nights of Ramadan; integrate with reputable charity APIs (Islam
 **Deliverable:** mobile parity + advanced ML.
 
 ### v2.0 — AI cloning + teach-back + Arabic curriculum (3-6 months)
+
 1. `packages/tts-cloning` — F5-TTS production pipeline; 5 reciters MVP, scale to 36+.
 2. `services/tts-worker` — Modal/RunPod GPU inference with caching.
 3. `packages/prosody` — F0/energy/MFCC/tempo + DTW comparison.
@@ -1285,6 +1313,7 @@ Friday + last 10 nights of Ramadan; integrate with reputable charity APIs (Islam
 **Deliverable:** Tarteel-class ASR + full voice cloning + complete curriculum.
 
 ### v2.5 — Depth & ecosystem (open)
+
 1. i'rab dependency trees (defer license question on QAC GPL).
 2. Multi-tafsir simultaneous compare (4-pane).
 3. Live tajweed correctness scoring (research-grade, opt-in, "experimental" badge).
@@ -1302,37 +1331,37 @@ Friday + last 10 nights of Ramadan; integrate with reputable charity APIs (Islam
 
 ### 16.1 Technical risks
 
-| Risk | Mitigation |
-|------|-----------|
-| Voice quality not good enough | Use multiple models (F5, XTTS) + fine-tune on Quranic data + A/B test with users |
-| High inference costs | Cache common verses + serverless (pay per use) + model quantization + batch processing |
-| ASR accuracy issues | Fine-tune Whisper on EveryAyah + use Tarteel's open checkpoints + human verification loop |
-| Tajweed detection complexity | Partner with Islamic scholars + start with basic rules + iterate based on feedback + ship as opt-in experimental |
-| Cast/AirPlay protocol churn | pychromecast and pyatv have track records of shipping fixes promptly; vendor-locked alternatives are worse; subscribe to issue trackers |
-| QF API ToS changes | Maintain QUL+everyayah+Tanzil as canonical fallbacks; QF only as live overlay |
-| HACS / HA core rejection | Ship to HACS first, iterate; HA core submission only after months of stable HACS use |
+| Risk                          | Mitigation                                                                                                                              |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Voice quality not good enough | Use multiple models (F5, XTTS) + fine-tune on Quranic data + A/B test with users                                                        |
+| High inference costs          | Cache common verses + serverless (pay per use) + model quantization + batch processing                                                  |
+| ASR accuracy issues           | Fine-tune Whisper on EveryAyah + use Tarteel's open checkpoints + human verification loop                                               |
+| Tajweed detection complexity  | Partner with Islamic scholars + start with basic rules + iterate based on feedback + ship as opt-in experimental                        |
+| Cast/AirPlay protocol churn   | pychromecast and pyatv have track records of shipping fixes promptly; vendor-locked alternatives are worse; subscribe to issue trackers |
+| QF API ToS changes            | Maintain QUL+everyayah+Tanzil as canonical fallbacks; QF only as live overlay                                                           |
+| HACS / HA core rejection      | Ship to HACS first, iterate; HA core submission only after months of stable HACS use                                                    |
 
 ### 16.2 Business risks
 
-| Risk | Mitigation |
-|------|-----------|
-| Low user adoption | Freemium model + content marketing (YouTube, TikTok) + partner with mosques + free tier genuinely useful |
-| Competition from Tarteel | Focus on unique features (voice cloning, Hifdh engine, smart-home, family) + superior UX + faster iteration |
-| Religious sensitivities | Advisory board of scholars + transparent about AI limitations + user consent for voice usage + explicit disclaimers on AI-generated audio |
+| Risk                                        | Mitigation                                                                                                                                                                        |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Low user adoption                           | Freemium model + content marketing (YouTube, TikTok) + partner with mosques + free tier genuinely useful                                                                          |
+| Competition from Tarteel                    | Focus on unique features (voice cloning, Hifdh engine, smart-home, family) + superior UX + faster iteration                                                                       |
+| Religious sensitivities                     | Advisory board of scholars + transparent about AI limitations + user consent for voice usage + explicit disclaimers on AI-generated audio                                         |
 | Reciter copyright concerns on cloned voices | Get explicit permission where possible (especially for living reciters) + use only PD/openly-licensed reciters in Free tier + Pro tier requires reciter consent for new additions |
-| Family privacy concerns | Encrypt notes at rest + on-device ASR by default + opt-in for any cloud sync + transparent data export/deletion |
-| Burnout (solo dev) | Ship in phases + use proven libraries + monorepo enables incremental refactoring + community contributions for translations |
+| Family privacy concerns                     | Encrypt notes at rest + on-device ASR by default + opt-in for any cloud sync + transparent data export/deletion                                                                   |
+| Burnout (solo dev)                          | Ship in phases + use proven libraries + monorepo enables incremental refactoring + community contributions for translations                                                       |
 
 ### 16.3 Religious / adab risks
 
-| Risk | Mitigation |
-|------|-----------|
-| AI hallucinating Quran text | **Never** ship LLM-based "Quran chat." TTS only generates from verified text input; ASR matches against canonical text only. |
-| Tajweed scoring being inaccurate | Ship as experimental, low-confidence; never claim authoritative |
-| Riya' from public leaderboards | No public leaderboards. Family-private only, with explicit framing about ikhlas |
-| Surveillance feel for kids | No real-time mistake notifications; daily summaries only; child consent toggle past age ~10 |
-| Adab-inappropriate gamification | No XP/levels/coins; sticker-charts and streaks are the ceiling |
-| Sectarian sensitivities | Default to Hafs riwayah + Madani mushaf; offer Warsh/Qaloon and Indo-Pak as alternatives; let user pick adhan calculation method per their school |
+| Risk                             | Mitigation                                                                                                                                        |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AI hallucinating Quran text      | **Never** ship LLM-based "Quran chat." TTS only generates from verified text input; ASR matches against canonical text only.                      |
+| Tajweed scoring being inaccurate | Ship as experimental, low-confidence; never claim authoritative                                                                                   |
+| Riya' from public leaderboards   | No public leaderboards. Family-private only, with explicit framing about ikhlas                                                                   |
+| Surveillance feel for kids       | No real-time mistake notifications; daily summaries only; child consent toggle past age ~10                                                       |
+| Adab-inappropriate gamification  | No XP/levels/coins; sticker-charts and streaks are the ceiling                                                                                    |
+| Sectarian sensitivities          | Default to Hafs riwayah + Madani mushaf; offer Warsh/Qaloon and Indo-Pak as alternatives; let user pick adhan calculation method per their school |
 
 ---
 
@@ -1386,6 +1415,7 @@ Friday + last 10 nights of Ramadan; integrate with reputable charity APIs (Islam
 ## 19. Success criteria
 
 ### 19.1 v0.1 success
+
 - Monorepo builds clean (pnpm + uv) with one command
 - `apps/web` reads any surah, plays any reciter, tracks Hifdh portions manually
 - HA integration plays an ayah on a Cast/Sonos via `media_player.play_media`
@@ -1393,6 +1423,7 @@ Friday + last 10 nights of Ramadan; integrate with reputable charity APIs (Islam
 - License-clean: third-party notices auto-generated and complete
 
 ### 19.2 v1.0 success
+
 - 100 alpha users using daily
 - HA integration on HACS with positive reviews
 - Cast/Sonos/AirPlay all working in real homes
@@ -1400,6 +1431,7 @@ Friday + last 10 nights of Ramadan; integrate with reputable charity APIs (Islam
 - Family khatm completed by at least 5 families during one Ramadan
 
 ### 19.3 v2.0 success
+
 - Voice cloning produces audio rated >=4/5 by native speakers in blind test
 - Whisper fine-tuned on EveryAyah → <5% WER
 - 100+ curriculum lessons, completion rate >50% Level 1 → Level 2
@@ -1407,6 +1439,7 @@ Friday + last 10 nights of Ramadan; integrate with reputable charity APIs (Islam
 - 36+ reciters in voice library
 
 ### 19.4 12-month success
+
 - 10K registered users
 - 2K paying ($20K MRR)
 - Top-3 ranking in Islamic apps category on Play Store + App Store for "Hifdh" / "Quran memorization"
@@ -1415,7 +1448,7 @@ Friday + last 10 nights of Ramadan; integrate with reputable charity APIs (Islam
 
 ---
 
-*Strategy & Roadmap v1.0 — synthesized 2026-05-02. Preserves and extends `quranic_recitation_ai_research_roadmap.md`, `quickstart_implementation_guide.md`, `technical_decision_framework.md`, and `context.md`. May Allah grant success to this project.*
+_Strategy & Roadmap v1.0 — synthesized 2026-05-02. Preserves and extends `quranic_recitation_ai_research_roadmap.md`, `quickstart_implementation_guide.md`, `technical_decision_framework.md`, and `context.md`. May Allah grant success to this project._
 
 ---
 
@@ -1426,22 +1459,26 @@ This section is a delta on top of §1-19. Each item is keyed: **prior baseline �
 ### 20.1 Open Quran data
 
 **TarteelAI/quranic-universal-library (QUL).**
+
 - Prior: launched late 2024 as a centralized hub; word-level segments only for a handful of reciters.
 - 2026 state: QUL is now the de-facto canonical pipeline. **Quran.com 2.0 (a Tarteel partnership) is built on top of QUL.** Audio segmentation pipeline handles ayah-by-ayah and gapless surah audio with a public `surah_audio_files` segment editor. Multiple Mushaf layouts now live: Madani, Uthmani, 15-line Indo-Pak, **16-line Indo-Pak (the new Indo-Pak digital fonts)**. The `morphology_phrases` table on QUL is now the open mutashabihat source.
 - Action: **Upgrade.** Treat QUL as the primary data substrate (replace anything that previously came from disparate scrapes). Use QUL's word-segment timestamps for both highlighting AND ASR alignment. Hit `qul.tarteel.ai/resources` and `qul.tarteel.ai/mushaf_layouts` directly. Replace `cpfair/quran-tajweed` references in §4.1 with QUL's tajweed data; replace `corpus.quran.com` (GPL) with QUL's morphology when license-clean equivalence is confirmed.
 
 **Quran-MD (NeurIPS 2025 Muslims-in-ML).**
+
 - Prior: not in the baseline.
 - 2026 state: brand-new 264k MP3 files, 32 reciters, ayah-level + word-level alignments, Arabic + English + transliteration. Suitable for ASR, tajweed detection, TTS, and multimodal embeddings.
 - Action: **Adopt.** Genuinely new gold for retrieval, voice-clone reference selection, and per-word timing tasks. (https://arxiv.org/html/2601.17880v1)
 
 **Tanzil, fawazahmed0/quran-api, Al Quran Cloud, everyayah, cpfair/quran-tajweed, Tarteel mutashabihat JSON.**
+
 - Tanzil v1.1 frozen since Feb 2021 — keep as citable fallback; do not expect updates.
 - fawazahmed0 stable, 440+ translations on `1` branch — keep for translation breadth.
 - cpfair/quran-tajweed dormant since 2018-2019 — **replace** with QUL tajweed.
 - Waqar144/Quran_Mutashabihat_Data — superseded by QUL morphology_phrases — **upgrade**.
 
 **Quran.Foundation API.**
+
 - Prior: v4 content APIs + OAuth2 client-credentials; user-tier APIs being introduced.
 - 2026 state: continued additions through 2025-2026 — media-class additions to media-search intents, expanded translation_info endpoints, and an officially documented **Quran MCP server** with semantic search across verified text, translations, tafsir, and word-by-word morphology. The `/docs/updates/` page is the authoritative changelog. The MCP roadmap (last updated 2025-07-22) calls out async, streaming, multimodal/video.
 - Action: **Re-evaluate.** Subscribe to `/docs/updates/`. **For any LLM-facing surface, prefer the official Quran MCP over building our own retrieval.** Confirm rate limits in their developer portal before committing — public docs do not publish hard numbers.
@@ -1451,6 +1488,7 @@ This section is a delta on top of §1-19. Each item is keyed: **prior baseline �
 ### 20.2 Home Assistant 2024.12 → 2026.5
 
 **Voice / Assist (this is the big one for Qalaam):**
+
 - **Voice Chapter 10 (June 2025):** next-gen Assist pipeline with streamed intent-progress events.
 - **Voice Chapter 11 (Oct 2025, "multilingual assistants"):** up to two wake words and **two Assist pipelines per satellite** — dual-language households now native. Big deal for Qalaam (Arabic + English/Urdu/etc. simultaneously).
 - **2025.7:** media-class added to media `search-and-play` intent.
@@ -1462,14 +1500,17 @@ This section is a delta on top of §1-19. Each item is keyed: **prior baseline �
 **Action:** upgrade the integration to (a) register a media-class on our media-search intent so Voice routes Quran queries naturally, (b) declare two pipelines (Arabic + English) for satellites, (c) emit intent-progress events for long-running ASR memorization checks.
 
 **HACS:**
+
 - Requires HA 2024.4.1+; `info.md` no longer rendered (use README); YAML config removed; sensor platform removed; metadata moved to a Cloudflare-hosted source.
 - Action: **Keep**, migrate any legacy `info.md`/YAML, ensure `hacs/action` validation passes.
 
 **Music Assistant (MA) status inside HA:**
+
 - **MA is now a first-class HA-shipped integration.** Players visible as HA entities, individual control (volume, on/off) outsourceable to HA entities. Voice Control blueprints exist in `music-assistant/voice-support`.
 - **Action:** Adopt MA as our media-output abstraction inside HA; do not roll our own player matrix in the HA integration. (Outside HA, our own multi-protocol stack stands.)
 
 **Mawaqit / islamic_prayer_times:**
+
 - `islamic_prayer_times` (core) still healthy. `mawaqit/home-assistant` still active and the only mosque-aware option (20 km mosque search around HA coordinates). Mawaqit shipped a v4 mobile app for Ramadan 2026, no breaking HA-side change.
 - Action: **Keep both;** expose Qalaam-internal "prayer-time triggers" that delegate to whichever is configured.
 
@@ -1481,14 +1522,14 @@ This section is a delta on top of §1-19. Each item is keyed: **prior baseline �
 
 ### 20.4 Casting libraries — concrete updates
 
-| Lib | 2026 state | Action |
-|---|---|---|
-| **pychromecast** | 14.0.10, Python 3.11+, mDNS/zeroconf still core; minor breaks around CEC info | Keep — only viable Cast lib |
-| **pyatv** | 0.17.0 (Jan 2026); MRP-over-AirPlay-2 working; **HAP-auth encryption for RAOP still not implemented** — only legacy pairing; AirPlay-2 metadata still tracked in #1255 | Keep but accept ceiling. **Use Music Assistant's AirPlay-2 provider when full sync needed; pyatv for direct device control.** |
-| **node-sonos-ts** | Active; 2024 Sonos-app debacle did not break the local SOAP API; cloud `audioClip` still required for non-interrupting alerts/TTS | Keep; TTS path uses cloud audioClip |
-| **Snapcast** | **0.34.0 (Oct 2025)**; 0.33 added PipeWire stream/player; ESP32/ESP32-S2 microcontroller Snapclient; Rust reimplementation `snapcast-rs` separating protocol engine from app shell | Upgrade. Rust core interesting if we want embeddable Snapcast |
-| **Matter Casting** | Deployed on FireTV Cube gen3, FireTV Edition TVs, Echo Show 15; Panasonic adopting; Plex/Pluto/Sling/STARZ/ZDF announced — **no Netflix/Disney+**. Matter 1.3 added TV push messages, dialogs, search. **MA has open discussion (#2342) for "MatterCast audio receiver" but no impl** | **Re-evaluate, do not commit.** Matter Casting in 2026 is video-first; audio support unproven. Wait one more cycle. |
-| **WebTransport / WebRTC for browser-as-speaker** | **WebTransport went Baseline March 2026** when Safari 26.4 shipped. MoQ (Media-over-QUIC) is real but universal browser MoQ is "2026-2027." HA supports WebRTC two-way audio for cameras (Hikvision integration shows the pattern) | **Adopt WebTransport for browser-speaker path now** — it's the right primitive. Defer MoQ. |
+| Lib                                              | 2026 state                                                                                                                                                                                                                                                                            | Action                                                                                                                        |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **pychromecast**                                 | 14.0.10, Python 3.11+, mDNS/zeroconf still core; minor breaks around CEC info                                                                                                                                                                                                         | Keep — only viable Cast lib                                                                                                   |
+| **pyatv**                                        | 0.17.0 (Jan 2026); MRP-over-AirPlay-2 working; **HAP-auth encryption for RAOP still not implemented** — only legacy pairing; AirPlay-2 metadata still tracked in #1255                                                                                                                | Keep but accept ceiling. **Use Music Assistant's AirPlay-2 provider when full sync needed; pyatv for direct device control.** |
+| **node-sonos-ts**                                | Active; 2024 Sonos-app debacle did not break the local SOAP API; cloud `audioClip` still required for non-interrupting alerts/TTS                                                                                                                                                     | Keep; TTS path uses cloud audioClip                                                                                           |
+| **Snapcast**                                     | **0.34.0 (Oct 2025)**; 0.33 added PipeWire stream/player; ESP32/ESP32-S2 microcontroller Snapclient; Rust reimplementation `snapcast-rs` separating protocol engine from app shell                                                                                                    | Upgrade. Rust core interesting if we want embeddable Snapcast                                                                 |
+| **Matter Casting**                               | Deployed on FireTV Cube gen3, FireTV Edition TVs, Echo Show 15; Panasonic adopting; Plex/Pluto/Sling/STARZ/ZDF announced — **no Netflix/Disney+**. Matter 1.3 added TV push messages, dialogs, search. **MA has open discussion (#2342) for "MatterCast audio receiver" but no impl** | **Re-evaluate, do not commit.** Matter Casting in 2026 is video-first; audio support unproven. Wait one more cycle.           |
+| **WebTransport / WebRTC for browser-as-speaker** | **WebTransport went Baseline March 2026** when Safari 26.4 shipped. MoQ (Media-over-QUIC) is real but universal browser MoQ is "2026-2027." HA supports WebRTC two-way audio for cameras (Hikvision integration shows the pattern)                                                    | **Adopt WebTransport for browser-speaker path now** — it's the right primitive. Defer MoQ.                                    |
 
 ### 20.5 TTS / voice cloning — supersedes §8.1-8.2 picks
 
@@ -1496,14 +1537,15 @@ This section is a delta on top of §1-19. Each item is keyed: **prior baseline �
 
 **Three new contenders to pilot in parallel:**
 
-| Model | License | Why it matters |
-|---|---|---|
-| **Habibi-TTS MSA** | **Apache-2.0** (MSA model); CC-BY-NC-SA for unified/SAU/UAE | Best Arabic open quality + commercial freedom + active community |
-| **VoxCPM2** (OpenBMB, Apr 2026) | Apache-2.0 | 48 kHz, 30 langs incl. Arabic; **fine-tunes on as little as 5-10 min audio** — most data-efficient option for cloning a single reciter. Voice-design from text is a unique controllable feature. |
-| **CosyVoice 2** | Apache-2.0 | **150ms streaming TTFB** with identical streaming/non-streaming quality; Arabic via LoRA. **Use this for verse-pause Hifdh drill** — F5/Habibi are non-autoregressive and not streaming-suited. |
-| **Chatterbox Multilingual** (Resemble AI) | **MIT, native Arabic** | Most permissive Arabic-native option; streaming-capable; emotion control. Fallback if Habibi licensing changes. |
+| Model                                     | License                                                     | Why it matters                                                                                                                                                                                   |
+| ----------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Habibi-TTS MSA**                        | **Apache-2.0** (MSA model); CC-BY-NC-SA for unified/SAU/UAE | Best Arabic open quality + commercial freedom + active community                                                                                                                                 |
+| **VoxCPM2** (OpenBMB, Apr 2026)           | Apache-2.0                                                  | 48 kHz, 30 langs incl. Arabic; **fine-tunes on as little as 5-10 min audio** — most data-efficient option for cloning a single reciter. Voice-design from text is a unique controllable feature. |
+| **CosyVoice 2**                           | Apache-2.0                                                  | **150ms streaming TTFB** with identical streaming/non-streaming quality; Arabic via LoRA. **Use this for verse-pause Hifdh drill** — F5/Habibi are non-autoregressive and not streaming-suited.  |
+| **Chatterbox Multilingual** (Resemble AI) | **MIT, native Arabic**                                      | Most permissive Arabic-native option; streaming-capable; emotion control. Fallback if Habibi licensing changes.                                                                                  |
 
 **Other models surveyed but not picked:**
+
 - **OmniVoice (Apr 2026, Apache-2.0)** — 600+ langs, 40× RTF; impressive coverage but no specific Arabic-tuning advantage.
 - **Sesame CSM-1B** — Apache-2.0, English-first; revisit when CSM-2 multilingual ships.
 - **Kyutai TTS 1.6B** — CC-BY-4.0 with attribution, EN/FR only at release; great streaming but no Arabic until someone fine-tunes.
@@ -1519,12 +1561,14 @@ This section is a delta on top of §1-19. Each item is keyed: **prior baseline �
 **Tarteel still has not open-sourced their ASR.** QUL is text/audio only. Tarteel's NeMo/Riva production stack remains closed. We must build our own ASR fine-tunes.
 
 **Whisper status:**
+
 - **Whisper-large-v3 (NOT turbo)** is still the open default for Arabic. Turbo's 4-layer decoder hurts low-resource langs.
 - **`gpt-4o-transcribe` (API)** is the new accuracy ceiling for Arabic — meaningful improvement over open Whisper.
 - **No Whisper v4 from OpenAI as of May 2026.**
 - **NVIDIA Canary-1b-v2 / Parakeet-tdt-0.6b-v3 do NOT cover Arabic** — skip.
 
 **Quranic-specialized open models:**
+
 - **`tarteel-ai/whisper-base-ar-quran`** + **`whisper-tiny-ar-quran`** — still the on-device baseline (per §7.5).
 - **`KheemP/whisper-base-quran-lora`** — 74M params, ~6% WER, diacritic-sensitive; **viable for on-device mobile inference**.
 - **`TBOGamer22/wav2vec2-quran-phonetics`** — first open Wav2Vec2 phonetic Quran model; outputs sound-level labels for word-/phoneme-level mistake detection.
@@ -1534,6 +1578,7 @@ This section is a delta on top of §1-19. Each item is keyed: **prior baseline �
 #### 20.5.1 Tajweed-aware modeling — new academic work
 
 This is the biggest research advance since November 2024:
+
 - **Iqra'Eval Shared Task @ ArabicNLP 2025 (Suzhou)** — first open MDD (mispronunciation detection & diagnosis) benchmark using QuranMB.
 - **"Bringing Tajweed-Aware Phonemes to Qur'anic Mispronunciation Detection" (NeurIPS 2025 MusIML)** — formalizes a tajweed-aware phonemizer; explicitly notes **Madd is a duration phenomenon mapped to long-vowel symbols** (not new phonemes). Prosody/duration models capture it, not new phoneme inventories.
 - **"Adapting Whisper-large-v3 as Speech-to-Phoneme for Qur'anic" (ArabicNLP 2025)** — published recipe; Whisper-large-v3 fine-tuned to output phoneme sequences. **Most relevant to our Hifdh mistake-detection use case.** As of May 2026 no public weights checkpoint is confirmed; **implement the recipe ourselves** — architecture is straightforward (CTC head on Whisper-large-v3 encoder).
@@ -1544,6 +1589,7 @@ This is the biggest research advance since November 2024:
 #### 20.5.2 Streaming TTS — sub-200ms for verse-pause drill
 
 For Qalaam's verse-pause Hifdh drill:
+
 - **CosyVoice 2 streaming mode + Habibi-MSA fine-tuned weights** is the most realistic open self-host path.
 - **Kyutai TTS 1.6B** is the cleanest if/when an Arabic fine-tune exists.
 - **F5-TTS / Habibi are non-autoregressive — do NOT stream-generate.** Pre-generate the verse and stream the file.
@@ -1574,6 +1620,7 @@ For Qalaam's verse-pause Hifdh drill:
 #### 20.5.5 ElevenLabs / commercial APIs — should we white-label first?
 
 **Math:**
+
 - Quran ≈ 330,000 Arabic words ≈ 1.6M characters.
 - Generating the full Quran in one reciter voice ≈ $50-150 ElevenLabs credits, **once** (then cache → CDN).
 - Per active Hifdh user generating 50 verses/day at ~150 chars/verse ≈ 7,500 chars/day ≈ **~$0.25/user/month**.
@@ -1584,18 +1631,18 @@ For Qalaam's verse-pause Hifdh drill:
 
 #### 20.5.6 License delta summary
 
-| Change | Impact for Qalaam |
-|---|---|
-| **Coqui defunct; XTTS-v2 base = CPML (NC)** | Skip permanently |
-| **F5-TTS code MIT; F5 Emilia weights CC-BY-NC** | Use code from F5; train on commercially-licensed data |
-| **Habibi-TTS MSA Apache-2.0** | **Adopt as starting checkpoint** |
-| **VoxCPM2 Apache-2.0** | Adopt for data-efficient cloning |
-| **OmniVoice Apache-2.0** | Available; not currently best Arabic |
-| **Chatterbox Multilingual MIT, native Arabic** | Adopt as fallback |
-| **Sesame CSM-1B Apache-2.0** | Watch for CSM-2 multilingual |
-| **Orpheus-TTS Apache-2.0** | Watch |
-| **Kyutai TTS CC-BY-4.0** | OK with attribution |
-| **Spark-TTS / IndexTTS 2 / MaskGCT / MegaTTS 3 / Fish S2 / MARS5** | Restrictive; skip |
+| Change                                                             | Impact for Qalaam                                     |
+| ------------------------------------------------------------------ | ----------------------------------------------------- |
+| **Coqui defunct; XTTS-v2 base = CPML (NC)**                        | Skip permanently                                      |
+| **F5-TTS code MIT; F5 Emilia weights CC-BY-NC**                    | Use code from F5; train on commercially-licensed data |
+| **Habibi-TTS MSA Apache-2.0**                                      | **Adopt as starting checkpoint**                      |
+| **VoxCPM2 Apache-2.0**                                             | Adopt for data-efficient cloning                      |
+| **OmniVoice Apache-2.0**                                           | Available; not currently best Arabic                  |
+| **Chatterbox Multilingual MIT, native Arabic**                     | Adopt as fallback                                     |
+| **Sesame CSM-1B Apache-2.0**                                       | Watch for CSM-2 multilingual                          |
+| **Orpheus-TTS Apache-2.0**                                         | Watch                                                 |
+| **Kyutai TTS CC-BY-4.0**                                           | OK with attribution                                   |
+| **Spark-TTS / IndexTTS 2 / MaskGCT / MegaTTS 3 / Fish S2 / MARS5** | Restrictive; skip                                     |
 
 ### 20.6 Backend / SaaS stack
 
@@ -1606,6 +1653,7 @@ For Qalaam's verse-pause Hifdh drill:
 - **Cloudflare R2:** $0.015/GB-month standard, $0.01/GB-month infrequent-access, **0 egress** (durable differentiator), 10 GB free. Class A $4.50/M, Class B $0.36/M.
 
 **Action:**
+
 - **Adopt Stripe AI metering** for voice-clone usage billing.
 - **Adopt Cloudflare R2** for reciter audio (bandwidth profile = lots of audio egress = R2 wins overwhelmingly vs S3).
 - Pick **WorkOS** for B2B (school/madrasa) tier.
@@ -1666,6 +1714,7 @@ This section distills field research on the two most-respected apps in the categ
 ### 21.2 Visual design language
 
 #### Tarteel
+
 - **Palette:** Restrained, "scholarly tech." Deep teal/navy primary (`#1B4D5A`-ish family), warm off-white background (`#F7F4EE` cream), gold/amber accent for highlights and bookmarks. Mistake-detection colors are functional and load-bearing: **red** (errors), **green** (correct), **yellow** (tashkeel mistakes), **brown** (peeked words), with **orange-yellow gradient for historical frequency heatmap**. Dark mode is true dark (~`#0E1416`), not just inverted.
 - **Typography:** Latin = humanist sans (Inter / SF System on iOS). Arabic = **KFGQPC HAFS Uthmanic Script (QPC V2)** primary; **IndoPak** as user-selectable alternative. Custom font sizing is a settings primitive.
 - **Iconography:** Custom outline set, 1.5-2px stroke, rounded terminals. Mic icon is a recurring brand motif.
@@ -1673,6 +1722,7 @@ This section distills field research on the two most-respected apps in the categ
 - **Personality:** Premium / serious / academic. Adult-coded. Reads like a study app (Anki, Readwise) more than a religious app.
 
 #### Quranly
+
 - **Palette:** Expressive and "alive." Emerald/forest green primary, peach/coral accents, **dynamic color theme that shifts with time of day** (morning warm, evening cool). Multiple "reading themes" beyond just light/dark.
 - **Typography:** Latin = geometric sans (Poppins/SF family). Arabic offers Uthmani and IndoPak with adjustable size. Hasanat counter uses tabular numerics.
 - **Iconography:** Filled and rounded; closer to Duolingo/Headspace. Heavy 3D-ish soft illustrations and emoji-like glyphs for badges/levels ("Break the Egg," "Beast Mode").
@@ -1714,9 +1764,10 @@ This section distills field research on the two most-respected apps in the categ
 
 **Gamification:** Streaks, heatmaps, milestone-style. **No leaderboards.** Adult-coded.
 
-**Quranly Hifdh** — shallow. Audio repeat (ayah/range/Surah) and tracking present but **no live mistake detection, no hidden-verse mode, no spaced-repetition**. Strength is the *habit* layer wrapping Hifdh: streaks, levels (Alif/Laam… 4 levels with badges), challenges ("Break the Egg" 2-min, "Beast Mode" 30-min), **private friends-only weekly leaderboard**.
+**Quranly Hifdh** — shallow. Audio repeat (ayah/range/Surah) and tracking present but **no live mistake detection, no hidden-verse mode, no spaced-repetition**. Strength is the _habit_ layer wrapping Hifdh: streaks, levels (Alif/Laam… 4 levels with badges), challenges ("Break the Egg" 2-min, "Beast Mode" 30-min), **private friends-only weekly leaderboard**.
 
 **Qalaam Hifdh takeaway:**
+
 - **Borrow Tarteel's Range/Portion/Schedule trichotomy verbatim.**
 - **Borrow Tarteel's post-hoc (non-interruptive) feedback model as default.**
 - **Borrow Tarteel's red→orange→yellow→clear heatmap colors and visual language.**
@@ -1740,15 +1791,15 @@ This section distills field research on the two most-respected apps in the categ
 
 ### 21.8 Subscription / paywall
 
-| | Tarteel | Quranly |
-|---|---|---|
-| Monthly | ~$7.50/mo (annual) ≈ $90/yr | $4.99/mo |
-| Annual | ~$90/yr | $39.99/yr |
-| Lifetime | iOS up to $239.99 (likely lifetime SKU) | £49 (75% off promo) |
-| Family | $13/mo annual = $156/yr, 5 seats, **web-only** | n/a |
-| Trial | 7-day | n/a |
-| "I can't afford it" | n/a | **Yes, in onboarding** |
-| Hero pitch | AI tools / Mistake Detection | Habit / streaks / challenges |
+|                     | Tarteel                                        | Quranly                      |
+| ------------------- | ---------------------------------------------- | ---------------------------- |
+| Monthly             | ~$7.50/mo (annual) ≈ $90/yr                    | $4.99/mo                     |
+| Annual              | ~$90/yr                                        | $39.99/yr                    |
+| Lifetime            | iOS up to $239.99 (likely lifetime SKU)        | £49 (75% off promo)          |
+| Family              | $13/mo annual = $156/yr, 5 seats, **web-only** | n/a                          |
+| Trial               | 7-day                                          | n/a                          |
+| "I can't afford it" | n/a                                            | **Yes, in onboarding**       |
+| Hero pitch          | AI tools / Mistake Detection                   | Habit / streaks / challenges |
 
 **Quranly's "I can't afford it" tier is the most distinctive paywall framing in either app.** Founder-stated policy: app is free for anyone who can't afford it.
 
@@ -1757,11 +1808,13 @@ This section distills field research on the two most-respected apps in the categ
 ### 21.9 Moments of delight
 
 **Tarteel:**
+
 - The moment a hidden verse reveals itself word-by-word as you recite — genuinely thrilling first-time UX.
 - Voice search "Shazam for Quran" — recite half a phrase, app jumps to it.
 - Historical-mistakes heatmap "oh wow" moment in tutorials.
 
 **Quranly:**
+
 - Vibration haptic on advancing to next verse — small but reviewer-beloved.
 - Hasanat counter ticking up rapidly while reading — dopamine.
 - Time-of-day color shift on home screen.
@@ -1770,6 +1823,7 @@ This section distills field research on the two most-respected apps in the categ
 ### 21.10 What each gets wrong
 
 **Tarteel:**
+
 - Mistake-detection false positives in recurring spots — #1 review complaint.
 - **Internet dependency** — cloud ASR means no offline Hifdh.
 - Subscription friction — paywall locks the feature most users came for.
@@ -1780,6 +1834,7 @@ This section distills field research on the two most-respected apps in the categ
 - Aesthetic slightly austere for kids.
 
 **Quranly:**
+
 - **Streak guilt** — reviewers complain notifications "condescending and demotivating."
 - Buggy / slow loading; repeated logout-loops.
 - **No automatic device sync.**
@@ -1791,6 +1846,7 @@ This section distills field research on the two most-respected apps in the categ
 ### 21.11 Top 5 features Qalaam should pull
 
 **From Tarteel:**
+
 1. **Range / Portion / Schedule goal trichotomy** — verbatim primitive.
 2. **Mistake highlight color system** (red error / green correct / yellow tashkeel / brown peeked) — pre-learned visual language.
 3. **Historical-mistakes heatmap** with frequency-decaying color (red→orange→yellow→clear).
@@ -1798,6 +1854,7 @@ This section distills field research on the two most-respected apps in the categ
 5. **QUL public-good contribution** — Tarteel built community goodwill by open-sourcing data; Qalaam should contribute back to QUL rather than re-source.
 
 **From Quranly:**
+
 1. **"I can't afford it" free tier** in onboarding.
 2. **Verse-advance haptic + ticking hasanat counter** — small, dopamine-rich.
 3. **Tiny-habit goal default (1 verse minimum)** — gentler ramp than Tarteel.
@@ -1807,7 +1864,7 @@ This section distills field research on the two most-respected apps in the categ
 ### 21.12 What NEITHER ships — Qalaam differentiators
 
 1. **On-device ASR** for mistake detection (works on a plane / rural / Subway). Solves Tarteel's #1 functional complaint architecturally.
-2. **Voice-cloning your teacher / parent / favourite reciter** — cloned voice walks alongside in earbuds, corrects in *teacher's* voice, with a tone you trust. Massive emotional moat. (Requires explicit consent flow + watermarking — see §22.)
+2. **Voice-cloning your teacher / parent / favourite reciter** — cloned voice walks alongside in earbuds, corrects in _teacher's_ voice, with a tone you trust. Massive emotional moat. (Requires explicit consent flow + watermarking — see §22.)
 3. **Family halaqah** — multiplayer Hifdh: parent assigns portion to child, gets voice-note evidence + heatmap + AI summary + can leave a praise sticker or audio reply. Better than Tarteel's analytics-only Parents Portal.
 4. **Smart-home / CarPlay-first** — "Hey Qalaam, continue from Surah Al-Kahf verse 19 in Mishary's voice." Lockscreen-as-mushaf widget for elders.
 5. **Mutashabihat-aware review** — surface similar verses together when confusion source.
@@ -1820,6 +1877,7 @@ This section distills field research on the two most-respected apps in the categ
 ### 21.13 Visual references
 
 **Tarteel screens to study:**
+
 1. App Store screenshot 1 — "Memorization Mistake Detection in Action": dotted-underline red over Arabic word mid-recitation. **Match the restraint, differentiate the palette (warmer).**
 2. Hidden Verses tutorial (YouTube `UrKJSa3S5AU`) — words materializing on a blurred page. Study reveal animation timing.
 3. Mistake-detection demo (YouTube `DPxQU3NPbLU`) — full session arc.
@@ -1832,6 +1890,7 @@ This section distills field research on the two most-respected apps in the categ
 10. Family Plan landing (`tarteel.ai/family`) — multi-seat visual treatment.
 
 **Quranly screens to study:**
+
 1. quranly.app homepage — green/coral palette, illustrated 3D-ish hero.
 2. App Store screenshot 1 — Home with weekly tracker strip, today's challenge, hasanat counter, streak.
 3. Onboarding paywall (Adapty paywall library `adapty.io/paywall-library/quranly`) — three tiers including "I can't afford it." **Direct visual reference; the screen to study.**
@@ -1877,7 +1936,7 @@ The single biggest legal/ethical risk in §8's voice-cloning ambition. Status as
 ### 22.2 Three product framings (least → most risky)
 
 1. **Qalaam-house voice (DEFAULT, ALL TIERS).** Train on a corpus of multiple reciters and present an unattributed Qalaam-house voice that doesn't claim to be any individual. Avoids right-of-publicity entirely. Loses some emotional appeal but is the right default.
-2. **Opt-in user voice cloning (Pro tier).** Let students/parents/teachers clone *their own* voice (or a teacher's voice with explicit documented consent + signed release). Privacy-vault stored on user-device or encrypted cloud. Right-of-publicity is not implicated when the subject consents.
+2. **Opt-in user voice cloning (Pro tier).** Let students/parents/teachers clone _their own_ voice (or a teacher's voice with explicit documented consent + signed release). Privacy-vault stored on user-device or encrypted cloud. Right-of-publicity is not implicated when the subject consents.
 3. **Licensed reciter voices (premium add-on, post-licensing).** For specific reciters, pursue formal licensing — Mishary's Alafasy Foundation, Saudi Presidency of the Two Holy Mosques (Sudais, Shuraim), reciter estates (Abdul Basit, Husary, Minshawi). At least one major Quran-tech NGO is reportedly working on this; could become a moat.
 
 ### 22.3 Operational guardrails
@@ -1890,18 +1949,17 @@ The single biggest legal/ethical risk in §8's voice-cloning ambition. Status as
 
 ### 22.4 Path to licensed reciter voices
 
-| Step | Action | Owner |
-|---|---|---|
-| 1 | Identify and contact reciter offices: Alafasy Foundation, Saudi Presidency of the Two Holy Mosques, deceased-reciter estates (via Darussalam, Maktabat al-Haramayn, etc.) | Founder + counsel |
-| 2 | Draft a clear license-and-revenue-share term sheet (e.g., 10-20% of voice-clone revenue + audit rights + revocation clause + adab/sharia-compliance clauses) | Counsel |
-| 3 | Get fatwa support from a respected scholar before public launch (in-app advisory note: "voice cloning of [reciter] is permitted by [scholar], with [reciter consent]") | Founder + scholar advisor |
-| 4 | Pilot with one or two living reciters before adding deceased-reciter estates (cleaner consent path) | Product |
-| 5 | If formal licensing fails, ship Qalaam-house voice + opt-in user-cloning indefinitely | Product |
+| Step | Action                                                                                                                                                                    | Owner                     |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| 1    | Identify and contact reciter offices: Alafasy Foundation, Saudi Presidency of the Two Holy Mosques, deceased-reciter estates (via Darussalam, Maktabat al-Haramayn, etc.) | Founder + counsel         |
+| 2    | Draft a clear license-and-revenue-share term sheet (e.g., 10-20% of voice-clone revenue + audit rights + revocation clause + adab/sharia-compliance clauses)              | Counsel                   |
+| 3    | Get fatwa support from a respected scholar before public launch (in-app advisory note: "voice cloning of [reciter] is permitted by [scholar], with [reciter consent]")    | Founder + scholar advisor |
+| 4    | Pilot with one or two living reciters before adding deceased-reciter estates (cleaner consent path)                                                                       | Product                   |
+| 5    | If formal licensing fails, ship Qalaam-house voice + opt-in user-cloning indefinitely                                                                                     | Product                   |
 
 ### 22.5 Bottom line
 
 **Qalaam's v0.1 through v1.5 should ship with no reciter cloning at all.** The Qalaam-house voice (multi-reciter blend, unattributed) plus opt-in user voice cloning (Pro tier) is sufficient to deliver the teach-back vision while sidestepping legal risk. **Reciter licensing is a v2.5+ initiative,** parallel-tracked with legal/scholar engagement starting now.
-
 
 ---
 
@@ -1929,30 +1987,31 @@ Opportunity scores below are **provisional Q1 2026 estimates** based on (a) Tart
 
 Format: `[Direction] + [metric] + [object] + [context]` — `Importance / Satisfaction (Tarteel) / Satisfaction (Quranly) / Opportunity score`
 
-| # | Outcome | Importance | Tarteel Sat. | Quranly Sat. | Opportunity (vs best alt) |
-|---|---|---|---|---|---|
-| O-01 | Minimize time to detect a recitation mistake during memorization session | 10 | 7 | 1 | **13** |
-| O-02 | Minimize false-positive mistake flags during recitation | 10 | 5 | n/a | **15** |
-| O-03 | Minimize need for internet connectivity during Hifdh session | 9 | 2 | 4 | **16** |
-| O-04 | Minimize cognitive load for parent supervising multiple children's daily wird | 10 | 4 | 3 | **16** |
-| O-05 | Minimize confusion between mutashabihat (similar verses) | 9 | 4 | 2 | **14** |
-| O-06 | Maximize ability to hear how a specific reciter would recite any verse | 8 | 3 | 3 | **13** |
-| O-07 | Maximize retention of memorized portions over 90+ days | 10 | 6 | 2 | **14** |
-| O-08 | Minimize time to coordinate a family/community khatm | 7 | 1 | 1 | **13** |
-| O-09 | Minimize time to integrate Quran playback into existing smart-home automations | 8 | 1 | 1 | **15** |
-| O-10 | Minimize friction to count Quran reading done outside the app | 7 | 1 | 1 | **13** |
-| O-11 | Maximize confidence that AI feedback is theologically sound | 10 | 7 | n/a | **13** |
-| O-12 | Minimize inappropriate gamification that distracts from sincerity (ikhlas) | 9 | 8 | 4 | **14** |
-| O-13 | Maximize ability to listen passively to current memorization portion ambiently around the home | 8 | 1 | 1 | **15** |
-| O-14 | Minimize disruption to prayer times by app activity | 9 | 5 | 5 | **13** |
-| O-15 | Maximize ability to share verses beautifully (cards/social) | 6 | 7 | 8 | 6 |
-| O-16 | Maximize support for non-Madani mushaf (Indo-Pak 16-line) | 7 | 7 | 6 | 7 |
-| O-17 | Minimize time for child to receive encouragement after completing a portion | 8 | 3 | 6 | **10** |
-| O-18 | Maximize ability to compare recitation to a teacher's prosody/style | 8 | 2 | 1 | **15** |
-| O-19 | Maximize accessibility for blind/low-vision users (vocal-only nav) | 6 | 2 | 1 | **11** |
-| O-20 | Minimize time to recover from a missed-day streak break | 7 | 3 | 1 | **13** |
+| #    | Outcome                                                                                        | Importance | Tarteel Sat. | Quranly Sat. | Opportunity (vs best alt) |
+| ---- | ---------------------------------------------------------------------------------------------- | ---------- | ------------ | ------------ | ------------------------- |
+| O-01 | Minimize time to detect a recitation mistake during memorization session                       | 10         | 7            | 1            | **13**                    |
+| O-02 | Minimize false-positive mistake flags during recitation                                        | 10         | 5            | n/a          | **15**                    |
+| O-03 | Minimize need for internet connectivity during Hifdh session                                   | 9          | 2            | 4            | **16**                    |
+| O-04 | Minimize cognitive load for parent supervising multiple children's daily wird                  | 10         | 4            | 3            | **16**                    |
+| O-05 | Minimize confusion between mutashabihat (similar verses)                                       | 9          | 4            | 2            | **14**                    |
+| O-06 | Maximize ability to hear how a specific reciter would recite any verse                         | 8          | 3            | 3            | **13**                    |
+| O-07 | Maximize retention of memorized portions over 90+ days                                         | 10         | 6            | 2            | **14**                    |
+| O-08 | Minimize time to coordinate a family/community khatm                                           | 7          | 1            | 1            | **13**                    |
+| O-09 | Minimize time to integrate Quran playback into existing smart-home automations                 | 8          | 1            | 1            | **15**                    |
+| O-10 | Minimize friction to count Quran reading done outside the app                                  | 7          | 1            | 1            | **13**                    |
+| O-11 | Maximize confidence that AI feedback is theologically sound                                    | 10         | 7            | n/a          | **13**                    |
+| O-12 | Minimize inappropriate gamification that distracts from sincerity (ikhlas)                     | 9          | 8            | 4            | **14**                    |
+| O-13 | Maximize ability to listen passively to current memorization portion ambiently around the home | 8          | 1            | 1            | **15**                    |
+| O-14 | Minimize disruption to prayer times by app activity                                            | 9          | 5            | 5            | **13**                    |
+| O-15 | Maximize ability to share verses beautifully (cards/social)                                    | 6          | 7            | 8            | 6                         |
+| O-16 | Maximize support for non-Madani mushaf (Indo-Pak 16-line)                                      | 7          | 7            | 6            | 7                         |
+| O-17 | Minimize time for child to receive encouragement after completing a portion                    | 8          | 3            | 6            | **10**                    |
+| O-18 | Maximize ability to compare recitation to a teacher's prosody/style                            | 8          | 2            | 1            | **15**                    |
+| O-19 | Maximize accessibility for blind/low-vision users (vocal-only nav)                             | 6          | 2            | 1            | **11**                    |
+| O-20 | Minimize time to recover from a missed-day streak break                                        | 7          | 3            | 1            | **13**                    |
 
 **Outcomes with opportunity > 14 (greenfield innovation territory):**
+
 - O-02 false-positive reduction (15)
 - O-03 offline Hifdh (16)
 - O-04 multi-child parent cognitive load (16)
@@ -1967,16 +2026,16 @@ Format: `[Direction] + [metric] + [object] + [context]` — `Importance / Satisf
 
 Every Qalaam feature also maps to one or more of the eight universal job-map steps. The table below shows which roadmap features serve which step; gaps signal missing systems.
 
-| Step | What the user does | Primary Qalaam features |
-|---|---|---|
-| 1. Define | Set goal — what to memorize, on what timeline | Range/Portion/Schedule trichotomy (§21.5), Plan entity (§7.2) |
-| 2. Locate | Find the verses, reciter, mushaf | QUL data layer (§4.1), reciter picker, mushaf layout selector |
-| 3. Prepare | Get into the right context (location, time, focus) | Adhan-aware scheduler (§10.4), per-room sabaq announcement (§10.1) |
-| 4. Confirm | Verify everything is ready | Hifdh-engine session generator (§7.3) |
-| 5. Execute | Recite the portion | Verse-pause drill (§7.5), follow-along audio with highlighting |
-| 6. Monitor | Track progress and quality | On-device ASR mistake detection (§7.5), prosody scoring (§8.5) |
-| 7. Modify | Adjust based on monitoring | FSRS-6 scheduler (§7.3), mutashabihat-aware re-queueing (§7.2) |
-| 8. Conclude | Wrap up the session | Daily summary, streak update, parent-dashboard digest (§7.4) |
+| Step        | What the user does                                 | Primary Qalaam features                                            |
+| ----------- | -------------------------------------------------- | ------------------------------------------------------------------ |
+| 1. Define   | Set goal — what to memorize, on what timeline      | Range/Portion/Schedule trichotomy (§21.5), Plan entity (§7.2)      |
+| 2. Locate   | Find the verses, reciter, mushaf                   | QUL data layer (§4.1), reciter picker, mushaf layout selector      |
+| 3. Prepare  | Get into the right context (location, time, focus) | Adhan-aware scheduler (§10.4), per-room sabaq announcement (§10.1) |
+| 4. Confirm  | Verify everything is ready                         | Hifdh-engine session generator (§7.3)                              |
+| 5. Execute  | Recite the portion                                 | Verse-pause drill (§7.5), follow-along audio with highlighting     |
+| 6. Monitor  | Track progress and quality                         | On-device ASR mistake detection (§7.5), prosody scoring (§8.5)     |
+| 7. Modify   | Adjust based on monitoring                         | FSRS-6 scheduler (§7.3), mutashabihat-aware re-queueing (§7.2)     |
+| 8. Conclude | Wrap up the session                                | Daily summary, streak update, parent-dashboard digest (§7.4)       |
 
 ### 23.4 The Job-Solution Mapping Rule
 
@@ -1990,12 +2049,12 @@ Per CLAUDE.md Principle 07 ("Data is the moat, not the model") and §6.2 (AI arc
 
 ### 24.1 The four proprietary data streams Qalaam generates
 
-| Stream | Source | Why it's defensible |
-|---|---|---|
-| **Hifdh mistake graph** | Every word-level error logged in `MistakeEvent` (§7.2) across all users | Reveals which mutashabihat clusters confuse which demographics (age, mushaf, native-language); no other app captures this at scale |
+| Stream                                 | Source                                                                             | Why it's defensible                                                                                                                 |
+| -------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Hifdh mistake graph**                | Every word-level error logged in `MistakeEvent` (§7.2) across all users            | Reveals which mutashabihat clusters confuse which demographics (age, mushaf, native-language); no other app captures this at scale  |
 | **Reciter-prosody preference signals** | Which reciter each user picks for each portion + how long they stay; rating events | Reveals which reciter's prosody best supports retention for which verse types — informs "Qalaam-house voice" §22.2 training targets |
-| **Family-coordination patterns** | Khatm progress, parent-rating cadence, who-listens-to-whom | The first dataset of how families actually do Quran together at scale |
-| **Smart-home Quran usage** | Time-of-day, room, device, listen-mode duration, adhan-aware pauses | The first dataset on ambient Quran consumption |
+| **Family-coordination patterns**       | Khatm progress, parent-rating cadence, who-listens-to-whom                         | The first dataset of how families actually do Quran together at scale                                                               |
+| **Smart-home Quran usage**             | Time-of-day, room, device, listen-mode duration, adhan-aware pauses                | The first dataset on ambient Quran consumption                                                                                      |
 
 ### 24.2 The reinforcement loops
 
@@ -2033,19 +2092,19 @@ Per CLAUDE.md Principle 07 ("Data is the moat, not the model") and §6.2 (AI arc
 ```
 DEVICE                                    CLOUD
 ──────                                    ─────
-[Mic input]                               
-   │                                      
-   ▼                                      
-[Whisper-Quran-LoRA                       
- on-device]                               
-   │                                      
-   ▼                                      
-[Forced alignment via                     
- ctc-forced-aligner]                      
-   │                                      
-   ▼                                      
-[MistakeEvent objects:                    
- verse_key, word_index,                   
+[Mic input]
+   │
+   ▼
+[Whisper-Quran-LoRA
+ on-device]
+   │
+   ▼
+[Forced alignment via
+ ctc-forced-aligner]
+   │
+   ▼
+[MistakeEvent objects:
+ verse_key, word_index,
  type, timestamp, reciter] ──────────────►[Mistake graph]
                                                 │
                                                 ▼
@@ -2065,7 +2124,8 @@ DEVICE                                    CLOUD
 
 ### 24.4 Human-in-the-loop signal capture
 
-Every user UI action that *corrects* an AI judgment is a high-value training signal:
+Every user UI action that _corrects_ an AI judgment is a high-value training signal:
+
 - Parent overrides ASR mistake flag → `(audio_was_actually_correct = true)`. This trains the false-positive reducer (O-02).
 - User skips a flagged "weak" portion → `(scheduler_was_too_aggressive = true)`. This trains the FSRS difficulty parameter.
 - User reports two verses they confused that aren't in the mutashabihat library → `(novel_cluster_candidate)`. This expands the cluster library.
@@ -2075,6 +2135,7 @@ Every user UI action that *corrects* an AI judgment is a high-value training sig
 ### 24.5 Contributing back to QUL
 
 Per §21.11.5, we contribute corrections back to QUL — specifically:
+
 - New mutashabihat clusters identified by user data (with PII stripped).
 - Audio-segment timing corrections caught by our forced alignment.
 - Translation typo reports.
@@ -2084,6 +2145,7 @@ This is both ethical (community benefit) and strategic (deepens our partnership 
 ### 24.6 What we will NOT use the data for
 
 Per QF ToS and our own privacy posture:
+
 - No ML training on user audio. Period.
 - No biometric profiling (voice fingerprinting for ID).
 - No ad-profile use.
@@ -2098,22 +2160,22 @@ These constraints are **architectural** — enforced at the schema layer (§3 `p
 
 Per CLAUDE.md §11.1, every significant technical or strategic decision gets an ADR (Architecture Decision Record). ADRs live in `Docs/adrs/` and follow the template in `Docs/adrs/ADR-template.md`. This section is the master index.
 
-| # | Decision | Status | Outcome served | ADR file |
-|---|---|---|---|---|
-| ADR-0001 | Monorepo with pnpm/turbo + uv workspace | Accepted | All (foundation) | `adrs/ADR-0001-monorepo.md` |
-| ADR-0002 | QUL as canonical Quran data substrate | Accepted | O-01, O-05, O-07 | `adrs/ADR-0002-qul-canonical-data.md` |
-| ADR-0003 | Multi-protocol adapter pattern (HA is one of many) | Accepted | O-09, O-13 | `adrs/ADR-0003-multi-protocol-adapters.md` |
-| ADR-0004 | FSRS-6 over SM-2 for Hifdh scheduling | Accepted | O-04, O-07 | `adrs/ADR-0004-fsrs6-scheduler.md` |
-| ADR-0005 | On-device ASR (Whisper-Quran-LoRA) for mistake detection | Accepted | O-02, O-03 | `adrs/ADR-0005-on-device-asr.md` |
-| ADR-0006 | Habibi-TTS-MSA (Apache-2.0) over F5-Emilia (NC) for voice cloning | Accepted | O-06, O-18 | `adrs/ADR-0006-habibi-tts-starting-checkpoint.md` |
-| ADR-0007 | Qalaam-house voice (multi-reciter blend) over named-reciter cloning through v1.5 | Accepted | O-06, O-11 (legal/ethical) | `adrs/ADR-0007-qalaam-house-voice.md` |
-| ADR-0008 | JSON Schema as single source of truth → codegen TS + Python | Accepted | All (type safety) | `adrs/ADR-0008-schema-source-of-truth.md` |
-| ADR-0009 | Node/Fastify backend; Python only for ML/device-bridge | Accepted | All (foundation) | `adrs/ADR-0009-backend-language.md` |
-| ADR-0010 | Cloudflare R2 for audio storage; Postgres + Redis for app data | Accepted | All (foundation) | `adrs/ADR-0010-storage-architecture.md` |
-| ADR-0011 | License: Apache-2.0 libraries, AGPL-3 SaaS backend | Proposed | All (legal) | `adrs/ADR-0011-licensing.md` |
-| ADR-0012 | Auth: Supabase Auth (consumer), WorkOS (B2B) | Proposed | All (foundation) | `adrs/ADR-0012-auth.md` |
-| ADR-0013 | Mobile = Expo, deferred to v1.5 | Proposed | All (foundation) | `adrs/ADR-0013-mobile-stack.md` |
-| ADR-0014 | Voice-cloning MVP: ElevenLabs API, switch to self-hosted Habibi at ~5K users | Proposed | O-06 + economics | `adrs/ADR-0014-tts-mvp-vs-selfhost.md` |
+| #        | Decision                                                                         | Status   | Outcome served             | ADR file                                          |
+| -------- | -------------------------------------------------------------------------------- | -------- | -------------------------- | ------------------------------------------------- |
+| ADR-0001 | Monorepo with pnpm/turbo + uv workspace                                          | Accepted | All (foundation)           | `adrs/ADR-0001-monorepo.md`                       |
+| ADR-0002 | QUL as canonical Quran data substrate                                            | Accepted | O-01, O-05, O-07           | `adrs/ADR-0002-qul-canonical-data.md`             |
+| ADR-0003 | Multi-protocol adapter pattern (HA is one of many)                               | Accepted | O-09, O-13                 | `adrs/ADR-0003-multi-protocol-adapters.md`        |
+| ADR-0004 | FSRS-6 over SM-2 for Hifdh scheduling                                            | Accepted | O-04, O-07                 | `adrs/ADR-0004-fsrs6-scheduler.md`                |
+| ADR-0005 | On-device ASR (Whisper-Quran-LoRA) for mistake detection                         | Accepted | O-02, O-03                 | `adrs/ADR-0005-on-device-asr.md`                  |
+| ADR-0006 | Habibi-TTS-MSA (Apache-2.0) over F5-Emilia (NC) for voice cloning                | Accepted | O-06, O-18                 | `adrs/ADR-0006-habibi-tts-starting-checkpoint.md` |
+| ADR-0007 | Qalaam-house voice (multi-reciter blend) over named-reciter cloning through v1.5 | Accepted | O-06, O-11 (legal/ethical) | `adrs/ADR-0007-qalaam-house-voice.md`             |
+| ADR-0008 | JSON Schema as single source of truth → codegen TS + Python                      | Accepted | All (type safety)          | `adrs/ADR-0008-schema-source-of-truth.md`         |
+| ADR-0009 | Node/Fastify backend; Python only for ML/device-bridge                           | Accepted | All (foundation)           | `adrs/ADR-0009-backend-language.md`               |
+| ADR-0010 | Cloudflare R2 for audio storage; Postgres + Redis for app data                   | Accepted | All (foundation)           | `adrs/ADR-0010-storage-architecture.md`           |
+| ADR-0011 | License: Apache-2.0 libraries, AGPL-3 SaaS backend                               | Proposed | All (legal)                | `adrs/ADR-0011-licensing.md`                      |
+| ADR-0012 | Auth: Supabase Auth (consumer), WorkOS (B2B)                                     | Proposed | All (foundation)           | `adrs/ADR-0012-auth.md`                           |
+| ADR-0013 | Mobile = Expo, deferred to v1.5                                                  | Proposed | All (foundation)           | `adrs/ADR-0013-mobile-stack.md`                   |
+| ADR-0014 | Voice-cloning MVP: ElevenLabs API, switch to self-hosted Habibi at ~5K users     | Proposed | O-06 + economics           | `adrs/ADR-0014-tts-mvp-vs-selfhost.md`            |
 
 Statuses: Proposed → Accepted → Deprecated → Superseded. New ADRs append to this table.
 
@@ -2128,6 +2190,7 @@ Per CLAUDE.md Principle 08 ("Strategy without execution is hallucination") and �
 **Lagging:** Working monorepo, web reader plays a verse on a HA media_player; 5 internal alpha users.
 
 **Leading indicators (weekly):**
+
 - pnpm install + turbo build succeeds in <60s on cold cache.
 - TypeScript strict mode + Pydantic strict + ruff/mypy all green in CI.
 - JSON-Schema → TS + Python codegen produces matching types (round-trip test passes).
@@ -2135,6 +2198,7 @@ Per CLAUDE.md Principle 08 ("Strategy without execution is hallucination") and �
 - One ADR per significant decision; ADR coverage ≥ 90%.
 
 **Side-effects to monitor:**
+
 - Build time creep (any single package > 10s incremental).
 - Codegen drift (generated files not committed).
 - Documentation rot (any ADR marked "Accepted" but referencing files that don't exist).
@@ -2144,12 +2208,14 @@ Per CLAUDE.md Principle 08 ("Strategy without execution is hallucination") and �
 **Lagging:** 50 Hifdh-active beta users; FSRS-6 scheduler producing daily sessions; parent dashboard live.
 
 **Leading indicators (weekly):**
+
 - Daily session generation latency < 200ms p95.
 - Mutashabihat cluster lookup serves all 6,236 ayahs in < 500ms.
 - FSRS-6 retention prediction accuracy ≥ 80% on synthetic Hifdh-trace dataset (built from QUL audio + simulated user error patterns).
 - Parent-rating one-tap latency < 100ms.
 
 **Side-effects to monitor:**
+
 - FSRS due-date queue length growing unbounded (signals scheduler bug).
 - Parents not opening dashboard within 7 days of inviting kids (signals UX failure on O-04).
 - Streak grace-day usage > 50% (signals goal-defaults too aggressive).
@@ -2159,12 +2225,14 @@ Per CLAUDE.md Principle 08 ("Strategy without execution is hallucination") and �
 **Lagging:** HA integration on HACS with ≥ 4.5★; Cast/Sonos/AirPlay all working in real homes; verse-pause drill catches ≥ 80% of clear mistakes.
 
 **Leading indicators:**
+
 - Time-to-first-verse-played < 5s on cold-start HA install.
 - ASR mistake-detection latency < 3s p95 after end-of-utterance.
 - Adhan-aware scheduler suspends/resumes correctly across all 5 prayer windows daily.
 - Family khatm completion rate ≥ 30% within target window.
 
 **Side-effects to monitor:**
+
 - HA users complaining about prayer-time false triggers (calculation method mismatch).
 - ASR battery drain on mobile > 5%/hour during active session (need to throttle).
 - Cast group announce-and-restore failure rate > 1%.
@@ -2174,11 +2242,13 @@ Per CLAUDE.md Principle 08 ("Strategy without execution is hallucination") and �
 **Lagging:** Expo apps in TestFlight + Play Internal; offline package ≤ 1.5 GB; 1,000 weekly-active users.
 
 **Leading indicators:**
+
 - Offline package download success rate ≥ 95%.
 - Mobile app crash-free sessions ≥ 99.5%.
 - Word-level mistake detection precision ≥ 90% (forced alignment + Quran lexicon).
 
 **Side-effects to monitor:**
+
 - Sync conflict frequency (multi-device users).
 - Mobile vs web feature drift (more than 2 features missing on mobile).
 
@@ -2187,11 +2257,13 @@ Per CLAUDE.md Principle 08 ("Strategy without execution is hallucination") and �
 **Lagging:** Voice cloning blind-test ≥ 4/5 by native speakers on Qalaam-house voice; Whisper-Quran fine-tune WER ≤ 5%; 100+ curriculum lessons; 10K registered, 2K paying.
 
 **Leading indicators:**
+
 - Cost-per-verse-generated trending down (cache hit rate ≥ 60%).
 - Lesson completion rate L1→L2 ≥ 50% within 90 days.
 - Pro-tier conversion ≥ 5% of Premium subscribers.
 
 **Side-effects to monitor:**
+
 - TTS quality regressions on tajweed-heavy verses (madd, ghunna).
 - Reciter copyright complaints (legal escalation queue).
 - AI-generated audio not properly watermarked.
@@ -2199,7 +2271,6 @@ Per CLAUDE.md Principle 08 ("Strategy without execution is hallucination") and �
 ### 26.6 The fail-safe metric
 
 If at any point monthly active Hifdh-session users (defined: ≥ 3 sessions in past 30 days) drops below 30% of monthly active app users, **pause feature work and run a JTBD switch-interview round** with churned users. Hifdh is the moat; if it isn't sticking, no other feature compensates.
-
 
 ---
 
@@ -2227,43 +2298,43 @@ Opportunity scores are **provisional Q1 2026 estimates** based on (a) Tarteel/Qu
 
 Format: Importance / Tarteel Sat. / Quranly Sat. / Opportunity (vs best alternative).
 
-| # | Outcome | Imp | Tar | Qly | Opp |
-|---|---|---|---|---|---|
-| O-01 | Minimize time to detect a recitation mistake during memorization session | 10 | 7 | 1 | **13** |
-| O-02 | Minimize false-positive mistake flags during recitation | 10 | 5 | n/a | **15** |
-| O-03 | Minimize need for internet connectivity during Hifdh session | 9 | 2 | 4 | **16** |
-| O-04 | Minimize cognitive load for parent supervising multiple children's daily wird | 10 | 4 | 3 | **16** |
-| O-05 | Minimize confusion between mutashabihat (similar verses) | 9 | 4 | 2 | **14** |
-| O-06 | Maximize ability to hear how a specific reciter would recite any verse | 8 | 3 | 3 | **13** |
-| O-07 | Maximize retention of memorized portions over 90+ days | 10 | 6 | 2 | **14** |
-| O-08 | Minimize time to coordinate a family/community khatm | 7 | 1 | 1 | **13** |
-| O-09 | Minimize time to integrate Quran playback into existing smart-home automations | 8 | 1 | 1 | **15** |
-| O-10 | Minimize friction to count Quran reading done outside the app | 7 | 1 | 1 | **13** |
-| O-11 | Maximize confidence that AI feedback is theologically sound | 10 | 7 | n/a | **13** |
-| O-12 | Minimize inappropriate gamification that distracts from sincerity | 9 | 8 | 4 | **14** |
-| O-13 | Maximize ability to listen passively to current memorization portion ambiently | 8 | 1 | 1 | **15** |
-| O-14 | Minimize disruption to prayer times by app activity | 9 | 5 | 5 | **13** |
-| O-15 | Maximize ability to share verses beautifully (cards/social) | 6 | 7 | 8 | 6 |
-| O-16 | Maximize support for non-Madani mushaf (Indo-Pak 16-line) | 7 | 7 | 6 | 7 |
-| O-17 | Minimize time for child to receive encouragement after completing a portion | 8 | 3 | 6 | **10** |
-| O-18 | Maximize ability to compare recitation to a teacher's prosody/style | 8 | 2 | 1 | **15** |
-| O-19 | Maximize accessibility for blind/low-vision users (vocal-only nav) | 6 | 2 | 1 | **11** |
-| O-20 | Minimize time to recover from a missed-day streak break | 7 | 3 | 1 | **13** |
+| #    | Outcome                                                                        | Imp | Tar | Qly | Opp    |
+| ---- | ------------------------------------------------------------------------------ | --- | --- | --- | ------ |
+| O-01 | Minimize time to detect a recitation mistake during memorization session       | 10  | 7   | 1   | **13** |
+| O-02 | Minimize false-positive mistake flags during recitation                        | 10  | 5   | n/a | **15** |
+| O-03 | Minimize need for internet connectivity during Hifdh session                   | 9   | 2   | 4   | **16** |
+| O-04 | Minimize cognitive load for parent supervising multiple children's daily wird  | 10  | 4   | 3   | **16** |
+| O-05 | Minimize confusion between mutashabihat (similar verses)                       | 9   | 4   | 2   | **14** |
+| O-06 | Maximize ability to hear how a specific reciter would recite any verse         | 8   | 3   | 3   | **13** |
+| O-07 | Maximize retention of memorized portions over 90+ days                         | 10  | 6   | 2   | **14** |
+| O-08 | Minimize time to coordinate a family/community khatm                           | 7   | 1   | 1   | **13** |
+| O-09 | Minimize time to integrate Quran playback into existing smart-home automations | 8   | 1   | 1   | **15** |
+| O-10 | Minimize friction to count Quran reading done outside the app                  | 7   | 1   | 1   | **13** |
+| O-11 | Maximize confidence that AI feedback is theologically sound                    | 10  | 7   | n/a | **13** |
+| O-12 | Minimize inappropriate gamification that distracts from sincerity              | 9   | 8   | 4   | **14** |
+| O-13 | Maximize ability to listen passively to current memorization portion ambiently | 8   | 1   | 1   | **15** |
+| O-14 | Minimize disruption to prayer times by app activity                            | 9   | 5   | 5   | **13** |
+| O-15 | Maximize ability to share verses beautifully (cards/social)                    | 6   | 7   | 8   | 6      |
+| O-16 | Maximize support for non-Madani mushaf (Indo-Pak 16-line)                      | 7   | 7   | 6   | 7      |
+| O-17 | Minimize time for child to receive encouragement after completing a portion    | 8   | 3   | 6   | **10** |
+| O-18 | Maximize ability to compare recitation to a teacher's prosody/style            | 8   | 2   | 1   | **15** |
+| O-19 | Maximize accessibility for blind/low-vision users (vocal-only nav)             | 6   | 2   | 1   | **11** |
+| O-20 | Minimize time to recover from a missed-day streak break                        | 7   | 3   | 1   | **13** |
 
 **Outcomes with opportunity ≥ 14 (greenfield innovation territory):** O-02, O-03, O-04, O-05, O-09, O-13, O-18. **These seven are the strategic core.** Every v0.1-v1.5 feature must serve one, or be cut.
 
 ### 23.3 Job-map step coverage
 
-| Step | What the user does | Primary Qalaam features |
-|---|---|---|
-| 1. Define | Set goal — what to memorize, on what timeline | Range/Portion/Schedule trichotomy (§21.5), `Plan` entity (§7.2) |
-| 2. Locate | Find verses, reciter, mushaf | QUL data layer (§4.1), reciter picker, mushaf selector |
-| 3. Prepare | Get into the right context (location, time, focus) | Adhan-aware scheduler (§10.4), per-room sabaq announcement |
-| 4. Confirm | Verify everything is ready | Hifdh-engine session generator (§7.3) |
-| 5. Execute | Recite the portion | Verse-pause drill (§7.5), follow-along audio with highlighting |
-| 6. Monitor | Track progress and quality | On-device ASR mistake detection (§7.5), prosody scoring (§8.5) |
-| 7. Modify | Adjust based on monitoring | FSRS-6 scheduler, mutashabihat-aware re-queueing |
-| 8. Conclude | Wrap up the session | Daily summary, streak update, parent-dashboard digest |
+| Step        | What the user does                                 | Primary Qalaam features                                         |
+| ----------- | -------------------------------------------------- | --------------------------------------------------------------- |
+| 1. Define   | Set goal — what to memorize, on what timeline      | Range/Portion/Schedule trichotomy (§21.5), `Plan` entity (§7.2) |
+| 2. Locate   | Find verses, reciter, mushaf                       | QUL data layer (§4.1), reciter picker, mushaf selector          |
+| 3. Prepare  | Get into the right context (location, time, focus) | Adhan-aware scheduler (§10.4), per-room sabaq announcement      |
+| 4. Confirm  | Verify everything is ready                         | Hifdh-engine session generator (§7.3)                           |
+| 5. Execute  | Recite the portion                                 | Verse-pause drill (§7.5), follow-along audio with highlighting  |
+| 6. Monitor  | Track progress and quality                         | On-device ASR mistake detection (§7.5), prosody scoring (§8.5)  |
+| 7. Modify   | Adjust based on monitoring                         | FSRS-6 scheduler, mutashabihat-aware re-queueing                |
+| 8. Conclude | Wrap up the session                                | Daily summary, streak update, parent-dashboard digest           |
 
 ### 23.4 The Job-Solution Mapping Rule
 
@@ -2277,12 +2348,12 @@ Per CLAUDE.md Principle 07 ("Data is the moat, not the model"), Qalaam's defensi
 
 ### 24.1 Four proprietary data streams
 
-| Stream | Source | Why defensible |
-|---|---|---|
-| **Hifdh mistake graph** | Word-level errors from `MistakeEvent` (§7.2) across all users | Reveals which mutashabihat clusters confuse which demographics; no other app captures at scale |
-| **Reciter-prosody preference signals** | Reciter pick × portion × stay-duration × rating events | Reveals which reciter's prosody best supports retention for which verse types — informs Qalaam-house voice (§22.2) training targets |
-| **Family-coordination patterns** | Khatm progress, parent-rating cadence, who-listens-to-whom | First dataset of how families actually do Quran together at scale |
-| **Smart-home Quran usage** | Time-of-day, room, device, listen-mode duration, adhan-aware pauses | First dataset on ambient Quran consumption |
+| Stream                                 | Source                                                              | Why defensible                                                                                                                      |
+| -------------------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Hifdh mistake graph**                | Word-level errors from `MistakeEvent` (§7.2) across all users       | Reveals which mutashabihat clusters confuse which demographics; no other app captures at scale                                      |
+| **Reciter-prosody preference signals** | Reciter pick × portion × stay-duration × rating events              | Reveals which reciter's prosody best supports retention for which verse types — informs Qalaam-house voice (§22.2) training targets |
+| **Family-coordination patterns**       | Khatm progress, parent-rating cadence, who-listens-to-whom          | First dataset of how families actually do Quran together at scale                                                                   |
+| **Smart-home Quran usage**             | Time-of-day, room, device, listen-mode duration, adhan-aware pauses | First dataset on ambient Quran consumption                                                                                          |
 
 ### 24.2 The reinforcement loop
 
@@ -2344,6 +2415,7 @@ DEVICE                                    CLOUD
 ### 24.4 Human-in-the-loop signals
 
 Every UI action that **corrects** AI judgment is a high-value training signal:
+
 - Parent overrides ASR mistake flag → `(audio_was_actually_correct = true)`. Trains O-02 false-positive reducer.
 - User skips a flagged "weak" portion → `(scheduler_was_too_aggressive)`. Trains FSRS difficulty.
 - User reports two confused verses not in mutashabihat library → `(novel_cluster_candidate)`. Expands library.
@@ -2370,28 +2442,28 @@ These constraints are **architectural** — enforced at `packages/schema`, not j
 
 Per CLAUDE.md §11.1, every significant decision gets an ADR. ADRs live in `Docs/adrs/` following `Docs/adrs/ADR-template.md`.
 
-| # | Decision | Status | Outcome served | File |
-|---|---|---|---|---|
-| ADR-0001 | Monorepo with pnpm/turbo + uv workspace | Accepted | All (foundation) | `adrs/ADR-0001-monorepo.md` |
-| ADR-0002 | QUL as canonical Quran data substrate | Accepted | O-01, O-05, O-07 | `adrs/ADR-0002-qul-canonical-data.md` |
-| ADR-0003 | Multi-protocol adapter pattern (HA is one of many) | Accepted | O-09, O-13 | `adrs/ADR-0003-multi-protocol-adapters.md` |
-| ADR-0004 | FSRS-6 over SM-2 for Hifdh scheduling | Accepted | O-04, O-07 | `adrs/ADR-0004-fsrs6-scheduler.md` |
-| ADR-0005 | On-device ASR (Whisper-Quran-LoRA) for mistake detection | Accepted | O-02, O-03 | `adrs/ADR-0005-on-device-asr.md` |
-| ADR-0006 | Habibi-TTS-MSA (Apache-2.0) over F5-Emilia (NC) for voice cloning | Accepted | O-06, O-18 | `adrs/ADR-0006-habibi-tts-checkpoint.md` |
-| ADR-0007 | Qalaam-house voice (multi-reciter blend) over named-reciter cloning through v1.5 | Accepted | O-06, O-11, legal | `adrs/ADR-0007-qalaam-house-voice.md` |
-| ADR-0008 | JSON Schema as single source of truth → codegen TS + Python | Accepted | All (type safety) | `adrs/ADR-0008-schema-source-of-truth.md` |
-| ADR-0009 | Node/Fastify backend; Python only for ML/device-bridge | Accepted | All (foundation) | `adrs/ADR-0009-backend-language.md` |
-| ADR-0010 | Cloudflare R2 for audio; Postgres + Redis for app data | Accepted | All (foundation) | `adrs/ADR-0010-storage-architecture.md` |
-| ADR-0011 | License: Apache-2.0 libraries, AGPL-3 SaaS backend | Proposed | All (legal) | `adrs/ADR-0011-licensing.md` |
-| ADR-0012 | Auth: Supabase Auth (consumer), WorkOS (B2B) | Proposed | All (foundation) | `adrs/ADR-0012-auth.md` |
-| ADR-0013 | Mobile = Expo, deferred to v1.5 | Proposed | All (foundation) | `adrs/ADR-0013-mobile-stack.md` |
-| ADR-0014 | Voice-cloning MVP: ElevenLabs API → self-hosted Habibi at ~5K users | Proposed | O-06, economics | `adrs/ADR-0014-tts-mvp-vs-selfhost.md` |
-| ADR-0015 | Sidecar transport: HTTP/JSON v0.1 → gRPC v1.0 | Accepted | All (latency budget for ASR) | `adrs/ADR-0015-sidecar-transport.md` |
-| ADR-0016 | Data flywheel architecture — corrections-only sync (no audio to cloud) | Accepted | O-02, O-05, O-07 | `adrs/ADR-0016-data-flywheel-architecture.md` |
-| ADR-0017 | i18n strategy — `next-intl` + RTL/LTR + dual-pipeline Voice | Proposed | O-04, O-19 | `adrs/ADR-0017-i18n-strategy.md` |
-| ADR-0018 | Cache invalidation policy — align HTTP cache-control with QF ToS 7-day cap | Accepted | O-01, O-11 | `adrs/ADR-0018-cache-invalidation.md` |
-| ADR-0019 | TTS scope — app-voice only; Quranic verses NEVER synthesized by general-purpose TTS | Accepted | O-06, O-08, O-13 (foundation; voice-quality + adab guard) | `adrs/ADR-0019-tts-scope-app-voice-only.md` |
-| ADR-0020 | QUL deep ingestion — license-aware, per-resource sub-readers under `qalaam_v1_qul_*` | Accepted | O-04, O-08, O-13, O-18, O-19 | `adrs/ADR-0020-qul-deep-ingestion.md` |
+| #        | Decision                                                                             | Status   | Outcome served                                            | File                                          |
+| -------- | ------------------------------------------------------------------------------------ | -------- | --------------------------------------------------------- | --------------------------------------------- |
+| ADR-0001 | Monorepo with pnpm/turbo + uv workspace                                              | Accepted | All (foundation)                                          | `adrs/ADR-0001-monorepo.md`                   |
+| ADR-0002 | QUL as canonical Quran data substrate                                                | Accepted | O-01, O-05, O-07                                          | `adrs/ADR-0002-qul-canonical-data.md`         |
+| ADR-0003 | Multi-protocol adapter pattern (HA is one of many)                                   | Accepted | O-09, O-13                                                | `adrs/ADR-0003-multi-protocol-adapters.md`    |
+| ADR-0004 | FSRS-6 over SM-2 for Hifdh scheduling                                                | Accepted | O-04, O-07                                                | `adrs/ADR-0004-fsrs6-scheduler.md`            |
+| ADR-0005 | On-device ASR (Whisper-Quran-LoRA) for mistake detection                             | Accepted | O-02, O-03                                                | `adrs/ADR-0005-on-device-asr.md`              |
+| ADR-0006 | Habibi-TTS-MSA (Apache-2.0) over F5-Emilia (NC) for voice cloning                    | Accepted | O-06, O-18                                                | `adrs/ADR-0006-habibi-tts-checkpoint.md`      |
+| ADR-0007 | Qalaam-house voice (multi-reciter blend) over named-reciter cloning through v1.5     | Accepted | O-06, O-11, legal                                         | `adrs/ADR-0007-qalaam-house-voice.md`         |
+| ADR-0008 | JSON Schema as single source of truth → codegen TS + Python                          | Accepted | All (type safety)                                         | `adrs/ADR-0008-schema-source-of-truth.md`     |
+| ADR-0009 | Node/Fastify backend; Python only for ML/device-bridge                               | Accepted | All (foundation)                                          | `adrs/ADR-0009-backend-language.md`           |
+| ADR-0010 | Cloudflare R2 for audio; Postgres + Redis for app data                               | Accepted | All (foundation)                                          | `adrs/ADR-0010-storage-architecture.md`       |
+| ADR-0011 | License: Apache-2.0 libraries, AGPL-3 SaaS backend                                   | Proposed | All (legal)                                               | `adrs/ADR-0011-licensing.md`                  |
+| ADR-0012 | Auth: Supabase Auth (consumer), WorkOS (B2B)                                         | Proposed | All (foundation)                                          | `adrs/ADR-0012-auth.md`                       |
+| ADR-0013 | Mobile = Expo, deferred to v1.5                                                      | Proposed | All (foundation)                                          | `adrs/ADR-0013-mobile-stack.md`               |
+| ADR-0014 | Voice-cloning MVP: ElevenLabs API → self-hosted Habibi at ~5K users                  | Proposed | O-06, economics                                           | `adrs/ADR-0014-tts-mvp-vs-selfhost.md`        |
+| ADR-0015 | Sidecar transport: HTTP/JSON v0.1 → gRPC v1.0                                        | Accepted | All (latency budget for ASR)                              | `adrs/ADR-0015-sidecar-transport.md`          |
+| ADR-0016 | Data flywheel architecture — corrections-only sync (no audio to cloud)               | Accepted | O-02, O-05, O-07                                          | `adrs/ADR-0016-data-flywheel-architecture.md` |
+| ADR-0017 | i18n strategy — `next-intl` + RTL/LTR + dual-pipeline Voice                          | Proposed | O-04, O-19                                                | `adrs/ADR-0017-i18n-strategy.md`              |
+| ADR-0018 | Cache invalidation policy — align HTTP cache-control with QF ToS 7-day cap           | Accepted | O-01, O-11                                                | `adrs/ADR-0018-cache-invalidation.md`         |
+| ADR-0019 | TTS scope — app-voice only; Quranic verses NEVER synthesized by general-purpose TTS  | Accepted | O-06, O-08, O-13 (foundation; voice-quality + adab guard) | `adrs/ADR-0019-tts-scope-app-voice-only.md`   |
+| ADR-0020 | QUL deep ingestion — license-aware, per-resource sub-readers under `qalaam_v1_qul_*` | Accepted | O-04, O-08, O-13, O-18, O-19                              | `adrs/ADR-0020-qul-deep-ingestion.md`         |
 
 Statuses: Proposed → Accepted → Deprecated → Superseded.
 
@@ -2406,6 +2478,7 @@ Per CLAUDE.md Principle 08 and §10.1 ("specify the leading indicators that tell
 **Lagging:** Working monorepo; web reader plays a verse on a HA media_player; 5 internal alpha users.
 
 **Leading (weekly):**
+
 - pnpm install + turbo build < 60s on cold cache
 - TS strict + Pydantic strict + ruff + mypy all green in CI
 - JSON-Schema → TS + Python codegen round-trip test passes
@@ -2419,6 +2492,7 @@ Per CLAUDE.md Principle 08 and §10.1 ("specify the leading indicators that tell
 **Lagging:** 50 Hifdh-active beta users; FSRS-6 scheduler producing daily sessions; parent dashboard live.
 
 **Leading:**
+
 - Daily session generation latency < 200ms p95
 - Mutashabihat cluster lookup < 500ms for any of 6,236 ayahs
 - FSRS-6 retention prediction ≥ 80% accuracy on synthetic Hifdh-trace dataset
@@ -2431,6 +2505,7 @@ Per CLAUDE.md Principle 08 and §10.1 ("specify the leading indicators that tell
 **Lagging:** HA integration on HACS ≥ 4.5★; Cast/Sonos/AirPlay working in real homes; verse-pause drill catches ≥ 80% clear mistakes.
 
 **Leading:**
+
 - Time-to-first-verse-played < 5s on cold-start HA install
 - ASR mistake-detection latency < 3s p95 after end-of-utterance
 - Adhan-aware scheduler suspends/resumes correctly across all 5 daily prayer windows
@@ -2443,6 +2518,7 @@ Per CLAUDE.md Principle 08 and §10.1 ("specify the leading indicators that tell
 **Lagging:** Expo apps in TestFlight + Play Internal; offline package ≤ 1.5 GB; 1,000 weekly-active users.
 
 **Leading:**
+
 - Offline package download success ≥ 95%
 - Mobile crash-free sessions ≥ 99.5%
 - Word-level mistake detection precision ≥ 90% (forced alignment + Quran lexicon)
@@ -2454,6 +2530,7 @@ Per CLAUDE.md Principle 08 and §10.1 ("specify the leading indicators that tell
 **Lagging:** Voice cloning ≥ 4/5 native-speaker blind test on Qalaam-house voice; Whisper-Quran fine-tune WER ≤ 5%; 100+ curriculum lessons; 10K registered, 2K paying.
 
 **Leading:**
+
 - Cost-per-verse-generated trending down (cache hit ≥ 60%)
 - Lesson L1→L2 completion ≥ 50% within 90 days
 - Pro-tier conversion ≥ 5% of Premium
@@ -2464,13 +2541,13 @@ Per CLAUDE.md Principle 08 and §10.1 ("specify the leading indicators that tell
 
 If monthly-active Hifdh-session users (≥ 3 sessions in past 30 days) drops below 30% of MAU, **pause feature work and run a JTBD switch-interview round** with churned users. Hifdh is the moat; no other feature compensates.
 
-
 ---
 
 ## 27. Upstream integrations map (added 2026-05-05)
 
 This section tracks every external Quran-tech project we plan to consume,
 embed, or learn from — so we don't reinvent. Sources:
+
 - [Quran Foundation org repos (31 total)](https://github.com/orgs/quran/repositories)
 - [QUL — Quranic Universal Library](https://qul.tarteel.ai/)
 - [Quran Foundation API + SDKs](https://api-docs.quran.foundation/)
@@ -2487,6 +2564,7 @@ concordance to any AI assistant via MCP. 50+ translations, 30+ languages,
 15+ tafsir scholars (Ibn Kathir, al-Tabari, al-Qurtubi…), Hafs/Warsh/Qaloon.
 
 **Plan:**
+
 - ✅ v0.5 — MCP CLIENT live in backend at `apps/backend/src/lib/mcp-quran-ai.ts`
   (JSON-RPC over HTTP+SSE, session-aware, lazy-init, grounding-nonce
   capture). Proxied via `/v1/mcp/tools` (list) + `/v1/mcp/call/:tool`
@@ -2503,6 +2581,7 @@ Tarteel-style real-time mispronunciation flagger. Trained on 75K+ minutes
 of curated Quran audio; <200ms latency on NVIDIA. No public weights.
 
 **Our paths:**
+
 - ✅ `/recite/[verseKey]` — WS to local `services/realtime-feedback`
   (faster-whisper stub).
 - ✅ `/hifz-check/[verseKey]` — browser Web Speech API (no infra dep,
@@ -2527,24 +2606,25 @@ ADR refs: ADR-0005 (on-device ASR), ADR-0007 (reciter licensing).
 
 ### 27.5 QUL completeness — ingest scorecard
 
-| Category | QUL total | Qalaam | Status |
-|---|---|---|---|
-| Recitations | 152 (62 segmented) | **51** (14 segmented + 37 audio-only via EveryAyah CDN) ✅ | 〰️ |
-| Translations | 209 + 16 WBW | **59 across 28 languages** ✅ | 〰️ |
-| Tafsirs | 115 | **7** (Muyassar, Ibn Kathir, Jalalayn, Qurtubi, Baghawi, Miqbas, Waseet — all AR) ✅ | 〰️ |
-| Mushaf Layouts | 27 | 3 | ❌ |
-| Quran Scripts | 28 | 4 + Imlaei ayah-level | 〰️ |
-| Fonts | 18 | UthmanicHafs + 1208 v1/v2 page-fonts | 〰️ |
-| Quran Metadata | 8 | 6 + 15-row sajda | ✅ |
-| Transliteration | 9 | 0 | ❌ |
-| Surah Info | 9 langs | 4 (en/ml/ta/ur) | 〰️ |
-| **Topics & Concepts** | **2,512** | **53 curated topics across 8 categories with 803 verse mappings** (foundational taxonomy modeled on classical Islamic subject indexes — Mawdoo3, Hidayah Online, Bayan al-Quran themes) ✅ | 〰️ |
-| **Grammar & Morphology** | **77,429 entries** | **128,219 tokens × 4,832 lemmas × 1,642 roots × 45 POS tags** ✅ (via Quranic Arabic Corpus v0.4 / Kais Dukes / GPL — superset of QUL's coverage) | ✅ |
-| Mutashabihat | 5,277 | 814 clusters + 19,385 pairs | ✅ |
-| Similar Ayahs | 4,001 | 3,552 | ✅ |
-| Ayah Themes | 1,049 | 0 | ❌ |
+| Category                 | QUL total          | Qalaam                                                                                                                                                                                     | Status |
+| ------------------------ | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| Recitations              | 152 (62 segmented) | **51** (14 segmented + 37 audio-only via EveryAyah CDN) ✅                                                                                                                                 | 〰️     |
+| Translations             | 209 + 16 WBW       | **59 across 28 languages** ✅                                                                                                                                                              | 〰️     |
+| Tafsirs                  | 115                | **7** (Muyassar, Ibn Kathir, Jalalayn, Qurtubi, Baghawi, Miqbas, Waseet — all AR) ✅                                                                                                       | 〰️     |
+| Mushaf Layouts           | 27                 | 3                                                                                                                                                                                          | ❌     |
+| Quran Scripts            | 28                 | 4 + Imlaei ayah-level                                                                                                                                                                      | 〰️     |
+| Fonts                    | 18                 | UthmanicHafs + 1208 v1/v2 page-fonts                                                                                                                                                       | 〰️     |
+| Quran Metadata           | 8                  | 6 + 15-row sajda                                                                                                                                                                           | ✅     |
+| Transliteration          | 9                  | 0                                                                                                                                                                                          | ❌     |
+| Surah Info               | 9 langs            | 4 (en/ml/ta/ur)                                                                                                                                                                            | 〰️     |
+| **Topics & Concepts**    | **2,512**          | **53 curated topics across 8 categories with 803 verse mappings** (foundational taxonomy modeled on classical Islamic subject indexes — Mawdoo3, Hidayah Online, Bayan al-Quran themes) ✅ | 〰️     |
+| **Grammar & Morphology** | **77,429 entries** | **128,219 tokens × 4,832 lemmas × 1,642 roots × 45 POS tags** ✅ (via Quranic Arabic Corpus v0.4 / Kais Dukes / GPL — superset of QUL's coverage)                                          | ✅     |
+| Mutashabihat             | 5,277              | 814 clusters + 19,385 pairs                                                                                                                                                                | ✅     |
+| Similar Ayahs            | 4,001              | 3,552                                                                                                                                                                                      | ✅     |
+| Ayah Themes              | 1,049              | 0                                                                                                                                                                                          | ❌     |
 
 **Highest-leverage gaps (priority order — updated 2026-05-05):**
+
 1. ✅ **Morphology** — Quranic Arabic Corpus 128K tokens ingested.
 2. ✅ **Translations + Tafsirs depth** — 59 + 7 ingested.
 3. **Topics + Themes** (3,500+ entries) — semantic cross-reference UX.
@@ -2554,17 +2634,17 @@ ADR refs: ADR-0005 (on-device ASR), ADR-0007 (reciter licensing).
 
 ### 27.6 Other quran org repos to track
 
-| Repo | Stars | Language | For us |
-|---|---|---|---|
-| [quran_android](https://github.com/quran/quran_android) | 2342 | Kotlin | Android ref |
-| [quran-ios / QuranEngine](https://github.com/quran/quran-ios) | 551 | Swift | iOS ref |
-| [quran.com-frontend-next](https://github.com/quran/quran.com-frontend-next) | 1847 | TS | Mushaf rendering ref |
-| [audio.quran.com](https://github.com/quran/audio.quran.com) | 166 | Svelte | /listen patterns |
-| [api-js / @quranjs/api](https://github.com/quran/api-js) | 49 | TS | Drop-in client |
-| [ayah-detection](https://github.com/quran/ayah-detection) | 111 | Python | Image-mushaf overlay |
-| [waqt.org](https://github.com/quran/waqt.org) | 108 | PHP | Prayer-times pattern |
-| [common-components](https://github.com/quran/common-components) | 41 | JS | Component ref |
-| [mobile-sync](https://github.com/quran/mobile-sync) | 1 | Kotlin | Bookmark sync |
+| Repo                                                                        | Stars | Language | For us               |
+| --------------------------------------------------------------------------- | ----- | -------- | -------------------- |
+| [quran_android](https://github.com/quran/quran_android)                     | 2342  | Kotlin   | Android ref          |
+| [quran-ios / QuranEngine](https://github.com/quran/quran-ios)               | 551   | Swift    | iOS ref              |
+| [quran.com-frontend-next](https://github.com/quran/quran.com-frontend-next) | 1847  | TS       | Mushaf rendering ref |
+| [audio.quran.com](https://github.com/quran/audio.quran.com)                 | 166   | Svelte   | /listen patterns     |
+| [api-js / @quranjs/api](https://github.com/quran/api-js)                    | 49    | TS       | Drop-in client       |
+| [ayah-detection](https://github.com/quran/ayah-detection)                   | 111   | Python   | Image-mushaf overlay |
+| [waqt.org](https://github.com/quran/waqt.org)                               | 108   | PHP      | Prayer-times pattern |
+| [common-components](https://github.com/quran/common-components)             | 41    | JS       | Component ref        |
+| [mobile-sync](https://github.com/quran/mobile-sync)                         | 1     | Kotlin   | Bookmark sync        |
 
 ### 27.7 Implementation queue
 
@@ -2577,11 +2657,32 @@ ADR refs: ADR-0005 (on-device ASR), ADR-0007 (reciter licensing).
    /concordance/root/:root surface.
 5. ✅ **Topics + Themes** — 53 curated topics × 803 verse mappings; backend
    `/v1/topics*` + frontend `/topics` browse + `/topics/:slug` detail
-   + `<TopicsByVersePane/>` sidebar on /study.
+   - `<TopicsByVersePane/>` sidebar on /study.
 6. ✅ **Reciters depth-pull** — 14 → **51** (37 added via EveryAyah CDN).
-7. **Self-hosted ASR worker** — Tarteel Whisper ONNX behind /recite WS.
-8. **`qalaam-mcp` server** — emit our family-aware tools (hifdh-state,
-   mutashabihat clusters, family bookmarks).
+   `qul-license-registry.ts` carries 51/51 entries — 14 QUL-licensed
+   (per-reciter via QUL) + 37 everyayah per-reciter (free non-commercial
+   distribution). All 51 surface through `/v1/reciters` instead of the
+   route fail-closing.
+7. ✅ **Self-hosted ASR worker** — `services/asr-worker` v0.1.0 ships HTTP
+   `/v1/transcribe` + WS `/v1/recite/ws` (init → audio chunks → partial
+   frames every 2s → final). `Transcriber.partial_match()` runs greedy
+   beam=1 for partials and full beam=2 for the final. Frontend
+   `useAsrWebSocket` hook + `HifzCheckClient` mode-toggle (Self-hosted
+   ASR ↔ Browser ASR) opt in via `NEXT_PUBLIC_ASR_WS_URL`. Audio is
+   held in process memory only (per ADR-0005); session cap 180s, buffer
+   cap 4MB. 19 worker tests green incl. WS init/audio/end roundtrip.
+8. ✅ **`qalaam-mcp` server** — `apps/backend/src/routes/mcp-server.ts`
+   exposes 7 family-aware tools at `/mcp` (JSON-RPC 2.0 over plain HTTP):
+   `qalaam_hifdh_state`, `qalaam_mutashabihat_for_verse`,
+   `qalaam_morphology_for_verse`, `qalaam_root_concordance`,
+   `qalaam_topics_for_verse`, `qalaam_topic_verses`,
+   `qalaam_search_topics`. Implements `initialize` + `notifications/
+initialized` + `tools/list` + `tools/call` (single + batch). Tool
+   handlers query SQLite directly (no HTTP self-call overhead). Verified:
+   `tools/call qalaam_topics_for_verse {verse_key:"2:255"}` →
+   `tawhid + names-of-allah + dua`; `qalaam_root_concordance {root:"rHm"}`
+   → 339 mercy-root occurrences. Discovery endpoint `GET /mcp` for
+   probing clients.
 9. **Image-mushaf overlay** — `mushaf-layout-12.sqlite/6/{N}.png|json`
    we already have + ayah-detection scripts.
 10. **More mushaf layouts** — IndoPak 16-line, Qatar 15-line, DigitalKhatt.

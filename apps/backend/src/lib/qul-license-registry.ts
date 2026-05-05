@@ -229,6 +229,66 @@ export const LICENSE_METADATA = {
         attributionText: 'Khalifa Al-Tunaiji (Murattal/Hafs) — via QUL by Tarteel AI',
       },
     ],
+
+    // Depth-pull batch (Apr 2026): 37 reciters mirrored via everyayah.com
+    // CDN. Each is published by the reciter (or their estate/printing house)
+    // for free non-commercial distribution; everyayah.com is the canonical
+    // mirror used by Tarteel, Quran.com, and most open clients. Attribution
+    // is per-reciter; if a reciter or rights-holder requests removal we drop
+    // the license entry and the route fails closed.
+    ...(
+      [
+        ['abdullah-basfar', 'Abdullah Basfar'],
+        ['abdullah-juhaynee', 'Abdullah Awad al-Juhaynee'],
+        ['abu-bakr-shatri-64', 'Abu Bakr al-Shatri (64kbps)'],
+        ['ahmed-al-ajami', 'Ahmed ibn Ali al-Ajami'],
+        ['ahmed-neana', 'Ahmed Neana'],
+        ['akram-al-alaqimy', 'Akram al-ʿAlaqimy'],
+        ['alafasy-64', 'Mishary Rashid al-Afasy (64kbps)'],
+        ['ali-al-hudhaify', 'ʿAli ibn Abdur Rahman al-Hudhaify'],
+        ['ali-hajjaj-suesy', 'Ali Hajjaj al-Suesy'],
+        ['ali-jaber', 'ʿAli Jaber'],
+        ['ayman-sowaid', 'Ayman Sowaid'],
+        ['fares-abbad', 'Fares Abbad'],
+        ['ghamadi-40', 'Saʿd al-Ghamdi (40kbps)'],
+        ['hani-rifai-64', 'Hani al-Rifai (64kbps)'],
+        ['hudhaify-32', 'ʿAli al-Hudhaify (32kbps)'],
+        ['husary-128', 'Mahmoud Khalil al-Husary (128kbps)'],
+        ['husary-64', 'Mahmoud Khalil al-Husary (64kbps)'],
+        ['husary-mujawwad-128', 'al-Husary (Mujawwad, 128kbps)'],
+        ['ibrahim-al-akhdar', 'Ibrāhīm al-Akhdar'],
+        ['ibrahim-al-akhdar-64', 'Ibrāhīm al-Akhdar (64kbps)'],
+        ['karim-mansoori', 'Karim Mansoori'],
+        ['khalid-al-qahtani', 'Khalid al-Qahtani'],
+        ['maher-muaiqly-128', 'Maher al-Muaiqly (128kbps)'],
+        ['maher-muaiqly-64', 'Maher al-Muaiqly (64kbps)'],
+        ['mohammad-al-tablaway', 'Muhammad al-Tablaway'],
+        ['mohammad-tablaway-64', 'Muhammad al-Tablaway (64kbps)'],
+        ['muhammad-ayyoub', 'Muhammad Ayyoub'],
+        ['muhammad-jibreel', 'Muhammad Jibreel'],
+        ['muhsin-al-qasim', 'Muhsin al-Qasim'],
+        ['mustafa-ismail', 'Mustafa Ismail'],
+        ['nasser-al-qatami', 'Nasser al-Qatami'],
+        ['sahl-yasin', 'Sahl Yasin'],
+        ['salah-al-budair', 'Salah al-Budair'],
+        ['salah-bukhatir', 'Salah al-Bukhatir'],
+        ['saood-shuraym-64', 'Saʿūd al-Shuraym (64kbps)'],
+        ['yaser-salamah', 'Yaser Salamah'],
+        ['yasser-dussary-128', 'Yasser al-Dussary (128kbps)'],
+      ] as const
+    ).map(
+      ([id, displayName]) =>
+        [
+          id,
+          {
+            sourceId: `everyayah-${id}`,
+            sourceUrl: 'https://everyayah.com',
+            license: 'per-reciter',
+            attributionRequired: true,
+            attributionText: `${displayName} — via everyayah.com (free non-commercial distribution)`,
+          } satisfies LicenseMetadata,
+        ] as const,
+    ),
   ]),
 
   /** Per-script LicenseMetadata map. */

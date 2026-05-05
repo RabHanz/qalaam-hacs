@@ -24,6 +24,9 @@
  * no Qalaam server hop. Per CLAUDE.md adab non-negotiables.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
+
+import { useAsrWebSocket } from './asr/use-asr-web-socket.js';
+
 import type { ReactNode } from 'react';
 
 interface SpeechRecognitionResultList {
@@ -44,9 +47,7 @@ interface SpeechRecognitionLike extends EventTarget {
   onend: (() => void) | null;
 }
 
-interface SpeechRecognitionConstructor {
-  new (): SpeechRecognitionLike;
-}
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
 
 function getSpeechRecognition(): SpeechRecognitionConstructor | null {
   if (typeof window === 'undefined') return null;
@@ -93,6 +94,14 @@ export function HifzCheckClient({ expectedText, verseKey }: Props): ReactNode {
   const [error, setError] = useState<string | null>(null);
   const recRef = useRef<SpeechRecognitionLike | null>(null);
 
+  // Self-hosted ASR worker (Tarteel-tuned faster-whisper) — opt in via env.
+  // When set, the user can pick a "self-hosted" mode that streams audio
+  // off-device to the worker over WebSocket; otherwise we fall back to the
+  // browser's Web Speech API (Chrome desktop has the best Arabic support).
+  const wsUrl = (process.env.NEXT_PUBLIC_ASR_WS_URL ?? '').trim() || null;
+  const ws = useAsrWebSocket({ wsUrl, expectedText, verseKey });
+  const [mode, setMode] = useState<'browser' | 'worker'>(wsUrl ? 'worker' : 'browser');
+
   const expectedWords = useMemo<readonly WordState[]>(() => {
     return expectedText
       .split(/\s+/)
@@ -132,29 +141,42 @@ export function HifzCheckClient({ expectedText, verseKey }: Props): ReactNode {
       // Greedy word-by-word diff: walk the heard tokens; for each one,
       // find the next pending expected word that matches (allowing 1
       // skip for unrecognized words).
-      const heard = buf.trim().split(/\s+/).map(normalize).filter((s) => s.length > 0);
+      const heard = buf
+        .trim()
+        .split(/\s+/)
+        .map(normalize)
+        .filter((s) => s.length > 0);
       const next: WordState[] = expectedWords.map((w) => ({ ...w }));
       let cursor = 0;
       for (const h of heard) {
         if (cursor >= next.length) break;
-        if (next[cursor]!.norm === h || next[cursor]!.norm.includes(h) || h.includes(next[cursor]!.norm)) {
-          next[cursor] = { ...next[cursor]!, status: 'matched' };
+        const cur = next[cursor];
+        if (!cur) break;
+        if (cur.norm === h || cur.norm.includes(h) || h.includes(cur.norm)) {
+          next[cursor] = { ...cur, status: 'matched' };
           cursor += 1;
-        } else if (cursor + 1 < next.length && next[cursor + 1]!.norm === h) {
-          // user skipped a word
-          next[cursor] = { ...next[cursor]!, status: 'mismatch' };
-          next[cursor + 1] = { ...next[cursor + 1]!, status: 'matched' };
-          cursor += 2;
         } else {
-          // unmatched heard token — mark current expected as mismatch
-          // and advance only when we see the NEXT expected word.
-          next[cursor] = { ...next[cursor]!, status: 'mismatch' };
+          const peek = next[cursor + 1];
+          if (peek?.norm === h) {
+            // user skipped a word
+            next[cursor] = { ...cur, status: 'mismatch' };
+            next[cursor + 1] = { ...peek, status: 'matched' };
+            cursor += 2;
+          } else {
+            // unmatched heard token — mark current expected as mismatch
+            // and advance only when we see the NEXT expected word.
+            next[cursor] = { ...cur, status: 'mismatch' };
+          }
         }
       }
       setProgress(next);
     };
-    rec.onerror = (ev) => setError(`speech-recognition: ${ev.error}`);
-    rec.onend = () => setListening(false);
+    rec.onerror = (ev) => {
+      setError(`speech-recognition: ${ev.error}`);
+    };
+    rec.onend = () => {
+      setListening(false);
+    };
     recRef.current = rec;
     rec.start();
     setListening(true);
@@ -165,17 +187,41 @@ export function HifzCheckClient({ expectedText, verseKey }: Props): ReactNode {
     setListening(false);
   }
 
-  const matchedCount = progress.filter((w) => w.status === 'matched').length;
-  const mismatchCount = progress.filter((w) => w.status === 'mismatch').length;
-  const pct = expectedWords.length > 0 ? Math.round((matchedCount / expectedWords.length) * 100) : 0;
+  // The worker path drives `progress` directly off the hook's `words` so
+  // both backends produce the same WordState[] shape downstream. Browser
+  // path uses the local greedy-walk above.
+  const view: readonly WordState[] =
+    mode === 'worker'
+      ? ws.words.map((w) => ({ text: w.text, norm: normalize(w.text), status: w.status }))
+      : progress;
+  const liveListening = mode === 'worker' ? ws.listening : listening;
+  const liveTranscript = mode === 'worker' ? ws.transcript : transcript;
+  const liveError = mode === 'worker' ? ws.error : error;
+
+  function handleStart(): void {
+    if (mode === 'worker') {
+      void ws.start();
+    } else {
+      start();
+    }
+  }
+  function handleStop(): void {
+    if (mode === 'worker') ws.stop();
+    else stop();
+  }
+
+  const matchedCount = view.filter((w) => w.status === 'matched').length;
+  const mismatchCount = view.filter((w) => w.status === 'mismatch').length;
+  const pct =
+    expectedWords.length > 0 ? Math.round((matchedCount / expectedWords.length) * 100) : 0;
 
   return (
-    <div className="paper-card-raised p-5 sm:p-8 md:p-10 space-y-6">
+    <div className="paper-card-raised space-y-6 p-5 sm:p-8 md:p-10">
       {/* Verse text with per-word status overlay */}
       <p
         dir="rtl"
         lang="ar"
-        className="text-ink-strong text-center leading-[1.95] sm:leading-[2.05] break-words"
+        className="text-ink-strong break-words text-center leading-[1.95] sm:leading-[2.05]"
         style={{
           fontFamily: '"UthmanicHafs", "Amiri Quran", "Noto Naskh Arabic", serif',
           fontSize: 'clamp(1.4rem, 1rem + 1.5vw, 2.2rem)',
@@ -183,7 +229,7 @@ export function HifzCheckClient({ expectedText, verseKey }: Props): ReactNode {
           fontWeight: 600,
         }}
       >
-        {progress.map((w, i) => (
+        {view.map((w, i) => (
           <span
             key={i}
             className={
@@ -195,32 +241,62 @@ export function HifzCheckClient({ expectedText, verseKey }: Props): ReactNode {
             }
           >
             {w.text}
-            {i < progress.length - 1 ? ' ' : ''}
+            {i < view.length - 1 ? ' ' : ''}
           </span>
         ))}
       </p>
 
+      {ws.available ? (
+        <div
+          role="radiogroup"
+          aria-label="Recognition engine"
+          className="border-hairline mx-auto inline-flex w-fit overflow-hidden rounded-full border text-xs"
+        >
+          {(['worker', 'browser'] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              role="radio"
+              aria-checked={mode === m}
+              onClick={() => {
+                if (liveListening) handleStop();
+                setMode(m);
+              }}
+              className={`smallcaps px-4 py-1.5 tracking-widest transition-colors ${
+                mode === m ? 'bg-leaf text-paper' : 'text-ink-muted hover:text-ink'
+              }`}
+            >
+              {m === 'worker' ? 'Self-hosted ASR' : 'Browser ASR'}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       <div className="flex items-center justify-center gap-3">
         <button
           type="button"
-          onClick={listening ? stop : start}
-          disabled={!supported}
-          className={`inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 smallcaps text-xs tracking-widest transition-colors ${
-            listening
-              ? 'bg-mistake-error text-white'
-              : 'bg-leaf text-paper hover:opacity-95'
+          onClick={liveListening ? handleStop : handleStart}
+          disabled={mode === 'browser' && !supported}
+          className={`smallcaps inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-xs tracking-widest transition-colors ${
+            liveListening ? 'bg-mistake-error text-white' : 'bg-leaf text-paper hover:opacity-95'
           } disabled:opacity-40`}
         >
-          {listening ? (
+          {liveListening ? (
             <>
-              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+              <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
               Listening — tap to stop
             </>
           ) : (
             <>
               <svg width={14} height={14} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                 <path d="M12 14a3 3 0 003-3V5a3 3 0 10-6 0v6a3 3 0 003 3z" />
-                <path d="M19 11a7 7 0 01-14 0M12 18v3" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+                <path
+                  d="M19 11a7 7 0 01-14 0M12 18v3"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  fill="none"
+                  strokeLinecap="round"
+                />
               </svg>
               Tap to recite
             </>
@@ -228,27 +304,33 @@ export function HifzCheckClient({ expectedText, verseKey }: Props): ReactNode {
         </button>
       </div>
 
-      {!supported ? (
-        <p className="text-center text-sm text-ink-muted">
-          Speech recognition is not available in this browser. Use Chrome on desktop, or open
-          <code className="mx-1">/recite/{verseKey}</code> for the WebSocket-backed hifz session.
+      {mode === 'browser' && !supported ? (
+        <p className="text-ink-muted text-center text-sm">
+          Speech recognition is not available in this browser. Use Chrome on desktop, or
+          {ws.available ? (
+            ' switch to self-hosted ASR above.'
+          ) : (
+            <>
+              {' '}
+              set <code className="mx-1">NEXT_PUBLIC_ASR_WS_URL</code> and run the asr-worker for
+              the WebSocket-backed hifz session.
+            </>
+          )}
         </p>
       ) : null}
 
-      {error ? (
-        <p className="text-center text-sm text-mistake-error">{error}</p>
-      ) : null}
+      {liveError ? <p className="text-mistake-error text-center text-sm">{liveError}</p> : null}
 
-      {transcript ? (
-        <div className="border-t border-hairline pt-4">
-          <p className="smallcaps text-leaf text-[10px] tracking-widest mb-1">You said</p>
+      {liveTranscript ? (
+        <div className="border-hairline border-t pt-4">
+          <p className="smallcaps text-leaf mb-1 text-[10px] tracking-widest">You said</p>
           <p
             dir="rtl"
             lang="ar"
-            className="font-arabic text-base sm:text-lg text-ink leading-relaxed"
+            className="font-arabic text-ink text-base leading-relaxed sm:text-lg"
             style={{ unicodeBidi: 'plaintext' }}
           >
-            {transcript}
+            {liveTranscript}
           </p>
         </div>
       ) : null}
@@ -256,22 +338,24 @@ export function HifzCheckClient({ expectedText, verseKey }: Props): ReactNode {
       {matchedCount + mismatchCount > 0 ? (
         <div className="grid grid-cols-3 gap-3 text-center">
           <div>
-            <p className="smallcaps text-[10px] text-ink-muted tracking-widest">Match</p>
-            <p className="font-display text-2xl text-mistake-correct">{pct}%</p>
+            <p className="smallcaps text-ink-muted text-[10px] tracking-widest">Match</p>
+            <p className="font-display text-mistake-correct text-2xl">{pct}%</p>
           </div>
           <div>
-            <p className="smallcaps text-[10px] text-ink-muted tracking-widest">Words OK</p>
-            <p className="font-display text-2xl text-ink-strong">{matchedCount}</p>
+            <p className="smallcaps text-ink-muted text-[10px] tracking-widest">Words OK</p>
+            <p className="font-display text-ink-strong text-2xl">{matchedCount}</p>
           </div>
           <div>
-            <p className="smallcaps text-[10px] text-ink-muted tracking-widest">Mistakes</p>
-            <p className="font-display text-2xl text-mistake-error">{mismatchCount}</p>
+            <p className="smallcaps text-ink-muted text-[10px] tracking-widest">Mistakes</p>
+            <p className="font-display text-mistake-error text-2xl">{mismatchCount}</p>
           </div>
         </div>
       ) : null}
 
-      <p className="text-[10px] text-ink-muted text-center italic">
-        Audio stays on device · adab-private · powered by browser speech recognition
+      <p className="text-ink-muted text-center text-[10px] italic">
+        {mode === 'worker'
+          ? 'Audio streams encrypted to your self-hosted ASR worker · held in memory only · adab-private'
+          : 'Audio stays on device · adab-private · powered by browser speech recognition'}
       </p>
     </div>
   );

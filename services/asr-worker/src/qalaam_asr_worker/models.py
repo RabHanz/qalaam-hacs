@@ -30,3 +30,42 @@ class TranscribeRequest(BaseModel):
     expected_verse_key: str
     expected_text_uthmani: str
     sample_rate: int = 16000
+
+
+# --- WebSocket streaming wire types ---------------------------------------
+# The browser opens a WS to /v1/recite/ws and exchanges the frames below.
+# Audio NEVER leaves the worker's host (ADR-0005). Only derived signals
+# (transcript + word-level matches) are returned over the wire.
+
+
+class StreamInitFrame(BaseModel):
+    type: str = Field(default="init", pattern="^init$")
+    expected_verse_key: str
+    expected_text_uthmani: str
+    sample_rate: int = 16000
+    # Browser audio is typically webm/opus from MediaRecorder. faster-whisper
+    # ingests via ffmpeg so any format ffmpeg can decode is fine.
+    audio_format: str = "webm"
+
+
+class StreamEndFrame(BaseModel):
+    type: str = Field(default="end", pattern="^end$")
+
+
+class StreamPartialFrame(BaseModel):
+    """Sent every ~2s while audio is streaming in."""
+
+    type: str = Field(default="partial", pattern="^partial$")
+    transcript: str
+    word_results: list[WordResult]
+
+
+class StreamFinalFrame(BaseModel):
+    type: str = Field(default="final", pattern="^final$")
+    result: AsrResult
+
+
+class StreamErrorFrame(BaseModel):
+    type: str = Field(default="error", pattern="^error$")
+    message: str
+    code: str
