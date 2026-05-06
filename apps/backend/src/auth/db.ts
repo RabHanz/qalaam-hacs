@@ -288,6 +288,12 @@ export function authDb(): DB {
     // family members in the picker. Picked from a 6-color palette.
     db.exec('ALTER TABLE users ADD COLUMN avatar_color TEXT');
   }
+  if (!cols.includes('ha_url')) {
+    // User-set Home Assistant URL — surfaces in Cast/SendToPicker for
+    // Premium+ tiers. Storing per-user lets households keep their HA
+    // address private and lets us tier-gate the integration cleanly.
+    db.exec('ALTER TABLE users ADD COLUMN ha_url TEXT');
+  }
 
   cached = db;
   return db;

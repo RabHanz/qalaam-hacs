@@ -20,6 +20,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
+import { useUser } from '../lib/use-user.js';
 
 import { SendToPicker } from './SendToPicker.js';
 
@@ -102,6 +103,8 @@ export function ContinuousReaderPlayer({
   onHighlight,
   currentSurah,
 }: Props): ReactNode {
+  const { user } = useUser();
+  const haUrl = user?.haUrl ?? null;
   // The player keeps its own running list of verses so it can chain
   // surahs without unmounting. Starts with the parent-supplied surah's
   // verses and appends the next surah's verses when we reach the end.
@@ -802,11 +805,7 @@ export function ContinuousReaderPlayer({
             <SendToPicker
               audioRef={bundleA?.url ? audioARef : audioBRef}
               currentSrc={bundleA?.url ?? bundleB?.url ?? null}
-              haUrl={
-                typeof window !== 'undefined'
-                  ? ((window as unknown as { __qalaamHaUrl?: string }).__qalaamHaUrl ?? null)
-                  : null
-              }
+              haUrl={haUrl}
               title={`Surah ${currentSurah.toString()} · ${reciterName ?? reciterSlug}`}
               artist={reciterName ?? reciterSlug}
             />

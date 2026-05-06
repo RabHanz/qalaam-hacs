@@ -25,6 +25,7 @@ export interface QalaamUser {
   readonly displayName: string | null;
   readonly tier: string;
   readonly isMinor: boolean;
+  readonly haUrl: string | null;
 }
 
 export type AuthStatus = 'loading' | 'authenticated' | 'anonymous';

@@ -140,6 +140,19 @@ export function UserMenu(): ReactNode {
             </li>
             <li>
               <Link
+                href="/settings"
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false);
+                }}
+                className="hover:bg-paper-100 text-ink flex items-center justify-between px-4 py-3 text-sm transition-colors"
+              >
+                <span>Settings</span>
+                <span aria-hidden>→</span>
+              </Link>
+            </li>
+            <li>
+              <Link
                 href="/bookmarks"
                 role="menuitem"
                 onClick={() => {

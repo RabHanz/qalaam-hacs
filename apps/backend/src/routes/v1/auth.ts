@@ -42,6 +42,7 @@ interface UserRow {
   display_name: string | null;
   tier: string;
   is_minor: number;
+  ha_url: string | null;
 }
 
 function setSessionCookie(reply: FastifyReply, sessionId: string, expiresAt: Date): void {
@@ -86,6 +87,7 @@ function userPayload(user: AuthUser): {
   displayName: string | null;
   tier: string;
   isMinor: boolean;
+  haUrl: string | null;
 } {
   return {
     id: user.id,
@@ -93,6 +95,7 @@ function userPayload(user: AuthUser): {
     displayName: user.displayName,
     tier: user.tier,
     isMinor: user.isMinor,
+    haUrl: user.haUrl,
   };
 }
 
@@ -191,6 +194,7 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
           displayName,
           tier: 'free',
           isMinor: false,
+          haUrl: null,
         }),
       });
     },
@@ -229,7 +233,7 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
       const db = authDb();
       const row = db
         .prepare(
-          `SELECT id, email, password_hash, display_name, tier, is_minor
+          `SELECT id, email, password_hash, display_name, tier, is_minor, ha_url
              FROM users WHERE email = ? AND deleted_at IS NULL`,
         )
         .get(email) as UserRow | undefined;
@@ -268,6 +272,7 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
           displayName: row.display_name,
           tier: row.tier,
           isMinor: row.is_minor === 1,
+          haUrl: row.ha_url,
         }),
       });
     },
@@ -310,6 +315,77 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
         return reply.code(401).send({ code: 'qalaam.auth.session-expired' });
       }
       return reply.code(200).send({ user: userPayload(user) });
+    },
+  );
+
+  // PATCH /v1/auth/me — update profile fields. `haUrl` is gated to
+  // Premium / Pro tiers since the Home Assistant integration is part
+  // of the paid value prop. `displayName` is open to every tier.
+  fastify.patch<{ Body: { displayName?: string | null; haUrl?: string | null } }>(
+    '/v1/auth/me',
+    {
+      schema: {
+        description: 'Update display name + optional Home Assistant URL.',
+        tags: ['auth'],
+        body: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            displayName: { type: ['string', 'null'], maxLength: 80 },
+            haUrl: { type: ['string', 'null'], maxLength: 200 },
+          },
+        },
+      },
+    },
+    async (req, reply) => {
+      const sessionId = readCookie(req, SESSION_COOKIE_NAME);
+      if (!sessionId) return reply.code(401).send({ code: 'qalaam.auth.no-session' });
+      const user = findUserBySession(sessionId);
+      if (!user) {
+        clearSessionCookie(reply);
+        return reply.code(401).send({ code: 'qalaam.auth.session-expired' });
+      }
+      const body = req.body;
+      const sets: string[] = [];
+      const args: (string | null)[] = [];
+      if (body.displayName !== undefined) {
+        const trimmed = body.displayName === null ? null : body.displayName.trim();
+        if (trimmed !== null && (trimmed.length < 1 || trimmed.length > 80)) {
+          return reply.code(400).send({ code: 'qalaam.auth.bad-display-name' });
+        }
+        sets.push('display_name = ?');
+        args.push(trimmed);
+      }
+      if (body.haUrl !== undefined) {
+        if (user.tier !== 'premium' && user.tier !== 'pro') {
+          return reply
+            .code(403)
+            .send({ code: 'qalaam.auth.tier-required', requiredTier: 'premium' });
+        }
+        const v = body.haUrl === null ? null : body.haUrl.trim();
+        if (v !== null) {
+          // Surface the parse error rather than 500ing on bad input.
+          try {
+            const u = new URL(v);
+            if (u.protocol !== 'http:' && u.protocol !== 'https:') {
+              void reply.code(400).send({ code: 'qalaam.auth.bad-ha-url' });
+              return;
+            }
+          } catch {
+            void reply.code(400).send({ code: 'qalaam.auth.bad-ha-url' });
+            return;
+          }
+        }
+        sets.push('ha_url = ?');
+        args.push(v);
+      }
+      if (sets.length === 0) return reply.code(200).send({ user: userPayload(user) });
+      args.push(user.id);
+      authDb()
+        .prepare(`UPDATE users SET ${sets.join(', ')} WHERE id = ?`)
+        .run(...args);
+      const fresh = findUserBySession(sessionId);
+      return reply.code(200).send({ user: userPayload(fresh ?? user) });
     },
   );
 }

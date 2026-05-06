@@ -61,6 +61,29 @@ interface AirPlayCapableAudio extends HTMLMediaElement {
   webkitShowPlaybackTargetPicker?: () => void;
 }
 
+/**
+ * The native `HTMLMediaElement.remote` (RemotePlayback API) — in
+ * practice we only need `prompt()`. Avoid `extends HTMLMediaElement`
+ * since lib.dom.d.ts has a conflicting full RemotePlayback shape.
+ */
+type RemoteCapableMedia = HTMLMediaElement & {
+  remote?: { prompt(): Promise<void> };
+};
+
+/**
+ * Origin-policy diagnostic. The Cast Sender SDK + most modern browser
+ * Cast affordances (HTMLMediaElement.remote, Presentation API) only
+ * work on https:// or http://localhost — http://<lan-ip> is silently
+ * blocked. Surface a useful hint instead of a generic "unavailable".
+ */
+function isCastEligibleOrigin(): boolean {
+  if (typeof window === 'undefined') return false;
+  const { protocol, hostname } = window.location;
+  if (protocol === 'https:') return true;
+  if (protocol === 'http:' && (hostname === 'localhost' || hostname === '127.0.0.1')) return true;
+  return false;
+}
+
 interface CastSession {
   loadMedia(req: unknown): Promise<void>;
 }
@@ -98,27 +121,68 @@ function loadCastSdk(): Promise<boolean> {
   if (typeof window === 'undefined') return Promise.resolve(false);
   if (castSdkPromise) return castSdkPromise;
   const w = window as ChromeCastWindow;
-  if (w.__qalaamCastReady) {
-    castSdkPromise = Promise.resolve(Boolean(w.cast?.framework));
+  // Already loaded in a previous mount? Trust the framework presence.
+  if (w.cast?.framework) {
+    castSdkPromise = Promise.resolve(true);
     return castSdkPromise;
   }
   castSdkPromise = new Promise<boolean>((resolve) => {
-    w.__onGCastApiAvailable = (available: boolean): void => {
+    let settled = false;
+    const finish = (ok: boolean): void => {
+      if (settled) return;
+      settled = true;
       w.__qalaamCastReady = true;
-      resolve(available && Boolean(w.cast?.framework));
+      resolve(ok);
     };
-    // Append the script even if a previous attempt left a tag in the
-    // DOM — duplicate tags are harmless, and a stale tag may have
-    // already fired the (now-overwritten) handler.
+
+    // Path 1: SDK calls __onGCastApiAvailable(true|false) when it
+    // finishes initializing. This is the documented flow.
+    w.__onGCastApiAvailable = (available: boolean): void => {
+      finish(available && Boolean(w.cast?.framework));
+    };
+
+    // Path 2 (script error): network failure / CSP block.
     const script = document.createElement('script');
     script.src = CAST_SDK_URL;
     script.async = true;
     script.onerror = (): void => {
-      resolve(false);
+      finish(false);
     };
     document.head.appendChild(script);
+
+    // Path 3 (polling backstop): some Linux Chrome / Chromium-fork
+    // builds initialize `cast.framework` without ever invoking
+    // __onGCastApiAvailable, OR call it with `false` even though
+    // the framework is fully usable. We poll for ~3.5s and trust
+    // the framework presence. If still nothing, give up.
+    const start = Date.now();
+    const poll = (): void => {
+      if (settled) return;
+      if (w.cast?.framework) {
+        finish(true);
+        return;
+      }
+      if (Date.now() - start > 3500) {
+        finish(false);
+        return;
+      }
+      setTimeout(poll, 200);
+    };
+    setTimeout(poll, 500);
   });
   return castSdkPromise;
+}
+
+/**
+ * Reset the cached SDK promise so the next openpicker re-attempts the
+ * load. Used by the "Retry" button when the SDK reported unavailable.
+ */
+function resetCastSdk(): void {
+  castSdkPromise = null;
+  if (typeof window !== 'undefined') {
+    const w = window as ChromeCastWindow;
+    delete w.__qalaamCastReady;
+  }
 }
 
 function detectAirPlay(): boolean {
@@ -216,48 +280,111 @@ export function SendToPicker({ audioRef, currentSrc, haUrl, title, artist }: Pro
   }
 
   async function handleCast(): Promise<void> {
-    if (!castAvailable || !currentSrc) return;
+    if (!currentSrc) return;
     setCastStatus('connecting…');
     const w = window as ChromeCastWindow;
-    const ctx = w.cast?.framework?.CastContext.getInstance();
-    if (!ctx) {
-      setCastStatus('cast unavailable');
+
+    // Make sure setOptions has run before requestSession — calling
+    // requestSession with no app id throws an unrelated error message.
+    const ensureOptions = (): boolean => {
+      try {
+        const cx = w.cast?.framework?.CastContext.getInstance();
+        if (!cx) return false;
+        cx.setOptions({
+          receiverApplicationId: DEFAULT_RECEIVER_APP_ID,
+          autoJoinPolicy: 'origin_scoped',
+        });
+        return true;
+      } catch {
+        return false;
+      }
+    };
+
+    // Path A: Cast Sender SDK is loaded — open the system picker via
+    // requestSession + load media. Best fidelity (custom metadata,
+    // explicit content type), but requires HTTPS or localhost origin.
+    if (w.cast?.framework && ensureOptions()) {
+      try {
+        await w.cast.framework.CastContext.getInstance().requestSession();
+        const session = w.cast.framework.CastContext.getInstance().getCurrentSession();
+        if (session) {
+          const chromeCast = (w.chrome as { cast?: { media?: Record<string, unknown> } }).cast;
+          const MediaInfo = chromeCast?.media?.MediaInfo as
+            | (new (url: string, contentType: string) => Record<string, unknown>)
+            | undefined;
+          const LoadRequest = chromeCast?.media?.LoadRequest as
+            | (new (info: Record<string, unknown>) => Record<string, unknown>)
+            | undefined;
+          if (MediaInfo && LoadRequest) {
+            const mediaInfo = new MediaInfo(currentSrc, 'audio/mpeg');
+            mediaInfo.metadata = {
+              metadataType: 0,
+              title: title ?? 'Quran recitation',
+              subtitle: artist ?? '',
+            };
+            await session.loadMedia(new LoadRequest(mediaInfo));
+            setCastStatus('Casting');
+            setOpen(false);
+            return;
+          }
+        }
+        setCastStatus('Cast session not started');
+        return;
+      } catch (err) {
+        // requestSession throws when the user dismisses the dialog —
+        // silently swallow. Other errors fall through to remote.prompt.
+        const msg = err instanceof Error ? err.message : String(err);
+        if (/cancel/i.test(msg)) {
+          setCastStatus(null);
+          return;
+        }
+      }
+    }
+
+    // Path B: HTMLMediaElement.remote.prompt — Chromium's per-element
+    // Cast picker. Works even when the Sender SDK didn't initialize
+    // (e.g. flaky __onGCastApiAvailable on some Chromium builds).
+    // Still requires the origin to be Cast-eligible.
+    const audio = audioRef.current as RemoteCapableMedia | null;
+    if (audio?.remote && typeof audio.remote.prompt === 'function') {
+      try {
+        await audio.remote.prompt();
+        setCastStatus('Casting');
+        setOpen(false);
+        return;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (/cancel|abort/i.test(msg)) {
+          setCastStatus(null);
+          return;
+        }
+      }
+    }
+
+    // Path C: nothing worked — explain why.
+    if (!isCastEligibleOrigin()) {
+      setCastStatus('Cast needs HTTPS or localhost — open via http://localhost:3111');
       return;
     }
-    try {
-      await ctx.requestSession();
-      const session = ctx.getCurrentSession();
-      if (!session) {
-        setCastStatus('no session');
-        return;
-      }
-      // Build a chrome.cast.media.MediaInfo through the SDK's globals.
-      // We're using `unknown` casts because chrome.cast types are loaded
-      // dynamically by the SDK and don't have @types.
-      const chromeCast = (w.chrome as { cast?: { media?: Record<string, unknown> } }).cast;
-      const MediaInfo = chromeCast?.media?.MediaInfo as
-        | (new (url: string, contentType: string) => Record<string, unknown>)
-        | undefined;
-      const LoadRequest = chromeCast?.media?.LoadRequest as
-        | (new (info: Record<string, unknown>) => Record<string, unknown>)
-        | undefined;
-      if (!MediaInfo || !LoadRequest) {
-        setCastStatus('SDK incomplete');
-        return;
-      }
-      const mediaInfo = new MediaInfo(currentSrc, 'audio/mpeg');
-      mediaInfo.metadata = {
-        metadataType: 0, // GENERIC
-        title: title ?? 'Quran recitation',
-        subtitle: artist ?? '',
-      };
-      const loadRequest = new LoadRequest(mediaInfo);
-      await session.loadMedia(loadRequest as unknown);
-      setCastStatus('casting');
-      setOpen(false);
-    } catch (err) {
-      setCastStatus(`error: ${err instanceof Error ? err.message : 'unknown'}`);
+
+    // Last resort: retry the SDK load (some builds initialize on
+    // second attempt).
+    setCastStatus('retrying SDK…');
+    resetCastSdk();
+    const ok = await loadCastSdk();
+    setCastAvailable(ok);
+    if (!ok) {
+      setCastStatus(
+        'Cast unavailable — install the Google Cast extension or use Chrome menu → Cast',
+      );
+      return;
     }
+    if (!ensureOptions()) {
+      setCastStatus('Cast unavailable in this browser');
+      return;
+    }
+    // Recurse once now that SDK is loaded — Path A above will run.
+    void handleCast();
   }
 
   function handleHa(): void {
@@ -353,7 +480,7 @@ export function SendToPicker({ audioRef, currentSrc, haUrl, title, artist }: Pro
               <button
                 type="button"
                 role="menuitem"
-                disabled={!castCapable || castAvailable === false || !currentSrc}
+                disabled={!castCapable || !currentSrc}
                 onClick={() => {
                   void handleCast();
                 }}
@@ -382,7 +509,7 @@ export function SendToPicker({ audioRef, currentSrc, haUrl, title, artist }: Pro
                     {!castCapable
                       ? 'Chrome / Edge only'
                       : castAvailable === false
-                        ? 'Cast SDK unavailable'
+                        ? (castStatus ?? 'Tap to retry — Cast may need a moment')
                         : (castStatus ?? 'Pick a Chromecast or Google TV')}
                   </span>
                 </span>
@@ -414,7 +541,7 @@ export function SendToPicker({ audioRef, currentSrc, haUrl, title, artist }: Pro
                 <span className="flex-1">
                   <span className="text-ink block text-sm font-medium">Home Assistant</span>
                   <span className="text-ink-muted block text-xs">
-                    {haUrl ? 'Sonos, ESPHome, MPD…' : 'Set NEXT_PUBLIC_HA_URL'}
+                    {haUrl ? 'Sonos, ESPHome, MPD…' : 'Add your HA URL in Settings'}
                   </span>
                 </span>
               </button>

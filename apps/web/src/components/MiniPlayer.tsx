@@ -15,12 +15,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
+import { useUser } from '../lib/use-user.js';
 
 import { SendToPicker } from './SendToPicker.js';
 
 import type { ReactNode } from 'react';
-
-const HA_URL = typeof process !== 'undefined' ? (process.env.NEXT_PUBLIC_HA_URL ?? null) : null;
 
 interface ReciterItem {
   readonly slug: string;
@@ -58,6 +57,8 @@ export function MiniPlayer({
   onVerseKeyChange,
 }: MiniPlayerProps): ReactNode {
   const apiBase = resolveApiBase();
+  const { user } = useUser();
+  const haUrl = user?.haUrl ?? null;
   const [playing, setPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [position, setPosition] = useState(0);
@@ -313,7 +314,7 @@ export function MiniPlayer({
             <SendToPicker
               audioRef={audioRef}
               currentSrc={audioUrl ?? null}
-              haUrl={HA_URL}
+              haUrl={haUrl}
               title={`${reciterMeta?.name.en ?? reciterSlug} · ${verseKey}`}
               artist={reciterMeta?.name.en ?? reciterSlug}
             />

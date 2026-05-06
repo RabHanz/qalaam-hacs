@@ -68,3 +68,37 @@ export async function signout(): Promise<MutationResult> {
   invalidateUserCache(); // even on failure — drop client cache
   return result;
 }
+
+/** Update profile — `haUrl` is gated to Premium/Pro on the backend. */
+export async function updateProfile(args: {
+  displayName?: string | null;
+  haUrl?: string | null;
+}): Promise<MutationResult> {
+  let res: Response;
+  try {
+    res = await fetch(`${resolveApiBase()}/v1/auth/me`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(args),
+    });
+  } catch {
+    return { ok: false, code: 'qalaam.net.unreachable', message: 'Backend unreachable.' };
+  }
+  if (!res.ok) {
+    let err: { code?: string; message?: string } = {};
+    try {
+      err = (await res.json()) as typeof err;
+    } catch {
+      /* non-JSON */
+    }
+    return {
+      ok: false,
+      code: err.code ?? `qalaam.http.${res.status.toString()}`,
+      message: err.message,
+    };
+  }
+  const data = (await res.json()) as { user: QalaamUser };
+  invalidateUserCache();
+  return { ok: true, user: data.user };
+}

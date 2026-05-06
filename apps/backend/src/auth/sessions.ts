@@ -36,6 +36,7 @@ export interface AuthUser {
   readonly displayName: string | null;
   readonly tier: string;
   readonly isMinor: boolean;
+  readonly haUrl: string | null;
 }
 
 interface UserRow {
@@ -44,6 +45,7 @@ interface UserRow {
   display_name: string | null;
   tier: string;
   is_minor: number;
+  ha_url: string | null;
 }
 
 interface SessionRow {
@@ -109,7 +111,7 @@ export function findUserBySession(sessionId: string): AuthUser | null {
   db.prepare(`UPDATE users SET last_seen_at = ? WHERE id = ?`).run(isoNow(), row.userId);
   const user = db
     .prepare(
-      `SELECT id, email, display_name, tier, is_minor
+      `SELECT id, email, display_name, tier, is_minor, ha_url
          FROM users
         WHERE id = ? AND deleted_at IS NULL`,
     )
@@ -121,6 +123,7 @@ export function findUserBySession(sessionId: string): AuthUser | null {
     displayName: user.display_name,
     tier: user.tier,
     isMinor: user.is_minor === 1,
+    haUrl: user.ha_url,
   };
 }
 
