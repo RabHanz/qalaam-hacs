@@ -37,6 +37,29 @@ export function UserMenu(): ReactNode {
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
+  // Lazy admin check — only fires when the menu is opened the first
+  // time, so non-admins (everyone else) never pay for it.
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!open || isAdmin !== null || status !== 'authenticated') return;
+    const lifecycle = { cancelled: false };
+    void (async () => {
+      try {
+        const res = await fetch('/api/v1/admin/me', { credentials: 'include' });
+        if (!res.ok) {
+          if (!lifecycle.cancelled) setIsAdmin(false);
+          return;
+        }
+        const body = (await res.json()) as { isAdmin: boolean };
+        if (!lifecycle.cancelled) setIsAdmin(body.isAdmin);
+      } catch {
+        if (!lifecycle.cancelled) setIsAdmin(false);
+      }
+    })();
+    return () => {
+      lifecycle.cancelled = true;
+    };
+  }, [open, isAdmin, status]);
 
   useEffect(() => {
     if (!open) return;
@@ -164,6 +187,26 @@ export function UserMenu(): ReactNode {
                 <span aria-hidden>→</span>
               </Link>
             </li>
+            {isAdmin ? (
+              <li className="border-hairline border-t">
+                <Link
+                  href="/admin"
+                  role="menuitem"
+                  onClick={() => {
+                    setOpen(false);
+                  }}
+                  className="hover:bg-paper-100 text-leaf flex items-center justify-between px-4 py-3 text-sm transition-colors"
+                >
+                  <span>
+                    <span className="smallcaps mr-2 text-[10px] tracking-widest opacity-70">
+                      maintainer
+                    </span>
+                    Admin console
+                  </span>
+                  <span aria-hidden>→</span>
+                </Link>
+              </li>
+            ) : null}
             <li className="border-hairline border-t">
               <button
                 type="button"
