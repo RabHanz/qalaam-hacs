@@ -20,8 +20,15 @@ WORKDIR /repo
 # ---- deps ---------------------------------------------------------------------
 FROM base AS deps
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+# Workspace package manifests resolve the graph without copying
+# source. Every workspace glob in pnpm-workspace.yaml needs at least
+# its package.json files present.
 COPY apps/web/package.json ./apps/web/
+COPY apps/backend/package.json ./apps/backend/
 COPY packages ./packages
+COPY services ./services
+COPY tooling ./tooling
+COPY integrations ./integrations
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --prefer-offline
 
@@ -35,25 +42,21 @@ ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL \
     QALAAM_REACT_COMPILER=$QALAAM_REACT_COMPILER \
     NEXT_TELEMETRY_DISABLED=1
 
+# tsconfig.base.json is `extends`-ed by every workspace tsconfig.json
+# and turbo.json drives the build topology. Both must be in the build
+# context BEFORE any tsc / next build runs.
+COPY tsconfig.base.json turbo.json ./
 COPY apps/web ./apps/web
 COPY packages ./packages
+COPY tooling ./tooling
 
-# Build workspace packages the web app imports.
-RUN pnpm --filter @qalaam/core build         || true \
- && pnpm --filter @qalaam/types-ts build     || true \
- && pnpm --filter @qalaam/api-client-ts build || true \
- && pnpm --filter @qalaam/ui build            || true \
- && pnpm --filter @qalaam/ui-hifdh build      || true \
- && pnpm --filter @qalaam/ui-quran build      || true \
- && pnpm --filter @qalaam/ui-recite build     || true \
- && pnpm --filter @qalaam/ui-learn build      || true \
- && pnpm --filter @qalaam/curriculum build    || true
-
-# Build Next standalone bundle. Output ends up at
+# Turbo builds @qalaam/web AND its transitive workspace deps in topology
+# order. Any failure fails the image — no `|| true`.
+# Output ends up at
 #   /repo/apps/web/.next/standalone/...   (server)
 #   /repo/apps/web/.next/static/...        (static assets)
 #   /repo/apps/web/public/                 (public assets)
-RUN pnpm --filter @qalaam/web build
+RUN pnpm exec turbo run build --filter=qalaam-web
 
 # ---- runner -------------------------------------------------------------------
 FROM node:${NODE_VERSION} AS runner

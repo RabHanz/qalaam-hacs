@@ -25,23 +25,32 @@ WORKDIR /repo
 FROM base AS deps
 RUN apk add --no-cache python3 make g++ libc-dev linux-headers
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+# Workspace package manifests resolve the graph without copying
+# source. Each workspace glob in pnpm-workspace.yaml needs at least
+# its package.json files present.
 COPY apps/backend/package.json ./apps/backend/
+COPY apps/web/package.json ./apps/web/
 COPY packages ./packages
+COPY services ./services
+COPY tooling ./tooling
+COPY integrations ./integrations
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --prefer-offline
 
 # ---- build --------------------------------------------------------------------
 FROM deps AS build
+# tsconfig.base.json is `extends`-ed by every workspace tsconfig.json,
+# and turbo.json drives the build topology. Both must be in the build
+# context BEFORE any tsc runs.
+COPY tsconfig.base.json turbo.json ./
 COPY apps/backend ./apps/backend
 COPY packages ./packages
-# Build workspace packages the backend imports (TypeScript-only packages need
-# their dist before the backend's tsc can consume them).
-RUN pnpm --filter @qalaam/data-loader build || true \
- && pnpm --filter @qalaam/core build         || true \
- && pnpm --filter @qalaam/types-ts build     || true \
- && pnpm --filter @qalaam/api-client-ts build || true
-# Compile the backend itself.
-RUN pnpm --filter qalaam-backend build
+COPY tooling ./tooling
+# Turbo builds qalaam-backend AND its workspace deps (@qalaam/core,
+# @qalaam/data-loader, @qalaam/adhan, @qalaam/curriculum,
+# @qalaam/hifdh-engine, …) in topological order. No `|| true` —
+# any package failing to build fails the image.
+RUN pnpm exec turbo run build --filter=qalaam-backend
 
 # ---- runner -------------------------------------------------------------------
 FROM node:${NODE_VERSION} AS runner

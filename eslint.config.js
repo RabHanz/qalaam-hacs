@@ -49,6 +49,9 @@ export default tseslint.config(
       '**/apps/mobile/**',
       // Scrape-ingest runs via tsx; not in any tsconfig project.
       'scripts/data/ingest-qul-from-scrape.ts',
+      // Codegen runner is invoked via tsx from the @qalaam/schema
+      // codegen script; outside the workspace tsconfig project graph.
+      'tooling/codegen/run.ts',
     ],
   },
 

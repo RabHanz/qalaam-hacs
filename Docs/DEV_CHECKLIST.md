@@ -1351,10 +1351,26 @@ The full plan lives at `infrastructure/DEPLOY-PLAN.md`. Headline:
 - Two services (`qalaam-backend`, `qalaam-web`) on a private bridge
   network + the existing `dokploy-network` overlay for Traefik.
 - Two named Docker volumes (`qalaam-data`, `qalaam-mushaf-images`) —
-  one-shot SCP seed for `qul.sqlite` (~150MB) + `mushaf-images/` (~63MB).
+  one-shot SCP seed for `qul.sqlite` (~625 MB) + `mushaf-images/` (~57 MB).
 - Zero shared containers, networks, or volumes with margin / signzart
   / openclaw / mockupry. ~2 GB memory reservation on a host with ~21
   GB free.
+
+##### Deploy state (2026-05-06)
+
+| Resource                      | Identifier                                            | Status     |
+| ----------------------------- | ----------------------------------------------------- | ---------- |
+| Cloudflare A record           | `qalaam.themarginapp.com` → `178.156.218.66`          | live       |
+| Dokploy project               | `qvH6iggaO6GIkWpPlGDM7` (env `zdgKrWrW68lkR7Kcz-t3M`) | live       |
+| Dokploy compose               | `2oRBkn1YklhoGwYzODx7o` (autoDeploy on push)          | configured |
+| Traefik domain                | `OK2j7f2lsRJqlNqB2PLd8` (Let's Encrypt)               | configured |
+| Volume `qalaam-data`          | `qul.sqlite` 625 MB owned 1001:1001                   | seeded     |
+| Volume `qalaam-mushaf-images` | 610 PNGs owned 1001:1001                              | seeded     |
+
+GitHub binding `Gjon1h6vbkMyhrscwH0dY` (the Dokploy GitHub App used
+for `RabHanz/the-margin`) is also installed on `RabHanz/qalaam`.
+**Going forward: push to `main` triggers autoDeploy.** The webhook
+fires the build + deploy without any manual step.
 
 #### Future: Margin × Qalaam integration track (Q3+ research → product)
 
