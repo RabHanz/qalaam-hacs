@@ -15,6 +15,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
+import { useCast } from '../lib/use-cast.js';
 import { useUser } from '../lib/use-user.js';
 
 import { SendToPicker } from './SendToPicker.js';
@@ -59,9 +60,19 @@ export function MiniPlayer({
   const apiBase = resolveApiBase();
   const { user } = useUser();
   const haUrl = user?.haUrl ?? null;
-  const [playing, setPlaying] = useState(false);
-  const [duration, setDuration] = useState(0);
-  const [position, setPosition] = useState(0);
+  const cast = useCast();
+  // While casting we drive the receiver and ignore the local audio
+  // element. This single flag is the routing decision for every
+  // play / pause / seek / advance call below.
+  const isCasting = cast.isConnected && cast.isMediaLoaded;
+  const [localPlaying, setLocalPlaying] = useState(false);
+  const [localDuration, setLocalDuration] = useState(0);
+  const [localPosition, setLocalPosition] = useState(0);
+  // Effective state surfaced to the UI — receiver state when casting,
+  // local state otherwise.
+  const playing = isCasting ? !cast.isPaused : localPlaying;
+  const duration = isCasting ? cast.duration : localDuration;
+  const position = isCasting ? cast.currentTime : localPosition;
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const shouldResumeRef = useRef(false);
@@ -120,7 +131,7 @@ export function MiniPlayer({
     // unmutated to it).
     const cancel = { v: false };
     setAudioUrl(null);
-    setPosition(0);
+    setLocalPosition(0);
     segmentsRef.current = [];
     void (async () => {
       try {
@@ -148,23 +159,52 @@ export function MiniPlayer({
     };
   }, [verseKey, reciterSlug, apiBase]);
 
-  // After URL is set + we wanted to resume, kick playback off. We have to
-  // wait until the new src has loaded enough; `canplay` is the safest bet,
-  // but on most browsers play() will queue and start once enough buffer is
-  // available, so calling here is reliable.
+  // After URL is set + we wanted to resume, kick playback off. When
+  // casting, this loads the new src on the receiver instead of the
+  // local <audio> element — keeping the receiver in lockstep with
+  // the verseKey state.
   useEffect(() => {
-    if (!audioUrl || !shouldResumeRef.current || !audioRef.current) return;
-    const a = audioRef.current;
+    if (!audioUrl || !shouldResumeRef.current) return;
     shouldResumeRef.current = false;
+    if (isCasting) {
+      void cast.loadMedia(audioUrl, {
+        title: `${reciterMeta?.name.en ?? reciterSlug} · ${verseKey}`,
+        artist: reciterMeta?.name.en ?? reciterSlug,
+      });
+      return;
+    }
+    if (!audioRef.current) return;
+    const a = audioRef.current;
     void a.play().then(
       () => {
-        setPlaying(true);
+        setLocalPlaying(true);
       },
       () => {
-        setPlaying(false);
+        setLocalPlaying(false);
       },
     );
-  }, [audioUrl]);
+  }, [audioUrl, isCasting, cast, reciterMeta, reciterSlug, verseKey]);
+
+  // When a cast session becomes active and we already have an audio
+  // URL queued, push it to the receiver immediately. Mirror: when
+  // the cast session ends, resume local playback.
+  const wasCastingRef = useRef(isCasting);
+  useEffect(() => {
+    const wasCasting = wasCastingRef.current;
+    wasCastingRef.current = isCasting;
+    if (isCasting && !wasCasting && audioUrl) {
+      // Just started casting — pause local audio + load on receiver.
+      audioRef.current?.pause();
+      setLocalPlaying(false);
+      void cast.loadMedia(audioUrl, {
+        title: `${reciterMeta?.name.en ?? reciterSlug} · ${verseKey}`,
+        artist: reciterMeta?.name.en ?? reciterSlug,
+      });
+    }
+    // Note: we don't auto-resume local audio on session end — the
+    // user explicitly asked the cast to stop, presumably to silence
+    // the room. They can press play again locally.
+  }, [isCasting, audioUrl, cast, reciterMeta, reciterSlug, verseKey]);
 
   const advance = useCallback(
     (direction: 1 | -1, autoplay: boolean) => {
@@ -179,12 +219,30 @@ export function MiniPlayer({
     [verseKey, onVerseKeyChange],
   );
 
+  // When casting, hook into the receiver's "media ended" signal so
+  // we advance to the next ayah and load it on the receiver. Without
+  // this, the receiver plays one ayah and stops — exactly the bug
+  // the user reported. On local audio, this is handled by the
+  // <audio onEnded> handler below.
+  useEffect(() => {
+    if (!isCasting) return;
+    const off = cast.onMediaEnded(() => {
+      advance(1, true);
+    });
+    return off;
+  }, [isCasting, cast, advance]);
+
   function togglePlay(): void {
+    if (isCasting) {
+      if (cast.isPaused) cast.play();
+      else cast.pause();
+      return;
+    }
     const a = audioRef.current;
     if (!a) return;
     if (playing) {
       a.pause();
-      setPlaying(false);
+      setLocalPlaying(false);
       return;
     }
     if (!audioUrl) {
@@ -195,20 +253,24 @@ export function MiniPlayer({
     }
     void a.play().then(
       () => {
-        setPlaying(true);
+        setLocalPlaying(true);
       },
       () => {
-        setPlaying(false);
+        setLocalPlaying(false);
       },
     );
   }
 
   function onSeek(e: React.ChangeEvent<HTMLInputElement>): void {
+    const t = Number.parseFloat(e.target.value);
+    if (isCasting) {
+      cast.seek(t);
+      return;
+    }
     const a = audioRef.current;
     if (!a) return;
-    const t = Number.parseFloat(e.target.value);
     a.currentTime = t;
-    setPosition(t);
+    setLocalPosition(t);
   }
 
   return (
@@ -218,14 +280,18 @@ export function MiniPlayer({
         src={audioUrl ?? undefined}
         preload="metadata"
         onLoadedMetadata={(e) => {
-          setDuration(e.currentTarget.duration);
+          setLocalDuration(e.currentTarget.duration);
         }}
         onTimeUpdate={(e) => {
-          setPosition(e.currentTarget.currentTime);
+          setLocalPosition(e.currentTarget.currentTime);
         }}
         onEnded={() => {
-          setPlaying(false);
-          setPosition(0);
+          // Local-audio end-of-track. When casting, the cast hook's
+          // onMediaEnded subscriber drives advance — this only fires
+          // for direct local playback.
+          if (isCasting) return;
+          setLocalPlaying(false);
+          setLocalPosition(0);
           advance(1, true);
         }}
       />
