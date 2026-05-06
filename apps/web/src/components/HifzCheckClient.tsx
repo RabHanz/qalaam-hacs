@@ -25,6 +25,8 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { mistakes as mistakesApi } from '../lib/family-api.js';
+
 import { useAsrWebSocket } from './asr/use-asr-web-socket.js';
 
 import type { ReactNode } from 'react';
@@ -214,6 +216,41 @@ export function HifzCheckClient({ expectedText, verseKey }: Props): ReactNode {
   const mismatchCount = view.filter((w) => w.status === 'mismatch').length;
   const pct =
     expectedWords.length > 0 ? Math.round((matchedCount / expectedWords.length) * 100) : 0;
+
+  // Auto-post mistakes when listening transitions stopped → and there's
+  // a non-trivial result. Auth-gated server-side; if anonymous the POST
+  // returns 401 and we silently swallow (recite-and-check works without
+  // an account; the family heatmap requires one).
+  const wasListening = useRef(false);
+  const postedFor = useRef<string | null>(null);
+  useEffect(() => {
+    const wasOn = wasListening.current;
+    wasListening.current = liveListening;
+    if (wasOn && !liveListening) {
+      // session ended — post mistakes once per unique session signature
+      const signature = `${verseKey}|${view.map((w) => w.status).join('')}`;
+      if (postedFor.current === signature) return;
+      postedFor.current = signature;
+      const misses = view.map((w, idx) => ({ w, idx })).filter((p) => p.w.status === 'mismatch');
+      if (misses.length === 0) return;
+      // Best-effort fire-and-forget. If user is anonymous (401) we
+      // silently no-op — anonymous recite-and-check still works.
+      void Promise.allSettled(
+        misses.map((m) =>
+          mistakesApi.record({
+            verseKey,
+            kind: 'wrong-word',
+            source: 'asr',
+            wordIndex: m.idx,
+            context: m.w.text.slice(0, 80),
+          }),
+        ),
+      );
+    }
+    // Edge-detection on liveListening transition (true → false). Adding
+    // `view` to deps would re-fire on every interim transcript and
+    // re-post the same mistakes; postedFor.current is the dedup gate.
+  }, [liveListening]);
 
   return (
     <div className="paper-card-raised space-y-6 p-5 sm:p-8 md:p-10">

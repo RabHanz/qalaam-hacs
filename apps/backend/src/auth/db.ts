@@ -130,7 +130,146 @@ export function authDb(): DB {
       ON auth_audit(ip, ts);
     CREATE INDEX IF NOT EXISTS idx_auth_audit_user_ts
       ON auth_audit(user_id, ts);
+
+    -- ───────────────────── family-tier (E1/E2/E5/E6) ─────────────────────
+    -- Hifdh per-child plan. owner=parent, assignee=child or self. Scope is
+    -- a high-level area (juz/surah/range/full) plus daily quota in pages.
+    CREATE TABLE IF NOT EXISTS hifdh_plans (
+      id                TEXT PRIMARY KEY,
+      family_id         TEXT NOT NULL,
+      owner_user_id     TEXT NOT NULL,
+      assignee_user_id  TEXT NOT NULL,
+      title             TEXT NOT NULL,
+      scope_kind        TEXT NOT NULL,          -- juz | surah | range | full
+      scope_value       TEXT,                    -- "30" | "1" | "1:1-2:286" | NULL
+      daily_pages       REAL NOT NULL DEFAULT 1,
+      start_date        TEXT NOT NULL,
+      target_date       TEXT,
+      status            TEXT NOT NULL DEFAULT 'active', -- active|paused|done|abandoned
+      notes             TEXT,
+      created_at        TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at        TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (family_id)        REFERENCES families(id) ON DELETE CASCADE,
+      FOREIGN KEY (owner_user_id)    REFERENCES users(id)    ON DELETE CASCADE,
+      FOREIGN KEY (assignee_user_id) REFERENCES users(id)    ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_plans_family   ON hifdh_plans(family_id);
+    CREATE INDEX IF NOT EXISTS idx_plans_assignee ON hifdh_plans(assignee_user_id, status);
+
+    -- One row per recorded portion (sabaq/sabqi/manzil). plan_id nullable
+    -- so users can record progress without a formal plan ("just reviewed").
+    CREATE TABLE IF NOT EXISTS hifdh_progress (
+      id                INTEGER PRIMARY KEY AUTOINCREMENT,
+      plan_id           TEXT,
+      user_id           TEXT NOT NULL,
+      reviewer_user_id  TEXT,
+      date              TEXT NOT NULL,           -- YYYY-MM-DD (local to family)
+      kind              TEXT NOT NULL,           -- sabaq|sabqi|manzil|review
+      page_number       INTEGER,                  -- 1..604 (madani_15)
+      verses_completed  INTEGER,
+      quality           INTEGER,                  -- 1..5 parent rating, optional
+      notes             TEXT,
+      ts                TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (plan_id) REFERENCES hifdh_plans(id) ON DELETE SET NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id)       ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_progress_user_date ON hifdh_progress(user_id, date);
+    CREATE INDEX IF NOT EXISTS idx_progress_plan      ON hifdh_progress(plan_id);
+
+    -- E1: per-page mistake heatmap source. ASR + parent-mark + self-mark
+    -- all funnel here. resolved=1 when followed by clean recite of the
+    -- same page within 7 days.
+    CREATE TABLE IF NOT EXISTS mistakes (
+      id                INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id           TEXT NOT NULL,
+      ts                TEXT NOT NULL DEFAULT (datetime('now')),
+      verse_key         TEXT NOT NULL,
+      page_number       INTEGER,                  -- 1..604 (madani_15)
+      word_index        INTEGER,
+      kind              TEXT NOT NULL,           -- skipped|wrong-word|hesitation|repeat|tajweed|self-corrected
+      source            TEXT NOT NULL,           -- asr|parent-mark|self-mark
+      context           TEXT,
+      resolved          INTEGER NOT NULL DEFAULT 0,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_mistakes_user_page  ON mistakes(user_id, page_number);
+    CREATE INDEX IF NOT EXISTS idx_mistakes_user_verse ON mistakes(user_id, verse_key);
+    CREATE INDEX IF NOT EXISTS idx_mistakes_user_ts    ON mistakes(user_id, ts);
+
+    -- E6: family khatm — multi-user. mode=sequential keeps strict order;
+    -- mode=distributed lets anyone claim any open page; mode=by-juz binds
+    -- one juz to one assignee.
+    CREATE TABLE IF NOT EXISTS family_khatm (
+      id              TEXT PRIMARY KEY,
+      family_id       TEXT NOT NULL,
+      title           TEXT NOT NULL,
+      mode            TEXT NOT NULL,             -- sequential|distributed|by-juz
+      start_date      TEXT NOT NULL,
+      target_date     TEXT,
+      status          TEXT NOT NULL DEFAULT 'active', -- active|done|abandoned
+      created_by      TEXT NOT NULL,
+      created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+      finished_at     TEXT,
+      FOREIGN KEY (family_id)  REFERENCES families(id) ON DELETE CASCADE,
+      FOREIGN KEY (created_by) REFERENCES users(id)    ON DELETE RESTRICT
+    );
+    CREATE INDEX IF NOT EXISTS idx_family_khatm_family ON family_khatm(family_id, status);
+
+    -- One row per claimed page in a family khatm. UNIQUE keeps each page
+    -- single-claimed across the entire khatm.
+    CREATE TABLE IF NOT EXISTS family_khatm_pages (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      khatm_id        TEXT NOT NULL,
+      user_id         TEXT NOT NULL,
+      page_number     INTEGER NOT NULL,
+      juz             INTEGER,
+      ts              TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (khatm_id) REFERENCES family_khatm(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id)  REFERENCES users(id)        ON DELETE CASCADE,
+      UNIQUE (khatm_id, page_number)
+    );
+    CREATE INDEX IF NOT EXISTS idx_khatm_pages_khatm ON family_khatm_pages(khatm_id);
+    CREATE INDEX IF NOT EXISTS idx_khatm_pages_user  ON family_khatm_pages(user_id);
+
+    -- E5: family voice notes + praise stickers. Audio file lives on disk
+    -- under data/voice-notes/<id>.<ext>; this row is the metadata.
+    CREATE TABLE IF NOT EXISTS family_voice_notes (
+      id              TEXT PRIMARY KEY,
+      family_id       TEXT NOT NULL,
+      from_user_id    TEXT NOT NULL,
+      to_user_id      TEXT NOT NULL,             -- specific recipient (NOT family-wide)
+      context_kind    TEXT,                       -- progress|khatm|adhoc
+      context_id      TEXT,
+      audio_path      TEXT,                       -- relative to data/voice-notes/; null for sticker-only
+      mime_type       TEXT,
+      duration_ms     INTEGER,
+      transcript      TEXT,
+      sticker         TEXT,                       -- subhanallah|mashaallah|alhamdulillah|jazakallah|ahsanta|baraka
+      created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+      read_at         TEXT,
+      FOREIGN KEY (family_id)    REFERENCES families(id) ON DELETE CASCADE,
+      FOREIGN KEY (from_user_id) REFERENCES users(id)    ON DELETE CASCADE,
+      FOREIGN KEY (to_user_id)   REFERENCES users(id)    ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_voice_notes_family ON family_voice_notes(family_id);
+    CREATE INDEX IF NOT EXISTS idx_voice_notes_to     ON family_voice_notes(to_user_id, read_at);
+    CREATE INDEX IF NOT EXISTS idx_voice_notes_from   ON family_voice_notes(from_user_id);
   `);
+
+  // Soft migration: backfill is_shadow column on users so parents can
+  // create child profiles without their own login. Only runs if the
+  // column doesn't yet exist.
+  const cols = (db.prepare("PRAGMA table_info('users')").all() as { name: string }[]).map(
+    (r) => r.name,
+  );
+  if (!cols.includes('is_shadow')) {
+    db.exec("ALTER TABLE users ADD COLUMN is_shadow INTEGER NOT NULL DEFAULT 0");
+  }
+  if (!cols.includes('avatar_color')) {
+    // hex without leading # — used by avatar circles to differentiate
+    // family members in the picker. Picked from a 6-color palette.
+    db.exec("ALTER TABLE users ADD COLUMN avatar_color TEXT");
+  }
 
   cached = db;
   return db;

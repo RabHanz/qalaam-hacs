@@ -20,12 +20,16 @@ import { bookmarksRoutes } from './routes/v1/bookmarks.js';
 import { chaptersRoutes } from './routes/v1/chapters.js';
 import { creditsRoutes } from './routes/v1/credits.js';
 import { curriculumRoutes } from './routes/v1/curriculum.js';
+import { familyRoutes } from './routes/v1/family.js';
 import { hifdhStateRoutes } from './routes/v1/hifdh-state.js';
 import { hifdhRoutes } from './routes/v1/hifdh.js';
 import { imageMushafRoutes } from './routes/v1/image-mushaf.js';
+import { khatmRoutes } from './routes/v1/khatm.js';
 import { mcpRoutes } from './routes/v1/mcp.js';
+import { mistakesRoutes } from './routes/v1/mistakes.js';
 import { morphologyRoutes } from './routes/v1/morphology.js';
 import { nowPlayingRoutes } from './routes/v1/now-playing.js';
+import { plansRoutes } from './routes/v1/plans.js';
 import { prayerTimesRoutes } from './routes/v1/prayer-times.js';
 import { qiblaHijriRoutes } from './routes/v1/qibla-hijri.js';
 import { qpcTextRoutes } from './routes/v1/qpc-text.js';
@@ -42,6 +46,7 @@ import { topicsRoutes } from './routes/v1/topics.js';
 import { translationsRoutes } from './routes/v1/translations.js';
 import { transliterationsRoutes } from './routes/v1/transliterations.js';
 import { versesRoutes } from './routes/v1/verses.js';
+import { voiceNotesRoutes } from './routes/v1/voice-notes.js';
 
 export async function build(config: Config = loadConfig()): Promise<FastifyInstance> {
   const app = Fastify({
@@ -120,6 +125,13 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   // sessions + bookmarks; doesn't touch the read-only qul.sqlite.
   await app.register(authRoutes);
   await app.register(bookmarksRoutes);
+  // Family-tier (E1/E2/E5/E6) — also on qalaam.sqlite. Mistakes route
+  // also reads from qul.sqlite for verse→page lookups.
+  await app.register(familyRoutes);
+  await app.register(plansRoutes);
+  await app.register(mistakesRoutes, { config });
+  await app.register(khatmRoutes);
+  await app.register(voiceNotesRoutes);
 
   return app;
 }

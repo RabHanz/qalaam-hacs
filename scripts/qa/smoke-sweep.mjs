@@ -136,6 +136,18 @@ const CHECKS = [
     expectSelectors: ['main', 'input[type="email"]', 'input[type="password"]'],
     expectText: ['Create your account', 'Create account'],
   },
+  {
+    name: 'family — /family page (anonymous → sign-in CTA)',
+    url: '/family',
+    expectSelectors: ['main', 'a[href="/signin"]'],
+    expectText: ['Sign in to see your family', 'Family-private'],
+  },
+  {
+    name: 'family — /family/khatm page (anonymous → sign-in CTA)',
+    url: '/family/khatm',
+    expectSelectors: ['main', 'a[href="/signin"]'],
+    expectText: ['Family khatm', 'Sign in'],
+  },
 ];
 
 const results = [];

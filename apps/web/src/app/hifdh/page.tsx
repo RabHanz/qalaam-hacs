@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
- 
 
 /**
  * /hifdh — family-private daily Hifdh dashboard.
@@ -26,6 +25,7 @@ import {
 import { Suspense } from 'react';
 
 import { EmptyState } from '../../components/EmptyState.js';
+import { MistakeHeatmap } from '../../components/family/MistakeHeatmap.js';
 import { HairlineDivider } from '../../components/Glyph.js';
 import { HeardThemRecite } from '../../components/HeardThemRecite.js';
 import { LoadingState } from '../../components/LoadingState.js';
@@ -270,6 +270,10 @@ async function HifdhContent({
             />
           </section>
         ) : null}
+
+        {/* E1 — per-page mistake heatmap. Auth-gated; renders empty
+            for anonymous viewers (no warning, just calm placeholder). */}
+        <MistakeHeatmap windowDays={30} />
       </div>
 
       {/* SIDEBAR — mutashabihat watchlist + family-private reminder */}
