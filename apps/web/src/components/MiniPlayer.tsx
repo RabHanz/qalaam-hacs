@@ -17,6 +17,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { resolveApiBase } from '../lib/api-base.js';
 import {
   clearPositionSeconds,
+  verseCountFor,
   writePlaying,
   writePositionSeconds,
   writeVerseKey,
@@ -131,32 +132,12 @@ export function MiniPlayer({
   const reciterSlugRef = useRef(reciterSlug);
   reciterSlugRef.current = reciterSlug;
 
-  // Surah ayah counts — fetched once on mount + cached. Drives the
-  // cross-surah advance (e.g. surah 1 only has 7 ayahs; without
-  // this, hitting "next" at 1:7 wrongly produced 1:8 instead of
-  // moving to 2:1).
-  const surahLengthsRef = useRef<Map<number, number>>(new Map());
-  useEffect(() => {
-    const lifecycle = { cancelled: false };
-    void (async () => {
-      try {
-        const res = await fetch(`${apiBase}/v1/metadata/surahs`);
-        if (!res.ok) return;
-        const body = (await res.json()) as {
-          data: { surah: number; verseCount: number }[];
-        };
-        if (lifecycle.cancelled) return;
-        const m = new Map<number, number>();
-        for (const s of body.data) m.set(s.surah, s.verseCount);
-        surahLengthsRef.current = m;
-      } catch {
-        /* fallback: advance falls back to bare-increment logic */
-      }
-    })();
-    return () => {
-      lifecycle.cancelled = true;
-    };
-  }, [apiBase]);
+  // Surah ayah counts — sourced from a hard-coded constant so cross-
+  // surah advance NEVER depends on a /v1/metadata/surahs fetch
+  // succeeding in time. (Earlier code raced the first end-of-ayah
+  // against the fetch and would silently wrap to a non-existent
+  // verse if the catalog hadn't landed yet.) The values are
+  // immutable scripture; baking them in is safe.
 
   // Auto-resume — if the user was playing on /read (or another page)
   // when they navigated to /listen, the canonical playback flag is
@@ -367,14 +348,13 @@ export function MiniPlayer({
     (direction: 1 | -1, autoplay: boolean) => {
       const [s, a] = verseKey.split(':').map((n) => Number.parseInt(n, 10));
       if (!s || !a) return;
-      const lengths = surahLengthsRef.current;
       let nextSurah = s;
       let nextAyah = a + direction;
 
       // Cross-surah forward — overflow → next surah ayah 1.
       if (direction === 1) {
-        const cur = lengths.get(s);
-        if (cur !== undefined && nextAyah > cur) {
+        const cur = verseCountFor(s);
+        if (cur > 0 && nextAyah > cur) {
           if (s >= 114) return; // end of mushaf — stop
           nextSurah = s + 1;
           nextAyah = 1;
@@ -384,7 +364,8 @@ export function MiniPlayer({
       if (direction === -1 && nextAyah < 1) {
         if (s <= 1) return; // before Al-Fatihah — stop
         nextSurah = s - 1;
-        nextAyah = lengths.get(nextSurah) ?? 1;
+        const prevLen = verseCountFor(nextSurah);
+        nextAyah = prevLen > 0 ? prevLen : 1;
       }
 
       const nextKey = `${nextSurah.toString()}:${nextAyah.toString()}`;

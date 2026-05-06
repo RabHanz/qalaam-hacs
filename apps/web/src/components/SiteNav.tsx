@@ -8,7 +8,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 
 import { parseVerseKey, readPlaybackSnapshot } from '../lib/playback-store.js';
 
@@ -24,7 +23,14 @@ interface NavItem {
   readonly icon: typeof BookGlyph;
 }
 
-const STATIC_NAV: readonly NavItem[] = [
+const NAV_ITEMS: readonly NavItem[] = [
+  // Read href is the SSR-safe default (/read/1). The onClick handler
+  // below upgrades it to the surah from the canonical playback store
+  // at the moment of click — so a user listening to 5:10 on /listen
+  // gets routed to /read/5, not /read/1. Doing this on click instead
+  // of via useState avoids a hydration mismatch AND fixes the race
+  // where users could click the link before a useEffect upgrade ran.
+  { href: '/read/1', label: 'Read', icon: BookGlyph },
   { href: '/listen', label: 'Listen', icon: CrescentGlyph },
   { href: '/hifdh', label: 'Hifdh', icon: ThreadGlyph },
   { href: '/learn', label: 'Learn', icon: LanternGlyph },
@@ -33,25 +39,17 @@ const STATIC_NAV: readonly NavItem[] = [
 ];
 
 export function SiteNav(): ReactNode {
-  // Read link routes to /read/<surah> based on the user's last
-  // playback verse, so a user listening to surah 5:10 on /listen
-  // gets dropped onto /read/5 (where the cross-page resume in
-  // ContinuousReaderPlayer can then auto-start at 5:10) instead of
-  // landing on /read/1 every time. Default to /read/1 on SSR + first
-  // paint to avoid hydration mismatch; upgrade once mounted.
-  const [readHref, setReadHref] = useState('/read/1');
-  useEffect(() => {
+  function handleReadClick(e: React.MouseEvent<HTMLAnchorElement>): void {
+    if (typeof window === 'undefined') return;
     const snap = readPlaybackSnapshot();
-    if (snap.verseKey) {
-      const parsed = parseVerseKey(snap.verseKey);
-      if (parsed) setReadHref(`/read/${parsed[0].toString()}`);
-    }
-  }, []);
-
-  const NAV_ITEMS: readonly NavItem[] = [
-    { href: readHref, label: 'Read', icon: BookGlyph },
-    ...STATIC_NAV,
-  ];
+    if (!snap.verseKey) return; // default /read/1 is fine
+    const parsed = parseVerseKey(snap.verseKey);
+    if (!parsed) return;
+    const target = `/read/${parsed[0].toString()}`;
+    if (target === '/read/1') return; // already going there
+    e.preventDefault();
+    window.location.href = target;
+  }
   return (
     <header className="border-hairline bg-paper-100/85 sticky top-0 z-30 border-b backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-3 sm:px-6 sm:py-4">
@@ -78,11 +76,14 @@ export function SiteNav(): ReactNode {
           <nav aria-label="Primary" className="mr-1 flex items-center gap-0 sm:mr-2 sm:gap-1">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
+              const linkProps =
+                item.label === 'Read' ? ({ onClick: handleReadClick } as const) : ({} as const);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   aria-label={item.label}
+                  {...linkProps}
                   className="text-ink hover:bg-paper-200/60 group inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md text-sm transition-colors sm:h-auto sm:w-auto sm:px-3 sm:py-2"
                 >
                   <Icon

@@ -23,6 +23,7 @@ import { resolveApiBase } from '../lib/api-base.js';
 import {
   parseVerseKey,
   readPlaybackSnapshot,
+  verseCountFor,
   writePlaying,
   writeVerseKey,
 } from '../lib/playback-store.js';
@@ -134,16 +135,11 @@ export function ContinuousReaderPlayer({
     setActiveSurah(currentSurah);
   }, [initialVerses, currentSurah]);
 
-  // Surah verse-counts cache — drives cross-surah manual prev/next
-  // (clicking Next at the last verse navigates to the next surah's
-  // first verse instead of going dead). Same data + pattern as
-  // MiniPlayer's surahLengthsRef.
-  const surahLengthsRef = useRef<Map<number, number>>(new Map());
+  // Cross-surah chain + jumpVerse use the immutable hard-coded
+  // verse-count table from playback-store. NO fetch, so chaining
+  // works on the very first end-of-ayah without racing a metadata
+  // request that might not have landed yet.
   const apiBaseRef = useRef<string>('');
-  // Tick the lengths-loaded counter so the in-place chain effect
-  // can fire as soon as the catalog lands (the effect reads from a
-  // ref, but a state value is needed to retrigger it).
-  const [surahLengthsTick, setSurahLengthsTick] = useState(0);
 
   // Auto-resume continuous playback on mount if the previous surah's
   // chain set the qalaam-continue-on-load flag (cross-surah hand-off),
@@ -293,32 +289,6 @@ export function ContinuousReaderPlayer({
   const lastWordIdxRef = useRef<number>(-1);
   const lastVerseKeyRef = useRef<string>('');
 
-  // Fetch surah verse-counts once on mount + cache. Used by jumpVerse
-  // to cross surah boundaries (clicking Next at the last verse should
-  // navigate to the next surah's first verse, not stop dead).
-  useEffect(() => {
-    const lifecycle = { cancelled: false };
-    void (async () => {
-      try {
-        const res = await fetch(`${apiBaseRef.current}/v1/metadata/surahs`);
-        if (!res.ok) return;
-        const body = (await res.json()) as {
-          data: { surah: number; verseCount: number }[];
-        };
-        if (lifecycle.cancelled) return;
-        const m = new Map<number, number>();
-        for (const s of body.data) m.set(s.surah, s.verseCount);
-        surahLengthsRef.current = m;
-        setSurahLengthsTick((t) => t + 1);
-      } catch {
-        /* fallback: cross-surah jump uses bare surah+1 navigation */
-      }
-    })();
-    return () => {
-      lifecycle.cancelled = true;
-    };
-  }, []);
-
   // ─── In-place cross-surah chaining ───────────────────────────────
   // When the active running list is within 2 verses of its end AND
   // the last surah in the list has full coverage, append the next
@@ -326,28 +296,27 @@ export function ContinuousReaderPlayer({
   // audio and cast keep flowing — no page navigation, no cast-session
   // reset, no autoplay-policy hiccup.
   //
-  // We synthesize verseKeys from the surahLengths catalog rather than
-  // fetching each surah's verse list, since `${surah}:${ayah}` is the
-  // canonical format and the per-verse audio + segment fetches happen
-  // lazily via the bundle-load effect anyway.
+  // verseCountFor sources its values from the hard-coded
+  // SURAH_VERSE_COUNTS table — no metadata fetch in the path, so the
+  // chain fires reliably on every end-of-surah, including the very
+  // first one (Al-Fatihah ends at 1:7 → effect runs while user is
+  // around 1:5 → appends Al-Baqarah).
   useEffect(() => {
     if (!active) return;
-    const lengths = surahLengthsRef.current;
-    if (lengths.size === 0) return;
     const last = verses[verses.length - 1];
     if (!last) return;
     const lastParsed = parseVerseKey(last.verseKey);
     if (!lastParsed) return;
     const [lastSurah, lastAyah] = lastParsed;
-    const lastSurahLen = lengths.get(lastSurah);
+    const lastSurahLen = verseCountFor(lastSurah);
     // Only append once this list has reached the END of its last
     // surah (`lastAyah === lastSurahLen`) AND we're approaching it.
-    if (lastSurahLen === undefined || lastAyah !== lastSurahLen) return;
+    if (lastSurahLen === 0 || lastAyah !== lastSurahLen) return;
     if (verseIdx < verses.length - 2) return;
     if (lastSurah >= 114) return; // end of mushaf
     const nextSurah = lastSurah + 1;
-    const nextLen = lengths.get(nextSurah);
-    if (!nextLen) return;
+    const nextLen = verseCountFor(nextSurah);
+    if (nextLen === 0) return;
     setVerses((cur) => {
       // Re-check inside the updater so racing fires don't double-append.
       const tail = cur[cur.length - 1];
@@ -359,7 +328,7 @@ export function ContinuousReaderPlayer({
       }));
       return [...cur, ...appended];
     });
-  }, [active, verseIdx, verses, surahLengthsTick]);
+  }, [active, verseIdx, verses]);
 
   // Keep activeSurah aligned with the verse currently playing — when
   // the chain crosses into the next surah, this drives the surah-aware
@@ -932,8 +901,8 @@ export function ContinuousReaderPlayer({
       // Cross-surah backward — navigate to previous surah's last ayah.
       if (direction === -1 && activeSurah > 1) {
         const prevSurah = activeSurah - 1;
-        const lastAyah = surahLengthsRef.current.get(prevSurah);
-        const prevVk = `${prevSurah.toString()}:${(lastAyah ?? 1).toString()}`;
+        const lastAyah = verseCountFor(prevSurah);
+        const prevVk = `${prevSurah.toString()}:${(lastAyah > 0 ? lastAyah : 1).toString()}`;
         try {
           window.localStorage.setItem('qalaam-continue-on-load', '1');
           writeVerseKey(prevVk);

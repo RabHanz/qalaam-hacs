@@ -321,6 +321,36 @@ export function useCast(): UseCastResult {
       // hook mounts AFTER a session is already alive — e.g. the user
       // hot-reloads while casting).
       sync();
+
+      // SESSION_STATE_CHANGED — the Cast Framework auto-rejoins an
+      // existing origin-scoped session on subsequent page loads
+      // (autoJoinPolicy='origin_scoped'). When that auto-rejoin
+      // fires, ANY_CHANGE may not have moved yet because the
+      // RemotePlayer is fresh. Wire the session event so the hook
+      // synchronously reflects the resumed session — without this,
+      // the user navigates between pages while casting and the new
+      // page's UI shows "Cast" again instead of "Casting" (because
+      // isConnected stayed false). Polling for ~3 s after mount
+      // backstops cases where the SDK takes a moment to settle.
+      try {
+        fw.CastContext.getInstance().addEventListener(
+          fw.CastContextEventType.SESSION_STATE_CHANGED,
+          () => {
+            sync();
+          },
+        );
+      } catch {
+        /* older SDK builds may not expose this — fall through */
+      }
+      const startedAt = Date.now();
+      const tick = (): void => {
+        if (cancelled) return;
+        sync();
+        if (Date.now() - startedAt < 3000) {
+          window.setTimeout(tick, 250);
+        }
+      };
+      window.setTimeout(tick, 100);
     });
     return (): void => {
       cancelled = true;
