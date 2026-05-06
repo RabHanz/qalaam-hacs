@@ -3575,3 +3575,165 @@ _structurally_ protected by the license + feature gates + the upcoming
 private repo, even before the API-key gate (#213) and admin panel
 (#214) ship. They sharpen the moat further; they don't open holes
 that don't already close at the proprietary-license layer.
+
+---
+
+## §32. Production approach — modular layered upgrade plan (2026-05-06)
+
+Qalaam is now live at `qalaam.themarginapp.com`. This section documents
+the production posture as a **layered system** — each layer has a
+known current state, an explicit upgrade trigger, and a documented
+end-state. We upgrade one layer when its trigger fires, never
+preemptively. Per CLAUDE.md §6 (Build for the foundation, not the
+demo): half-shipped infrastructure is worse than no infrastructure.
+
+### 32.1 Why layered + trigger-driven (not roadmap-driven)
+
+Most production roadmaps are time-driven ("ship CDN by Q3"). That
+works when scale is predictable. Qalaam's growth path isn't —
+households arrive in clumps when the family-tier surface matures, HA
+integrations land, or a single masjid adopts the Pro tier. A
+time-driven roadmap either over-engineers (CDN before users), or
+under-engineers (Sentry only after the third outage).
+
+**Trigger-driven beats both.** Each layer's trigger is a measurable
+signal — "first 100 active users", "first paying household",
+"sustained 100 writes/sec". The trigger fires; the layer upgrades
+end-to-end in a single PR; the documentation lands in the same commit.
+This is the only way a one-person + AI codebase can stay
+production-grade at every scale point without paying for capacity it
+doesn't yet need.
+
+### 32.2 The 20 layers
+
+The full table lives at `Docs/DEV_CHECKLIST.md` ("Production layers
+— modular upgrade plan"). Headline grouping for strategic intuition:
+
+```
+Tier-1 (today, no upgrade pending — just monitor):
+  L1   Edge / CDN              (CF DNS un-proxied)
+  L2   Compute                 (Hetzner CCX23 shared)
+  L4   Database                (SQLite per ADR-0023)
+  L20  Static assets           (in-image fonts + volume mushaf)
+
+Tier-2 (queued behind public-launch trigger):
+  L7   Errors                  → Sentry free tier
+  L9   Email transactional     → Resend
+  L13  TLS / proxy             → CF orange-cloud + Full-Strict
+  L15  Compliance              → privacy.md + terms.md
+  L18  Performance budget      → set TTFB targets
+
+Tier-3 (queued behind first-paying-customer trigger):
+  L5   Backups                 → nightly SQLite → R2
+  L6   Logs                    → Grafana / Loki
+  L11  CI/CD                   → smoke-test gate
+  L14  Cost tracking           → per-tenant attribution
+  L17  Disaster recovery       → host-rebuild runbook
+
+Tier-4 (queued behind scale triggers):
+  L3   Storage                 → Hetzner Volume @ 5 GB
+  L8   Auth                    → WebAuthn @ first abuse
+  L10  Audio                   → R2 self-host @ first offline pack
+  L12  Secrets                 → Vault @ rotation incident
+  L16  Voice notes UGC         → R2 @ 5 GB volume
+  L19  Anti-abuse              → WAF @ first abuse incident
+```
+
+### 32.3 Strategic anchors
+
+**Anchor 1 — SQLite is the moat infrastructure choice.**
+ADR-0023 documents this in detail. SQLite-only lets a single
+household run Qalaam on their own NAS, lets Pro-tier customers see
+sub-millisecond local query latency on their dedicated container,
+and lets us scale family-tier writes without paying Postgres
+operational cost until we genuinely need cross-host replication.
+Switchover triggers (sustained 100 writes/sec, replica need,
+shared-row scenarios) are documented and mechanical when they fire.
+
+**Anchor 2 — Cloudflare front layer is a free CDN we already have.**
+DNS is on themarginapp.com's CF zone. Flipping orange-cloud ON costs
+zero, gives global edge caching for /\_next/static + /fonts +
+/mushaf-images. We don't need a real CDN until self-hosted reciter
+audio (~300 GB) or tajweed font versioning forces it. By that point
+revenue is funding it.
+
+**Anchor 3 — Static assets travel with the image, until they don't.**
+Today: 142 MB of fonts (incl. the 50 MB tajweed-v4 page fonts) in
+the image. That's fine until either (a) image rebuild on font
+version-bump exceeds 30 s p95, or (b) the image grows past 1 GB.
+When either fires, fonts split off to R2 with content-hash
+invalidation (L20 trigger). Until then, the build stays simple and
+rebuild-deterministic.
+
+**Anchor 4 — Voice notes are the first "real CDN" candidate.**
+Family-tier UGC audio lands on the qalaam-data volume. That's safe
+to ~5 GB (well over 100 households at typical retention). Past
+that, R2 + signed URLs + per-household quota is the right move —
+because UGC retention policy + per-household billing alignment are
+features the volume-mount approach can't cleanly support.
+
+**Anchor 5 — Audio (reciter recitations) stays proxied while
+external sources serve us.**
+Per ADR-0002, we proxy from everyayah.com / quran.com today. That
+saves us 300 GB+ of storage and the legal complexity of self-hosting
+copyrighted recitations. Self-hosting fires when offline-pack
+download (#174 D3) goes live AND the first offline-pack premium
+user signs up — at that point, R2 + signed-URL delivery for the top
+3-5 reciters is the targeted upgrade, not a wholesale audio CDN.
+
+**Anchor 6 — Observability is paid-customer-triggered.**
+We don't pre-wire Sentry, Grafana, Loki, OTel before there's
+production traffic to learn from. The trigger isn't "first deploy",
+it's "first paying customer" or "first incident" — whichever comes
+first. Until then, `docker logs` + the host's own `journalctl` is
+sufficient. Saves money + saves the engineering tax of integrating
+observability before knowing what to observe.
+
+### 32.4 What's NOT on the upgrade plan
+
+A few things deliberately omitted from the layers — recording why so
+they don't get added by reflex:
+
+- **Kubernetes / multi-host.** Hetzner CCX23 has ~21 GB free RAM and
+  > 50 % CPU headroom. We can scale Qalaam alone to ~10 k MAU on this
+  > one box. Multi-host is the moment we have a measurable bottleneck,
+  > not before.
+- **Microservices.** The codebase is a monorepo of one Fastify
+  backend + one Next web. Splitting into microservices is the
+  classic premature-abstraction pitfall. We split when one service's
+  scaling envelope diverges materially from another's, not when
+  team size suggests we should.
+- **Read replicas / sharding.** Premature for SQLite. Premature even
+  for Postgres until we hit the L4 trigger. Documented in ADR-0023.
+- **gRPC / GraphQL / federation.** Fastify v5 with REST + JSON
+  schema is producing routes faster than any of these would. The
+  feature-gate pattern (`Docs/patterns/feature-gates.md`) bakes
+  authorisation into the URL space cleanly. No driver to switch.
+- **Custom-rolled auth (OAuth provider, SSO).** We use cookie
+  sessions in qalaam.sqlite. WebAuthn / passkeys is the right next
+  step (L8 trigger) — but only when an abuse signal materialises,
+  not proactively.
+
+### 32.5 The trigger checklist
+
+When any of these signals fires, the corresponding layer upgrades —
+no deliberation needed, just execution:
+
+| Signal                                   | Triggered layer      |
+| ---------------------------------------- | -------------------- |
+| First 100 active users                   | L1 (CF orange-cloud) |
+| First public-auth user                   | L7, L9               |
+| First paying household                   | L5, L11, L15         |
+| First incident                           | L6, L17              |
+| First abuse signal                       | L8, L19              |
+| First Pro-tier paid sub                  | L14                  |
+| qalaam-data volume hits 5 GB             | L3, L16              |
+| Sustained 50 % CPU                       | L2                   |
+| Sustained 100 writes/sec OR replica need | L4                   |
+| First offline-pack premium user          | L10                  |
+| First key-rotation incident              | L12                  |
+| Image rebuild on font bump > 30 s p95    | L20                  |
+| First user-visible perf complaint        | L18                  |
+| First EU enterprise customer             | L15 (GDPR)           |
+
+Track the next signal to fire, not the next month's deliverables.

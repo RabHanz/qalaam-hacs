@@ -51,6 +51,11 @@ COPY tsconfig.base.json turbo.json ./
 COPY apps/backend ./apps/backend
 COPY packages ./packages
 COPY tooling ./tooling
+# License sidecars (~1290 .license.json files, total ~3 MB) consumed
+# at backend startup by /v1/credits per ADR-0020. Heavy binaries
+# (fonts/sqlite/zip) are filtered by .dockerignore so the COPY only
+# pulls the JSON tree.
+COPY data/qul-source ./data/qul-source
 # Turbo builds qalaam-backend AND its workspace deps (@qalaam/core,
 # @qalaam/data-loader, @qalaam/adhan, @qalaam/curriculum,
 # @qalaam/hifdh-engine, …) in topological order. No `|| true` —
@@ -81,6 +86,11 @@ COPY --from=build --chown=qalaam:nodejs /repo/apps/backend/node_modules ./apps/b
 COPY --from=build --chown=qalaam:nodejs /repo/packages ./packages
 COPY --from=build --chown=qalaam:nodejs /repo/apps/backend/dist ./apps/backend/dist
 COPY --from=build --chown=qalaam:nodejs /repo/apps/backend/package.json ./apps/backend/package.json
+# License sidecars at /app/credits-data/qul-source/raw/. Outside
+# /app/data/ so the qalaam-data volume mount doesn't shadow them.
+# Backend reads from QALAAM_RAW_QUL_DIR which the compose env points
+# at this path.
+COPY --from=build --chown=qalaam:nodejs /repo/data/qul-source ./credits-data/qul-source
 
 # Volume mount target. Created with the right ownership so the
 # qalaam-data named volume's first attach gets writable permissions.

@@ -60,14 +60,31 @@ docs/
 !packages/**/*.md
 !README.md
 
-# QUL raw data — these come from a separate seed step into the
-# qalaam-data named volume; don't bake them into the image
-data/qul-source/
+# Volume-seeded data — heavy + mutated at runtime, never in image
 data/qul.sqlite
 data/qul.sqlite-*
 data/qalaam.sqlite
 data/qalaam.sqlite-*
 data/voice-notes/
+data/quran-align/
+data/audio-cache/
+
+# QUL raw data — heavy binaries seeded out-of-band, but `.license.json`
+# sidecars travel with the image (consumed at startup by /v1/credits
+# per ADR-0020). Block the heavy file types specifically; let JSON
+# sidecars through.
+data/qul-source/raw/**/*.zip
+data/qul-source/raw/**/*.sqlite
+data/qul-source/raw/**/*.ttf
+data/qul-source/raw/**/*.woff
+data/qul-source/raw/**/*.woff2
+data/qul-source/raw/**/*.otf
+data/qul-source/raw/**/*.csv
+data/qul-source/raw/**/*.db
+data/qul-source/raw/**/*.tar
+data/qul-source/raw/**/*.gz
+data/qul-source/raw/**/*.bin
+data/qul-source/.cookies.txt
 
 # Mushaf images — seeded into the qalaam-mushaf-images volume,
 # never into the image bundle

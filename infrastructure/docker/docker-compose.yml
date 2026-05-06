@@ -42,6 +42,11 @@ services:
       QUL_SQLITE_PATH: /app/data/qul.sqlite
       QALAAM_AUTH_SQLITE_PATH: /app/data/qalaam.sqlite
       QALAAM_VOICE_NOTES_DIR: /app/data/voice-notes
+      # /v1/credits walks .license.json sidecars at startup (per
+      # ADR-0020). Files are baked into the image at build time;
+      # this path stays outside /app/data/ so the qalaam-data
+      # volume mount doesn't shadow them.
+      QALAAM_RAW_QUL_DIR: /app/credits-data/qul-source/raw
       # Public URLs (consumed for absolute-URL building in OG cards,
       # share dialogs, audit logs).
       PUBLIC_API_URL: https://${DOMAIN}
