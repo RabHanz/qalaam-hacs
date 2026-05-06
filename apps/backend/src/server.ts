@@ -16,6 +16,7 @@ import { errorHandlerPlugin } from './plugins/error-handler.js';
 import { loggerPlugin } from './plugins/logger.js';
 import { healthRoutes } from './routes/health.js';
 import { mcpServerRoutes } from './routes/mcp-server.js';
+import { apiKeysRoutes } from './routes/v1/api-keys.js';
 import { authRoutes } from './routes/v1/auth.js';
 import { bookmarksRoutes } from './routes/v1/bookmarks.js';
 import { chaptersRoutes } from './routes/v1/chapters.js';
@@ -134,6 +135,7 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   // Auth foundation (#192) — opens its own qalaam.sqlite for users +
   // sessions + bookmarks; doesn't touch the read-only qul.sqlite.
   await app.register(authRoutes);
+  await app.register(apiKeysRoutes);
   await app.register(bookmarksRoutes);
   // Family-tier (E1/E2/E5/E6) — also on qalaam.sqlite. Mistakes route
   // also reads from qul.sqlite for verse→page lookups.

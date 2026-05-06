@@ -29,7 +29,12 @@
  * minTier at runtime. Until that lands the catalog below is the
  * single source of truth.
  */
-import { SESSION_COOKIE_NAME, findUserBySession, type AuthUser } from './sessions.js';
+import {
+  SESSION_COOKIE_NAME,
+  findUserByApiKey,
+  findUserBySession,
+  type AuthUser,
+} from './sessions.js';
 
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
@@ -100,6 +105,11 @@ export type FeatureKey =
   // backend session row.
   | 'playback.session.read'
   | 'playback.session.write'
+  // Premium — programmatic access (HA + MCP clients + third-party
+  // automations). Minting keys is a Premium-tier feature; the
+  // resulting key carries the user's tier on every request the gate
+  // resolves it for.
+  | 'auth.api-keys'
   // Premium — family-tier
   | 'family.members.multiple'
   | 'family.plans'
@@ -285,6 +295,13 @@ export const FEATURE_CATALOG: Record<FeatureKey, FeatureSpec> = {
       'Mutate the playback session (play / pause / seek / load / transfer). Auth-required so only the owner can drive their own session.',
     label: 'Control playback across devices',
   },
+  'auth.api-keys': {
+    minTier: 'premium',
+    requiresAuth: true,
+    description:
+      'Mint and manage API keys for non-browser clients (HA integration, MCP, automations). Premium-tier feature; the resulting Bearer token authenticates as the owner with their tier.',
+    label: 'Programmatic API keys',
+  },
   'family.members.multiple': {
     minTier: 'premium',
     requiresAuth: true,
@@ -402,8 +419,22 @@ export function gateFeature(
 ): FeatureGateResult {
   const spec = FEATURE_CATALOG[feature];
 
+  // Resolve the request's user from EITHER:
+  //   1. The session cookie (browser flow — Qalaam web UI)
+  //   2. An `Authorization: Bearer qk_<key>` header (API-key flow —
+  //      HA integration, MCP clients, third-party automations).
+  // Cookie wins when both are present so a browser session is never
+  // demoted by a stale Authorization header from a fetch helper.
   const sessionId = readSessionCookie(req);
-  const user = sessionId ? findUserBySession(sessionId) : null;
+  const cookieUser = sessionId ? findUserBySession(sessionId) : null;
+  let user = cookieUser;
+  if (!user) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && /^Bearer\s+qk_/i.test(authHeader)) {
+      const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+      user = findUserByApiKey(token);
+    }
+  }
 
   // Anon path — only allowed when feature is free AND doesn't
   // require auth (e.g. mushaf.read, listen.basic). Anything that

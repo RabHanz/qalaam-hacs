@@ -29,6 +29,7 @@ export type FeatureKey =
   | 'hifdh.dashboard.personal'
   | 'playback.session.read'
   | 'playback.session.write'
+  | 'auth.api-keys'
   // Premium
   | 'family.members.multiple'
   | 'family.plans'
@@ -93,6 +94,11 @@ export const FALLBACK_CATALOG: Record<FeatureKey, FeatureSpec> = {
     minTier: 'free',
     requiresAuth: true,
     label: 'Control playback across devices',
+  },
+  'auth.api-keys': {
+    minTier: 'premium',
+    requiresAuth: true,
+    label: 'Programmatic API keys',
   },
   'family.members.multiple': {
     minTier: 'premium',

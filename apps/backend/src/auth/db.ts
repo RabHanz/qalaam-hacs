@@ -65,6 +65,26 @@ export function authDb(): DB {
     );
     CREATE INDEX IF NOT EXISTS idx_playback_devices_user
       ON playback_devices(user_id, last_seen DESC);
+
+    -- API keys for non-browser clients (HA integration, MCP clients,
+    -- third-party automations). Issued from the user's account page
+    -- (premium-tier feature). The plaintext key is shown ONCE at mint
+    -- time; only the sha256 hash is persisted. Lookups happen via the
+    -- index on key_hash. ADR-0024 (license + moat) makes API-key-gated
+    -- HA the canonical bridge for premium features.
+    CREATE TABLE IF NOT EXISTS api_keys (
+      id           TEXT PRIMARY KEY,                  -- uuid v4
+      user_id      TEXT NOT NULL,
+      key_hash     TEXT NOT NULL UNIQUE,              -- sha256(plaintext)
+      name         TEXT NOT NULL,                     -- user-friendly label
+      scopes       TEXT NOT NULL DEFAULT '["all"]',   -- JSON array of feature keys, or ["all"]
+      created_at   INTEGER NOT NULL,
+      last_used_at INTEGER,
+      revoked_at   INTEGER,                           -- non-null = revoked, soft-delete
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash);
+    CREATE INDEX IF NOT EXISTS idx_api_keys_user ON api_keys(user_id, revoked_at);
   `);
 
   // Schema. Created idempotently — safe to call on every boot.

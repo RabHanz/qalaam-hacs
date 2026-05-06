@@ -14,7 +14,7 @@
  * if expired. A periodic sweep (cron job, future) can also be wired
  * but isn't necessary for correctness.
  */
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 
 import { authDb } from './db.js';
 
@@ -109,6 +109,53 @@ export function findUserBySession(sessionId: string): AuthUser | null {
   );
   // Bump user.last_seen_at too — cheap and useful for "active families" metrics.
   db.prepare(`UPDATE users SET last_seen_at = ? WHERE id = ?`).run(isoNow(), row.userId);
+  const user = db
+    .prepare(
+      `SELECT id, email, display_name, tier, is_minor, ha_url
+         FROM users
+        WHERE id = ? AND deleted_at IS NULL`,
+    )
+    .get(row.userId) as UserRow | undefined;
+  if (!user) return null;
+  return {
+    id: user.id,
+    email: user.email,
+    displayName: user.display_name,
+    tier: user.tier,
+    isMinor: user.is_minor === 1,
+    haUrl: user.ha_url,
+  };
+}
+
+/**
+ * Resolve a user from a plaintext API key — i.e. a `qk_<…>` token
+ * issued from /v1/auth/api-keys. The DB stores only the SHA-256 hash;
+ * lookups go through the `idx_api_keys_hash` index.
+ *
+ * Per ADR-0024 + production rule #2: revoked or unknown keys return
+ * null with no further detail (closed-by-default, no enumeration of
+ * "revoked vs unknown" attack surface).
+ *
+ * On a successful match we update last_used_at — useful for the
+ * /v1/auth/api-keys list view ("last used 2 hours ago") + dormant-key
+ * audit later.
+ */
+export function findUserByApiKey(plaintext: string): AuthUser | null {
+  if (!plaintext || typeof plaintext !== 'string' || plaintext.length < 16) return null;
+  // Format check: keys are minted with the `qk_` prefix.
+  if (!plaintext.startsWith('qk_')) return null;
+  const hash = createHash('sha256').update(plaintext).digest('hex');
+  const db = authDb();
+  const row = db
+    .prepare(
+      `SELECT id, user_id AS userId, revoked_at AS revokedAt
+         FROM api_keys
+        WHERE key_hash = ?`,
+    )
+    .get(hash) as { id: string; userId: string; revokedAt: number | null } | undefined;
+  if (!row) return null;
+  if (row.revokedAt !== null) return null;
+  db.prepare(`UPDATE api_keys SET last_used_at = ? WHERE id = ?`).run(Date.now(), row.id);
   const user = db
     .prepare(
       `SELECT id, email, display_name, tier, is_minor, ha_url
