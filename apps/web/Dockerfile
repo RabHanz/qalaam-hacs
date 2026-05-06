@@ -40,7 +40,8 @@ ARG NEXT_PUBLIC_APP_URL
 ARG QALAAM_REACT_COMPILER
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL \
     QALAAM_REACT_COMPILER=$QALAAM_REACT_COMPILER \
-    NEXT_TELEMETRY_DISABLED=1
+    NEXT_TELEMETRY_DISABLED=1 \
+    QALAAM_SKIP_PYTHON_CODEGEN=1
 
 # tsconfig.base.json is `extends`-ed by every workspace tsconfig.json
 # and turbo.json drives the build topology. Both must be in the build

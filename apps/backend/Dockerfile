@@ -39,6 +39,11 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
 
 # ---- build --------------------------------------------------------------------
 FROM deps AS build
+# Skip Python codegen entirely — this is a Node-only build context, and
+# the Python types-py output is only consumed by Python services that
+# build separately. Without this the codegen runner tries to invoke
+# `uv run python` and exits 127 in alpine.
+ENV QALAAM_SKIP_PYTHON_CODEGEN=1
 # tsconfig.base.json is `extends`-ed by every workspace tsconfig.json,
 # and turbo.json drives the build topology. Both must be in the build
 # context BEFORE any tsc runs.

@@ -114,6 +114,24 @@ function containsNamedExport(source: string, name: string): boolean {
 }
 
 function generatePython(): void {
+  // Python codegen produces `packages/types-py/qalaam_types/`, consumed
+  // by Python services (services/asr-worker, etc). Inside a Node-only
+  // Docker image the Python toolchain is intentionally absent — skip
+  // gracefully rather than fail the whole codegen run.
+  //
+  // Skipped when:
+  //   - QALAAM_SKIP_PYTHON_CODEGEN=1 (explicit opt-out, set in Dockerfile)
+  //   - `uv` binary not on PATH (Node-only environments)
+  if (process.env.QALAAM_SKIP_PYTHON_CODEGEN === '1') {
+    console.warn('→ Python codegen: skipped (QALAAM_SKIP_PYTHON_CODEGEN=1)');
+    return;
+  }
+  try {
+    execSync('command -v uv >/dev/null 2>&1', { cwd: REPO_ROOT });
+  } catch {
+    console.warn('→ Python codegen: skipped (uv not installed — Node-only environment)');
+    return;
+  }
   console.warn('→ Python codegen: invoking datamodel-code-generator via uv');
   // Delegate to a Python-side script that knows about the workspace layout.
   execSync('uv run python tooling/codegen/run_python.py', {
