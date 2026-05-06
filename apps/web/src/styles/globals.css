@@ -994,93 +994,98 @@
    *   Ikhfa family (concealment)                                → teal
    *   Iqlab (lip conversion)                                    → magenta
    */
-  .tajweed-ghunnah {
-    color: #2e7d4f;
-  } /* green */
+  /* Qalaam refined-earth palette — same hex values as the
+   * @font-palette-values --qalaam-tajweed CPAL override in
+   * apps/web/public/qpc-v4-fonts.css. Keeping the two in sync means
+   * the V4 PUA render path AND the CSS-overlay fallback path AND
+   * the TajweedLegend swatches all read identically — so the
+   * legend the user opens to learn the rules actually matches the
+   * rendering they're looking at. */
+  .tajweed-ghunnah,
   .tajweed-idghaam_ghunnah {
-    color: #2e7d4f;
-  }
+    color: #2f8a5a;
+  } /* sage — ghunnah / nun mushaddadah (CPAL slot 6) */
   .tajweed-idghaam_no_ghunnah {
-    color: #4f80a4;
-  } /* steel blue */
-  .tajweed-idghaam_shafawi {
-    color: #4f80a4;
-  }
+    color: #2c5a82;
+  } /* deep slate — idghaam without ghunnah (slot 7) */
+  .tajweed-idghaam_shafawi,
   .tajweed-idghaam_mutajanisayn {
-    color: #4f80a4;
-  }
+    color: #4d8aa8;
+  } /* dusty blue — labial idghaam family (slot 8) */
   .tajweed-idghaam_mutaqaribayn {
-    color: #4f80a4;
-  }
-  .tajweed-ikhfa {
-    color: #1e7a8a;
-  } /* teal */
+    color: #5a9b6e;
+  } /* laam sage — close-articulation merge (slot 10) */
+  .tajweed-ikhfa,
   .tajweed-ikhfa_shafawi {
-    color: #1e7a8a;
-  }
+    color: #4d8aa8;
+  } /* dusty blue — concealment (visually paired with shafawi) */
   .tajweed-iqlab {
-    color: #b04194;
-  } /* magenta */
+    color: #8a3624;
+  } /* deep terracotta — n→m lip conversion */
   .tajweed-qalqalah {
-    color: #c0392b;
-  } /* red */
+    color: #b03a1a;
+  } /* terracotta — echoing stops (slot 3) */
   .tajweed-madd_2 {
-    color: #d97706;
-  } /* orange — 2 harakat */
-  .tajweed-madd_246 {
-    color: #d97706;
-  }
-  .tajweed-madd_6 {
-    color: #c0392b;
-  } /* red — required 6 harakat */
+    color: #e0b14d;
+  } /* light gold — natural 2-harakat (slot 5) */
+  .tajweed-madd_246,
   .tajweed-madd_munfasil {
-    color: #d97706;
-  }
-  .tajweed-madd_muttasil {
-    color: #c0392b;
-  }
-  .tajweed-hamzat_wasl {
-    color: #909090;
-  } /* grey */
+    color: #d49011;
+  } /* brand gold — 4-5 harakat (slot 4) */
+  .tajweed-madd_muttasil,
+  .tajweed-madd_6 {
+    color: #c45323;
+  } /* rust — obligatory 6 harakat (slot 9) */
+  .tajweed-hamzat_wasl,
   .tajweed-silent {
-    color: #909090;
-  }
+    color: #9a8166;
+  } /* warm sand — silent letters (slots 1/2/15) */
   .tajweed-lam_shamsiyyah {
-    color: #b8b8b8;
-  }
+    color: #b09a82;
+  } /* warm sand light — assimilated lam */
 
-  /* Dark-mode contrast tweaks */
+  /* Dark-mode contrast tweaks — same hue, ~20-30% brighter so the
+   * accent reads against the deep teal-black surface while staying
+   * unmistakably the same color as the light-theme rule. */
   :root[data-theme='dark'] .tajweed-ghunnah,
   :root[data-theme='dark'] .tajweed-idghaam_ghunnah {
-    color: #5fc28a;
+    color: #5cc28a;
   }
-  :root[data-theme='dark'] .tajweed-idghaam_no_ghunnah,
+  :root[data-theme='dark'] .tajweed-idghaam_no_ghunnah {
+    color: #6c93b8;
+  }
   :root[data-theme='dark'] .tajweed-idghaam_shafawi,
   :root[data-theme='dark'] .tajweed-idghaam_mutajanisayn,
-  :root[data-theme='dark'] .tajweed-idghaam_mutaqaribayn {
-    color: #7eb6da;
-  }
   :root[data-theme='dark'] .tajweed-ikhfa,
   :root[data-theme='dark'] .tajweed-ikhfa_shafawi {
-    color: #4fc6d8;
+    color: #82b6cc;
+  }
+  :root[data-theme='dark'] .tajweed-idghaam_mutaqaribayn {
+    color: #8cc89e;
   }
   :root[data-theme='dark'] .tajweed-iqlab {
-    color: #e08fcc;
+    color: #d05a3e;
   }
-  :root[data-theme='dark'] .tajweed-qalqalah,
-  :root[data-theme='dark'] .tajweed-madd_6,
-  :root[data-theme='dark'] .tajweed-madd_muttasil {
-    color: #ff7763;
+  :root[data-theme='dark'] .tajweed-qalqalah {
+    color: #ec5e3a;
   }
-  :root[data-theme='dark'] .tajweed-madd_2,
+  :root[data-theme='dark'] .tajweed-madd_2 {
+    color: #ecbf6e;
+  }
   :root[data-theme='dark'] .tajweed-madd_246,
   :root[data-theme='dark'] .tajweed-madd_munfasil {
-    color: #ffb454;
+    color: #f4a830;
+  }
+  :root[data-theme='dark'] .tajweed-madd_muttasil,
+  :root[data-theme='dark'] .tajweed-madd_6 {
+    color: #e87344;
   }
   :root[data-theme='dark'] .tajweed-hamzat_wasl,
-  :root[data-theme='dark'] .tajweed-silent,
+  :root[data-theme='dark'] .tajweed-silent {
+    color: #c0a685;
+  }
   :root[data-theme='dark'] .tajweed-lam_shamsiyyah {
-    color: #b8b8b8;
+    color: #d4bea0;
   }
 
   /* Tafsir prose — scholarly tafsirs from QUL ship inline HTML
