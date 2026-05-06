@@ -238,12 +238,16 @@ export function MiniPlayer({
   // Resolve audio URL + segments whenever (verseKey, reciter) changes,
   // and broadcast the current word so any listener (e.g. an AyahCard
   // on the same page) can paint the matching word.
+  //
+  // We DO NOT clear audioUrl to null here — that would set <audio
+  // src=undefined> momentarily, which on iOS Safari severs the
+  // gesture-context chain and makes the next .play() fail without a
+  // fresh tap. Instead we let the new URL replace the old in place.
+  // Auto-advance was breaking on Al-Fatihah → Al-Baqarah for exactly
+  // this reason: end-of-1:7 set audioUrl=null, then async fetch
+  // resolved 2:1, but the .play() promise rejected silently.
   useEffect(() => {
-    // Object cell: lets the cleanup closure flip the cancellation flag
-    // in a way eslint flow analysis can see (a let-rebinding looks
-    // unmutated to it).
     const cancel = { v: false };
-    setAudioUrl(null);
     setLocalPosition(0);
     segmentsRef.current = [];
     void (async () => {
