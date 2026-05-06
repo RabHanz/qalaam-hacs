@@ -68,9 +68,16 @@ export function MiniPlayer({
   // across all their devices.
   const session = usePlaybackSession({ enabled: Boolean(user) });
   // While casting we drive the receiver and ignore the local audio
-  // element. This single flag is the routing decision for every
-  // play / pause / seek / advance call below.
-  const isCasting = cast.isConnected && cast.isMediaLoaded;
+  // element. The ROUTING flag is `cast.isConnected` — as soon as the
+  // user picks a Cast device and the SDK confirms the session, we
+  // route every command through the receiver. Previously this was
+  // `connected && isMediaLoaded`, which created a chicken-and-egg
+  // deadlock: media gets loaded by US (via cast.loadMedia), but our
+  // load-effect only ran when `isCasting` was already true. So the
+  // receiver sat idle until the user manually played, and reciter /
+  // verse / surah changes never reached it. `isConnected` alone
+  // breaks the deadlock — connect, then we load.
+  const isCasting = cast.isConnected;
   const [localPlaying, setLocalPlaying] = useState(false);
   const [localDuration, setLocalDuration] = useState(0);
   const [localPosition, setLocalPosition] = useState(0);
@@ -117,6 +124,33 @@ export function MiniPlayer({
   verseKeyRef.current = verseKey;
   const reciterSlugRef = useRef(reciterSlug);
   reciterSlugRef.current = reciterSlug;
+
+  // Surah ayah counts — fetched once on mount + cached. Drives the
+  // cross-surah advance (e.g. surah 1 only has 7 ayahs; without
+  // this, hitting "next" at 1:7 wrongly produced 1:8 instead of
+  // moving to 2:1).
+  const surahLengthsRef = useRef<Map<number, number>>(new Map());
+  useEffect(() => {
+    const lifecycle = { cancelled: false };
+    void (async () => {
+      try {
+        const res = await fetch(`${apiBase}/v1/metadata/surahs`);
+        if (!res.ok) return;
+        const body = (await res.json()) as {
+          data: { surah: number; verseCount: number }[];
+        };
+        if (lifecycle.cancelled) return;
+        const m = new Map<number, number>();
+        for (const s of body.data) m.set(s.surah, s.verseCount);
+        surahLengthsRef.current = m;
+      } catch {
+        /* fallback: advance falls back to bare-increment logic */
+      }
+    })();
+    return () => {
+      lifecycle.cancelled = true;
+    };
+  }, [apiBase]);
 
   // Broadcast highlight while playing — any listener (AyahCard, etc.)
   // can subscribe to qalaam:highlight and paint the matching word.
@@ -262,9 +296,27 @@ export function MiniPlayer({
     (direction: 1 | -1, autoplay: boolean) => {
       const [s, a] = verseKey.split(':').map((n) => Number.parseInt(n, 10));
       if (!s || !a) return;
-      const next = a + direction;
-      if (next < 1) return;
-      const nextKey = `${s.toString()}:${next.toString()}`;
+      const lengths = surahLengthsRef.current;
+      let nextSurah = s;
+      let nextAyah = a + direction;
+
+      // Cross-surah forward — overflow → next surah ayah 1.
+      if (direction === 1) {
+        const cur = lengths.get(s);
+        if (cur !== undefined && nextAyah > cur) {
+          if (s >= 114) return; // end of mushaf — stop
+          nextSurah = s + 1;
+          nextAyah = 1;
+        }
+      }
+      // Cross-surah backward — underflow → previous surah's last ayah.
+      if (direction === -1 && nextAyah < 1) {
+        if (s <= 1) return; // before Al-Fatihah — stop
+        nextSurah = s - 1;
+        nextAyah = lengths.get(nextSurah) ?? 1;
+      }
+
+      const nextKey = `${nextSurah.toString()}:${nextAyah.toString()}`;
       shouldResumeRef.current = autoplay;
       onVerseKeyChange(nextKey);
     },
