@@ -140,6 +140,10 @@ export function ContinuousReaderPlayer({
   // MiniPlayer's surahLengthsRef.
   const surahLengthsRef = useRef<Map<number, number>>(new Map());
   const apiBaseRef = useRef<string>('');
+  // Tick the lengths-loaded counter so the in-place chain effect
+  // can fire as soon as the catalog lands (the effect reads from a
+  // ref, but a state value is needed to retrigger it).
+  const [surahLengthsTick, setSurahLengthsTick] = useState(0);
 
   // Auto-resume continuous playback on mount if the previous surah's
   // chain set the qalaam-continue-on-load flag (cross-surah hand-off),
@@ -305,6 +309,7 @@ export function ContinuousReaderPlayer({
         const m = new Map<number, number>();
         for (const s of body.data) m.set(s.surah, s.verseCount);
         surahLengthsRef.current = m;
+        setSurahLengthsTick((t) => t + 1);
       } catch {
         /* fallback: cross-surah jump uses bare surah+1 navigation */
       }
@@ -313,6 +318,61 @@ export function ContinuousReaderPlayer({
       lifecycle.cancelled = true;
     };
   }, []);
+
+  // ─── In-place cross-surah chaining ───────────────────────────────
+  // When the active running list is within 2 verses of its end AND
+  // the last surah in the list has full coverage, append the next
+  // surah's verse keys so playback continues seamlessly. Both local
+  // audio and cast keep flowing — no page navigation, no cast-session
+  // reset, no autoplay-policy hiccup.
+  //
+  // We synthesize verseKeys from the surahLengths catalog rather than
+  // fetching each surah's verse list, since `${surah}:${ayah}` is the
+  // canonical format and the per-verse audio + segment fetches happen
+  // lazily via the bundle-load effect anyway.
+  useEffect(() => {
+    if (!active) return;
+    const lengths = surahLengthsRef.current;
+    if (lengths.size === 0) return;
+    const last = verses[verses.length - 1];
+    if (!last) return;
+    const lastParsed = parseVerseKey(last.verseKey);
+    if (!lastParsed) return;
+    const [lastSurah, lastAyah] = lastParsed;
+    const lastSurahLen = lengths.get(lastSurah);
+    // Only append once this list has reached the END of its last
+    // surah (`lastAyah === lastSurahLen`) AND we're approaching it.
+    if (lastSurahLen === undefined || lastAyah !== lastSurahLen) return;
+    if (verseIdx < verses.length - 2) return;
+    if (lastSurah >= 114) return; // end of mushaf
+    const nextSurah = lastSurah + 1;
+    const nextLen = lengths.get(nextSurah);
+    if (!nextLen) return;
+    setVerses((cur) => {
+      // Re-check inside the updater so racing fires don't double-append.
+      const tail = cur[cur.length - 1];
+      if (!tail) return cur;
+      const tailParsed = parseVerseKey(tail.verseKey);
+      if (tailParsed?.[0] !== lastSurah) return cur;
+      const appended: VerseRef[] = Array.from({ length: nextLen }, (_, i) => ({
+        verseKey: `${nextSurah.toString()}:${(i + 1).toString()}`,
+      }));
+      return [...cur, ...appended];
+    });
+  }, [active, verseIdx, verses, surahLengthsTick]);
+
+  // Keep activeSurah aligned with the verse currently playing — when
+  // the chain crosses into the next surah, this drives the surah-aware
+  // bits of the UI (player title, sleep-timer end-of-surah trigger,
+  // last-played-verse persistence keyed by surah).
+  useEffect(() => {
+    const vk = verses[verseIdx]?.verseKey;
+    if (!vk) return;
+    const parsed = parseVerseKey(vk);
+    if (parsed && parsed[0] !== activeSurah) {
+      setActiveSurah(parsed[0]);
+    }
+  }, [verseIdx, verses, activeSurah]);
 
   // Mirror the active verse + playing flag to the canonical playback
   // store so /listen (and any other player surface) sees where the
@@ -508,15 +568,19 @@ export function ContinuousReaderPlayer({
 
   // Receiver finished an ayah — advance to the next, which triggers
   // the bundle-load effect above to push the new src to the receiver.
+  // GATED on `active`: the cast SDK fires ANY_CHANGE to every useCast
+  // subscriber on the page (AyahCard, MiniPlayer, ContinuousReader),
+  // so without this gate, an AyahCard's Listen-on-cast would END and
+  // the continuous player would think IT ended → spurious advance.
   useEffect(() => {
-    if (!isCasting) return;
+    if (!isCasting || !active) return;
     const off = cast.onMediaEnded(() => {
       // Reuse the same end-of-track logic as local audio so cross-surah
       // chaining + sleep timer + repeat mode all behave identically.
       onEndedRef.current();
     });
     return off;
-  }, [isCasting, cast]);
+  }, [isCasting, active, cast]);
 
   // Reset the cast-src memo when leaving the session so re-engaging
   // works (without this, the same URL is treated as already-loaded
@@ -560,6 +624,13 @@ export function ContinuousReaderPlayer({
       // the user's intent. Stop short of endSession — the user can
       // resume on this device or take over from another device.
       if (isCasting) cast.pause();
+      // Clear the cast-src memo so that if an AyahCard listen later
+      // pushes a different URL to the receiver, then the user comes
+      // back here and presses continuous play, the same starting
+      // bundle URL is recognised as "needs reload" and pushes again.
+      // Without this clear, the memo == new-bundle-URL check skipped
+      // the load and continuous played one ayah then stopped.
+      lastCastSrcRef.current = null;
       return;
     }
     // Resume from the last-played verse if the user has listened to a
@@ -573,6 +644,10 @@ export function ContinuousReaderPlayer({
     window.dispatchEvent(
       new CustomEvent('qalaam:audio-claim', { detail: { source: 'continuous' } }),
     );
+    // Force the cast routing effect to fire on activation by clearing
+    // the memo — handles the "stopped → played → cast didn't pick up"
+    // case where the URL is unchanged but receiver state was paused.
+    lastCastSrcRef.current = null;
     setActive(true);
     setVerseIdx(startIdx);
   }
@@ -709,11 +784,16 @@ export function ContinuousReaderPlayer({
       }
     }
 
-    // Sleep-timer end-of-surah / end-of-juz check — fired when the
-    // current verse is the last in its scope. End-of-juz uses the
-    // verse_key prefix mapping kept on the verse list (juz boundaries
-    // mid-verse don't apply to recitation).
-    if (sleepTimer.kind === 'end-of-surah' && verseIdx + 1 >= verses.length) {
+    // Sleep-timer end-of-surah / end-of-juz check — fires when the
+    // CURRENT verse is the last in its surah. With in-place chaining
+    // the running list often spans multiple surahs, so "end of list"
+    // is the wrong trigger; "next verse is in a different surah" is
+    // the right one.
+    const curParsed = parseVerseKey(verseKey);
+    const nextParsed = parseVerseKey(verses[verseIdx + 1]?.verseKey ?? '');
+    const surahChanged = curParsed && nextParsed ? curParsed[0] !== nextParsed[0] : false;
+    const isCrossingSurah = surahChanged || verseIdx + 1 >= verses.length;
+    if (sleepTimer.kind === 'end-of-surah' && isCrossingSurah) {
       const a = audioARef.current;
       const b = audioBRef.current;
       if (a) a.pause();
@@ -727,7 +807,7 @@ export function ContinuousReaderPlayer({
     // /v1/chapters but the easier signal is: stop after the current
     // surah ends in continuous chain mode. Without a juz field on
     // VerseRef we conservatively treat it as end-of-surah for now.
-    if (sleepTimer.kind === 'end-of-juz' && verseIdx + 1 >= verses.length) {
+    if (sleepTimer.kind === 'end-of-juz' && isCrossingSurah) {
       const a = audioARef.current;
       const b = audioBRef.current;
       if (a) a.pause();

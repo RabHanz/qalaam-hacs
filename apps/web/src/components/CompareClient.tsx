@@ -22,6 +22,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
+import { useCast } from '../lib/use-cast.js';
 
 import type { ReactNode } from 'react';
 
@@ -47,6 +48,11 @@ const MAX_ROWS = 4;
 
 export function CompareClient({ verseKey, verseText, reciters }: Props): ReactNode {
   const apiBase = resolveApiBase();
+  // Cast routing — when a session is live, the active row's audio
+  // gets pushed to the receiver via cast.loadMedia. Local audio plays
+  // muted to keep onTimeUpdate ticking for any per-row UI affordances.
+  const cast = useCast();
+  const isCasting = cast.isConnected;
   // Hydration-safe: deterministic initial state (no localStorage during
   // SSR), then sync from localStorage in a useEffect after mount. The
   // SSR HTML and the first client render both produce the same string.
@@ -210,12 +216,25 @@ export function CompareClient({ verseKey, verseText, reciters }: Props): ReactNo
       // Set activeIdx eagerly so the [activeIdx] effect pauses others
       // immediately; .play()'s promise can lag on iOS autoplay-policy.
       setActiveIdx(idx);
+      // Cast routing — push this row's audio to the receiver if a
+      // session is live. Local audio plays muted so the row's own
+      // <audio controls> still scrubs accurately while the receiver
+      // does the actual playback.
+      if (isCasting && row.audioUrl) {
+        a.volume = 0;
+        void cast.loadMedia(row.audioUrl, {
+          title: `${row.name} · ${verseKey}`,
+          artist: row.name,
+        });
+      } else {
+        a.volume = 1;
+      }
       void Promise.resolve(a.play()).catch(() => {
         /* iOS autoplay block — user can tap the row's native ▶ */
       });
       return true;
     },
-    [rows],
+    [rows, isCasting, cast, verseKey],
   );
 
   // Find the next playable row index after `idx`, honoring solo and

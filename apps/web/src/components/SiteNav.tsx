@@ -5,7 +5,12 @@
  * items show icons only (no labels); theme toggle stays compact. The whole
  * header fits 375px without horizontal overflow.
  */
+'use client';
+
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+
+import { parseVerseKey, readPlaybackSnapshot } from '../lib/playback-store.js';
 
 import { BookGlyph, CrescentGlyph, LanternGlyph, ThreadGlyph } from './Glyph.js';
 import { ThemeToggle } from './ThemeToggle.js';
@@ -13,16 +18,40 @@ import { UserMenu } from './UserMenu.js';
 
 import type { ReactNode } from 'react';
 
-const NAV_ITEMS = [
-  { href: '/read/1', label: 'Read', icon: BookGlyph },
+interface NavItem {
+  readonly href: string;
+  readonly label: string;
+  readonly icon: typeof BookGlyph;
+}
+
+const STATIC_NAV: readonly NavItem[] = [
   { href: '/listen', label: 'Listen', icon: CrescentGlyph },
   { href: '/hifdh', label: 'Hifdh', icon: ThreadGlyph },
   { href: '/learn', label: 'Learn', icon: LanternGlyph },
   { href: '/salah', label: 'Salah', icon: CrescentGlyph },
   { href: '/azkar', label: 'Azkar', icon: ThreadGlyph },
-] as const;
+];
 
 export function SiteNav(): ReactNode {
+  // Read link routes to /read/<surah> based on the user's last
+  // playback verse, so a user listening to surah 5:10 on /listen
+  // gets dropped onto /read/5 (where the cross-page resume in
+  // ContinuousReaderPlayer can then auto-start at 5:10) instead of
+  // landing on /read/1 every time. Default to /read/1 on SSR + first
+  // paint to avoid hydration mismatch; upgrade once mounted.
+  const [readHref, setReadHref] = useState('/read/1');
+  useEffect(() => {
+    const snap = readPlaybackSnapshot();
+    if (snap.verseKey) {
+      const parsed = parseVerseKey(snap.verseKey);
+      if (parsed) setReadHref(`/read/${parsed[0].toString()}`);
+    }
+  }, []);
+
+  const NAV_ITEMS: readonly NavItem[] = [
+    { href: readHref, label: 'Read', icon: BookGlyph },
+    ...STATIC_NAV,
+  ];
   return (
     <header className="border-hairline bg-paper-100/85 sticky top-0 z-30 border-b backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-3 sm:px-6 sm:py-4">

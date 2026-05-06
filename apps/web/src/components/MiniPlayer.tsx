@@ -15,7 +15,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
-import { writePlaying, writeVerseKey } from '../lib/playback-store.js';
+import {
+  clearPositionSeconds,
+  writePlaying,
+  writePositionSeconds,
+  writeVerseKey,
+} from '../lib/playback-store.js';
 import { useCast } from '../lib/use-cast.js';
 import { usePlaybackSession } from '../lib/use-playback-session.js';
 import { useUser } from '../lib/use-user.js';
@@ -159,11 +164,19 @@ export function MiniPlayer({
   // playback off as soon as the audio URL lands. Browsers gate
   // autoplay behind a user gesture, but the click on the nav link
   // counts as one — so this works in practice on first navigation.
+  // Also captures the saved position so the resume seeks to where
+  // the user actually was, not back to verse start.
+  const resumePositionRef = useRef<number | null>(null);
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
       if (window.localStorage.getItem('qalaam-playing') === '1') {
         shouldResumeRef.current = true;
+      }
+      const rawPos = window.localStorage.getItem('qalaam-position-seconds');
+      if (rawPos) {
+        const parsed = Number.parseFloat(rawPos);
+        if (Number.isFinite(parsed) && parsed > 0) resumePositionRef.current = parsed;
       }
     } catch {
       /* ignore */
@@ -217,10 +230,29 @@ export function MiniPlayer({
   // where we left off when the user navigates between pages.
   useEffect(() => {
     writeVerseKey(verseKey);
+    // Verse changed — wipe any saved position from the previous
+    // verse so cross-page resume starts at 0 for the new verse.
+    clearPositionSeconds();
   }, [verseKey]);
   useEffect(() => {
     writePlaying(playing);
   }, [playing]);
+
+  // Periodically persist current position while playing so a
+  // cross-page resume lands at where the user actually IS, not just
+  // at the last manual seek. Coarse 2 s tick — finer is wasted
+  // localStorage writes for no UX benefit.
+  useEffect(() => {
+    if (!playing) return;
+    const id = window.setInterval(() => {
+      const a = audioRef.current;
+      const pos = isCasting ? cast.currentTime : a?.currentTime;
+      if (typeof pos === 'number' && pos > 0) writePositionSeconds(pos);
+    }, 2000);
+    return () => {
+      window.clearInterval(id);
+    };
+  }, [playing, isCasting, cast]);
 
   // Resolve audio URL + segments whenever (verseKey, reciter) changes,
   // and broadcast the current word so any listener (e.g. an AyahCard
@@ -287,6 +319,16 @@ export function MiniPlayer({
     if (!audioUrl || !shouldResumeRef.current || !audioRef.current) return;
     const a = audioRef.current;
     shouldResumeRef.current = false;
+    // Apply any saved position from the cross-page resume so seek
+    // is preserved across navigations.
+    if (resumePositionRef.current !== null) {
+      try {
+        a.currentTime = resumePositionRef.current;
+      } catch {
+        /* not yet seekable — onLoadedMetadata will retry below */
+      }
+      resumePositionRef.current = null;
+    }
     void a.play().then(
       () => {
         setLocalPlaying(true);
@@ -573,6 +615,9 @@ export function MiniPlayer({
         setLocalPosition(t);
       }
     }
+    // Persist the seek so a cross-page resume (or page reload) lands
+    // back at the same position instead of always at 0.
+    writePositionSeconds(t);
     if (session.connected) void session.seek(t);
   }
 

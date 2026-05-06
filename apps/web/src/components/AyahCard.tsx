@@ -34,6 +34,7 @@ import { ensureQpcV4Font, loadTajweedCss } from '../lib/load-tajweed-css.js';
 import { fetchQpcV4, isTajweedLayout, type QpcV4Verse } from '../lib/qpc-v4.js';
 import { sanitizeHtml } from '../lib/sanitize-html.js';
 import { applyTajweed, fetchTajweed, type TajweedAnnotation } from '../lib/tajweed.js';
+import { useCast } from '../lib/use-cast.js';
 
 import { ShareDialog } from './ShareDialog.js';
 
@@ -283,6 +284,13 @@ export function AyahCard({
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioLoading, setAudioLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Cast routing — when a session is live, this card's Listen button
+  // pushes the verse audio to the receiver instead of (just) the local
+  // <audio> element. We KEEP local audio playing muted (volume=0) so
+  // the segment-based word-highlight loop above ticks accurately
+  // against what the receiver is playing (both stream the same URL).
+  const cast = useCast();
+  const isCasting = cast.isConnected;
   // Word-highlight state — populated while THIS ayah's Listen button
   // is playing. Independent of the highlightWordIndex prop (which is
   // driven by the global continuous player).
@@ -324,6 +332,15 @@ export function AyahCard({
       window.removeEventListener('qalaam:audio-claim', onClaim);
     };
   }, [verseKey]);
+
+  // Cast disconnect → restore local audio volume so the user keeps
+  // hearing the recitation from this device. The togglePlay flow set
+  // volume=0 to silence local while the receiver played.
+  useEffect(() => {
+    if (isCasting) return;
+    const a = audioRef.current;
+    if (a) a.volume = 1;
+  }, [isCasting]);
 
   // Pre-load segments when reciter or verse changes so word-highlight
   // is ready to fire as soon as the user taps Listen.
@@ -425,6 +442,7 @@ export function AyahCard({
     if (!a) return;
     if (playing) {
       a.pause();
+      if (isCasting) cast.pause();
       setPlaying(false);
       return;
     }
@@ -444,11 +462,18 @@ export function AyahCard({
     } catch {
       /* ignore */
     }
-    if (audioUrl) {
-      // We already have the URL — play right now (synchronous gesture chain).
-      // Older audio engines returned undefined; modern browsers return a
-      // Promise. We void the promise to keep eslint happy and handle states
-      // through the onPlay/onPause/onEnded handlers.
+    // Helper to push the resolved URL to the receiver (cast) AND start
+    // local muted playback for the segment-tick word highlight.
+    const playResolved = (url: string): void => {
+      if (isCasting) {
+        a.volume = 0;
+        void cast.loadMedia(url, {
+          title: `${reciterSlug} · ${verseKey}`,
+          artist: reciterSlug,
+        });
+      } else {
+        a.volume = 1;
+      }
       void Promise.resolve(a.play()).then(
         () => {
           setPlaying(true);
@@ -457,6 +482,9 @@ export function AyahCard({
           setPlaying(false);
         },
       );
+    };
+    if (audioUrl) {
+      playResolved(audioUrl);
       return;
     }
     // First click: lazy-fetch URL, then play when canplay fires.
@@ -473,9 +501,16 @@ export function AyahCard({
       }
       const body = (await res.json()) as { audioUrl: string };
       setAudioUrl(body.audioUrl);
-      // Don't call play() here — onCanPlay handler does it once the
-      // browser actually has data. This avoids the "play() failed because
-      // no audio data" rejection.
+      // onCanPlay (in handleCanPlay below) honours playIntentRef. We
+      // also need to push the URL to the receiver here if casting,
+      // since the local <audio> element won't trigger the cast effect.
+      if (isCasting) {
+        a.volume = 0;
+        void cast.loadMedia(body.audioUrl, {
+          title: `${reciterSlug} · ${verseKey}`,
+          artist: reciterSlug,
+        });
+      }
     } catch {
       setAudioLoading(false);
       playIntentRef.current = false;
@@ -488,6 +523,12 @@ export function AyahCard({
     playIntentRef.current = false;
     const a = audioRef.current;
     if (!a) return;
+    // If casting, the cast.loadMedia call from togglePlay already
+    // started playback on the receiver (autoplay=true on the
+    // LoadRequest). Local audio plays muted so segment timing ticks
+    // for word highlights. Otherwise local plays at full volume.
+    if (isCasting) a.volume = 0;
+    else a.volume = 1;
     void Promise.resolve(a.play()).then(
       () => {
         setPlaying(true);

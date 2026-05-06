@@ -15,6 +15,10 @@
 const KEY_RECITER = 'qalaam-reciter';
 const KEY_VERSE = 'qalaam-verse-key';
 const KEY_PLAYING = 'qalaam-playing';
+// Last-known playback position within the current verse, in seconds.
+// Written on every seek-commit and on a coarse interval while playing
+// so cross-page resume respects the user's seek.
+const KEY_POSITION = 'qalaam-position-seconds';
 // Old keys we used to write — read on mount for one cycle so the
 // user's earlier choice survives the migration, then write to the
 // canonical keys going forward.
@@ -55,6 +59,9 @@ export interface PlaybackSnapshot {
   verseKey: string | null;
   /** True if the user was actively playing audio at the last write. */
   isPlaying: boolean;
+  /** Last-known playback position within the current verse (seconds).
+   *  Null if we never wrote a position (fresh user / no seek). */
+  positionSeconds: number | null;
 }
 
 export function readPlaybackSnapshot(): PlaybackSnapshot {
@@ -62,7 +69,12 @@ export function readPlaybackSnapshot(): PlaybackSnapshot {
   const rawVerse = safeRead(KEY_VERSE) ?? safeRead(LEGACY_KEY_LISTEN_VERSE);
   const verseKey = rawVerse && VERSE_KEY_RE.test(rawVerse) ? rawVerse : null;
   const isPlaying = safeRead(KEY_PLAYING) === '1';
-  return { reciterSlug, verseKey, isPlaying };
+  const rawPos = safeRead(KEY_POSITION);
+  const positionSeconds =
+    rawPos !== null && Number.isFinite(Number.parseFloat(rawPos))
+      ? Number.parseFloat(rawPos)
+      : null;
+  return { reciterSlug, verseKey, isPlaying, positionSeconds };
 }
 
 export function writeReciter(slug: string): void {
@@ -81,6 +93,15 @@ export function writeVerseKey(verseKey: string): void {
 export function writePlaying(playing: boolean): void {
   if (playing) safeWrite(KEY_PLAYING, '1');
   else safeRemove(KEY_PLAYING);
+}
+
+export function writePositionSeconds(seconds: number): void {
+  if (!Number.isFinite(seconds) || seconds < 0) return;
+  safeWrite(KEY_POSITION, seconds.toFixed(2));
+}
+
+export function clearPositionSeconds(): void {
+  safeRemove(KEY_POSITION);
 }
 
 /** Parse "S:A" → [surah, ayah]; returns null on malformed input. */
