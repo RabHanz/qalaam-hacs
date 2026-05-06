@@ -53,6 +53,12 @@ interface SearchResponse {
   readonly totalMatches: number;
 }
 
+// Always render per-request — the backend is on the Docker network at
+// http://qalaam-backend:4111 and ISN'T running during `next build`,
+// so static generation would bake empty/null data. Per-request
+// rendering hits the live backend each time.
+export const dynamic = 'force-dynamic';
+
 export default async function SearchPage({ searchParams }: PageProps): Promise<ReactNode> {
   const { q = '', lang } = await searchParams;
   const apiBase = process.env.PUBLIC_API_URL ?? 'http://localhost:4111';

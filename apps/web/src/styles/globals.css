@@ -916,38 +916,59 @@
       drop-shadow(0 0 0.65em color-mix(in srgb, var(--color-leaf-500) 70%, transparent));
   }
 
-  /* TAJWEED hover — same palette + halo as recite-highlight, but
-   * static (no breathing animation, no scale jump). The default
-   * `.mushaf-word:hover` rule above sets `color` + `text-shadow`,
-   * which COLR fonts ignore — so on tajweed mode it produced a
-   * dull, washed-out halo with no glyph color shift. Here we swap
-   * the COLR palette (calligraphy itself paints gold) and add the
-   * same drop-shadow halo the recite-highlight uses, without the
-   * pulse — pulse stays reserved for the active reciter word.
+  /* TAJWEED hover — strong visual without compositor pressure.
    *
-   * Selectors mirror the recite-highlight rule above so specificity
-   * matches; we exclude `.recite-highlight` so when both states
-   * apply (the active word ALSO being hovered), the recite-highlight
-   * rules continue to win and the breathing animation continues. */
+   * Earlier draft used filter: drop-shadow + transform: scale +
+   * transition on both. Each of those creates / promotes a
+   * compositor layer per hovered element. On a /read tajweed page
+   * with ~3700 .mushaf-word anchors, fast mouse-sweeping triggered
+   * a Chromium compositor layer thrash that surfaced as
+   * STATUS_BREAKPOINT renderer crashes. Same root cause Chromium's
+   * COLR pipeline hit before with stacked filter chains.
+   *
+   * Compositor-cheap replacement:
+   *   - font-palette swap to --qalaam-tajweed-highlight (paint-only,
+   *     no layer creation; the calligraphy itself shifts to the
+   *     highlight palette — strong visual signal that COLR glyphs
+   *     respect, unlike CSS `color`).
+   *   - text-shadow halo (paint-only on inline elements; shadows
+   *     the glyph's alpha mask, works fine on COLR rasterisation).
+   *   - NO filter, NO transform, NO transition — instant on/off.
+   *
+   * The active reciter word (.recite-highlight) still gets the full
+   * filter + scale + breathing animation since exactly one word
+   * carries that class at a time — single-element compositor cost
+   * is fine, mass hover compositor cost was not. */
   .mushaf-layout-tajweed .mushaf-word:hover:not(.recite-highlight),
   a.mushaf-word[data-tajweed='v4']:hover:not(.recite-highlight) {
     font-palette: --qalaam-tajweed-highlight;
-    filter: drop-shadow(0 0 0.14em color-mix(in srgb, var(--color-leaf-500) 80%, transparent))
-      drop-shadow(0 0 0.45em color-mix(in srgb, var(--color-leaf-300) 60%, transparent));
-    transform: scale(1.03);
-    transform-origin: center;
-    transition:
-      transform 120ms ease-out,
-      filter 120ms ease-out;
-    /* Override the default .mushaf-word:hover color/text-shadow —
-     * those don't paint COLR glyphs and add no value here. */
+    text-shadow:
+      0 0 0.25em color-mix(in srgb, var(--color-leaf-300) 70%, transparent),
+      0 0 0.55em color-mix(in srgb, var(--color-leaf-500) 50%, transparent);
+    /* Explicitly clear inherited compositor-promoting props in case
+     * an outer rule sets them. */
+    filter: none;
+    transform: none;
+    transition: none;
+    /* Override default .mushaf-word:hover color (it doesn't paint
+     * COLR glyphs and adds no value with the palette swap active). */
     color: inherit;
-    text-shadow: none;
   }
   :root[data-theme='dark'] .mushaf-layout-tajweed .mushaf-word:hover:not(.recite-highlight),
   :root[data-theme='dark'] a.mushaf-word[data-tajweed='v4']:hover:not(.recite-highlight) {
-    filter: drop-shadow(0 0 0.16em color-mix(in srgb, var(--color-leaf-300) 85%, transparent))
-      drop-shadow(0 0 0.55em color-mix(in srgb, var(--color-leaf-500) 65%, transparent));
+    text-shadow:
+      0 0 0.3em color-mix(in srgb, var(--color-leaf-300) 80%, transparent),
+      0 0 0.65em color-mix(in srgb, var(--color-leaf-500) 60%, transparent);
+  }
+
+  /* Layout/paint isolation per-word — bounds the work the browser
+   * does when hover state flips on any one of the ~3700 anchors.
+   * Particularly important for COLR rendering on /read tajweed: the
+   * GPU upload + raster cost is per-element, so isolating layout
+   * containment reduces re-paint scope on hover state change. */
+  .mushaf-layout-tajweed .mushaf-word,
+  a.mushaf-word[data-tajweed='v4'] {
+    contain: layout style paint;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -955,10 +976,6 @@
     .recite-highlight * {
       transition: none;
       animation: none;
-      transform: none;
-    }
-    .mushaf-layout-tajweed .mushaf-word:hover,
-    a.mushaf-word[data-tajweed='v4']:hover {
       transform: none;
     }
   }

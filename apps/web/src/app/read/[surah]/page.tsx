@@ -67,6 +67,12 @@ async function fetchJson<T>(url: string, revalidate = 86400): Promise<T | null> 
   }
 }
 
+// Always render per-request — the backend is on the Docker network at
+// http://qalaam-backend:4111 and ISN'T running during `next build`,
+// so static generation would bake empty/null data. Per-request
+// rendering hits the live backend each time.
+export const dynamic = 'force-dynamic';
+
 export default async function ReadSurahPage({ params }: PageProps): Promise<ReactNode> {
   const { surah } = await params;
   const surahNumber = Number.parseInt(surah, 10);

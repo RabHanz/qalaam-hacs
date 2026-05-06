@@ -30,6 +30,12 @@ interface VerseRow {
   readonly textUthmani: string;
 }
 
+// Always render per-request — the backend is on the Docker network at
+// http://qalaam-backend:4111 and ISN'T running during `next build`,
+// so static generation would bake empty/null data. Per-request
+// rendering hits the live backend each time.
+export const dynamic = 'force-dynamic';
+
 export default async function TopicPage({ params }: PageProps): Promise<ReactNode> {
   const { slug } = await params;
   const apiBase = process.env.PUBLIC_API_URL ?? 'http://localhost:4111';

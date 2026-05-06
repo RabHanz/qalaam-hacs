@@ -303,6 +303,13 @@ async function StudyBody({
 // OG metadata — produces the <meta property="og:image"> + Twitter card
 // pointing at our Satori-rendered ayah card so social shares render
 // the verse instead of a generic Qalaam preview.
+
+// Always render per-request — the backend is on the Docker network at
+// http://qalaam-backend:4111 and ISN'T running during `next build`,
+// so static generation would bake empty/null data. Per-request
+// rendering hits the live backend each time.
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata({ params }: PageProps): Promise<{
   title: string;
   description: string;

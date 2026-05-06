@@ -47,6 +47,12 @@ async function fetchJson<T>(url: string, revalidate = 86400): Promise<T | null> 
   }
 }
 
+// Always render per-request — the backend is on the Docker network at
+// http://qalaam-backend:4111 and ISN'T running during `next build`,
+// so static generation would bake empty/null data. Per-request
+// rendering hits the live backend each time.
+export const dynamic = 'force-dynamic';
+
 export default async function ListenPage(): Promise<ReactNode> {
   const apiBase = process.env.PUBLIC_API_URL ?? 'http://localhost:4111';
 
@@ -63,28 +69,23 @@ export default async function ListenPage(): Promise<ReactNode> {
       <SiteNav />
 
       {/* Editorial header */}
-      <header className="border-b border-hairline">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-8 sm:py-10">
-          <p className="smallcaps text-leaf text-[11px] tracking-widest">
-            Listen · إِسْتِمَاع
-          </p>
-          <h1 className="font-display mt-2 text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-ink-strong">
-            Pick a reciter.<br className="sm:hidden" /> Press play.
+      <header className="border-hairline border-b">
+        <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+          <p className="smallcaps text-leaf text-[11px] tracking-widest">Listen · إِسْتِمَاع</p>
+          <h1 className="font-display text-ink-strong mt-2 text-3xl font-light tracking-tight sm:text-4xl md:text-5xl">
+            Pick a reciter.
+            <br className="sm:hidden" /> Press play.
           </h1>
-          <p className="mt-3 max-w-prose text-sm sm:text-base text-ink-muted leading-relaxed">
-            Audio streams from QUL via the Quran.com CDN. Player stays
-            docked at the bottom; auto-advances; returns where you left off.
+          <p className="text-ink-muted mt-3 max-w-prose text-sm leading-relaxed sm:text-base">
+            Audio streams from QUL via the Quran.com CDN. Player stays docked at the bottom;
+            auto-advances; returns where you left off.
           </p>
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6 sm:py-10 pb-32 sm:pb-36">
+      <main className="mx-auto max-w-5xl px-4 py-6 pb-32 sm:px-6 sm:py-10 sm:pb-36">
         <Suspense fallback={<LoadingState label="Loading reciters…" lines={4} />}>
-          <ListenSurfaceClient
-            apiBase={apiBase}
-            reciters={reciters}
-            surahs={surahs}
-          />
+          <ListenSurfaceClient apiBase={apiBase} reciters={reciters} surahs={surahs} />
         </Suspense>
       </main>
 

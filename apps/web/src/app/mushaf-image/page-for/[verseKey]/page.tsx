@@ -18,6 +18,12 @@ interface PageProps {
 
 const LAYOUT_SLUG = 'madani-16';
 
+// Always render per-request — the backend is on the Docker network at
+// http://qalaam-backend:4111 and ISN'T running during `next build`,
+// so static generation would bake empty/null data. Per-request
+// rendering hits the live backend each time.
+export const dynamic = 'force-dynamic';
+
 export default async function PageForVerse({ params }: PageProps): Promise<ReactNode> {
   const { verseKey: raw } = await params;
   // Next.js leaves the param percent-encoded when the colon was URL-encoded

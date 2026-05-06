@@ -46,6 +46,12 @@ interface ApiResponse {
 const TOTAL_PAGES = 610;
 const LAYOUT_SLUG = 'madani-16';
 
+// Always render per-request — the backend is on the Docker network at
+// http://qalaam-backend:4111 and ISN'T running during `next build`,
+// so static generation would bake empty/null data. Per-request
+// rendering hits the live backend each time.
+export const dynamic = 'force-dynamic';
+
 export default async function ImageMushafPage({ params }: PageProps): Promise<ReactNode> {
   const { page: pageParam } = await params;
   const page = Number.parseInt(pageParam, 10);
@@ -92,7 +98,7 @@ export default async function ImageMushafPage({ params }: PageProps): Promise<Re
       <SiteNav />
 
       <header className="border-hairline border-b">
-        <div className="mx-auto flex max-w-3xl items-baseline justify-between px-4 py-4 sm:px-6 gap-3 flex-wrap">
+        <div className="mx-auto flex max-w-3xl flex-wrap items-baseline justify-between gap-3 px-4 py-4 sm:px-6">
           <p className="smallcaps text-leaf text-[11px] tracking-widest">
             Madani 16-line · Image · KFGQPC
           </p>

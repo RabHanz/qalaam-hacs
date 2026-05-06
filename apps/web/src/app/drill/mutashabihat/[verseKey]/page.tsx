@@ -62,6 +62,12 @@ async function fetchPairs(apiBase: string, vk: string): Promise<readonly Pair[]>
   }
 }
 
+// Always render per-request — the backend is on the Docker network at
+// http://qalaam-backend:4111 and ISN'T running during `next build`,
+// so static generation would bake empty/null data. Per-request
+// rendering hits the live backend each time.
+export const dynamic = 'force-dynamic';
+
 export default async function MutashabihatDrillPage({
   params,
   searchParams,
@@ -158,9 +164,9 @@ export default async function MutashabihatDrillPage({
             Spot the difference.
           </h1>
           <p className="text-ink-muted mt-2 max-w-prose text-sm leading-relaxed sm:text-base">
-            Two verses that sound nearly identical. Words shared between them are dim;
-            differences pop. Toggle <em>Cover</em> to drill from memory — recall the
-            partner verse, then reveal it.
+            Two verses that sound nearly identical. Words shared between them are dim; differences
+            pop. Toggle <em>Cover</em> to drill from memory — recall the partner verse, then reveal
+            it.
           </p>
         </div>
       </header>
