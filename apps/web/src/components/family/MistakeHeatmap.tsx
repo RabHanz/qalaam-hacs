@@ -87,7 +87,7 @@ export function MistakeHeatmap({ userId, userDisplayName, windowDays = 30 }: Pro
 
   if (loading) {
     return (
-      <div className="border-hairline bg-paper rounded-2xl border p-6">
+      <div className="border-hairline bg-surface rounded-2xl border p-6">
         <div className="bg-paper-100 mb-3 h-4 w-32 animate-pulse rounded" />
         <div className="bg-paper-100 grid h-44 animate-pulse rounded" />
       </div>
@@ -95,14 +95,14 @@ export function MistakeHeatmap({ userId, userDisplayName, windowDays = 30 }: Pro
   }
   if (error) {
     return (
-      <div className="border-hairline bg-paper rounded-2xl border p-6">
+      <div className="border-hairline bg-surface rounded-2xl border p-6">
         <p className="text-ink-muted text-sm">{error}</p>
       </div>
     );
   }
   if (!pages || (pages.length === 0 && total === 0)) {
     return (
-      <div className="border-hairline bg-paper rounded-2xl border p-6">
+      <div className="border-hairline bg-surface rounded-2xl border p-6">
         <header className="mb-3">
           <h3
             className="text-ink-strong text-lg"
@@ -121,7 +121,7 @@ export function MistakeHeatmap({ userId, userDisplayName, windowDays = 30 }: Pro
   }
 
   return (
-    <div className="border-hairline bg-paper rounded-2xl border p-6">
+    <div className="border-hairline bg-surface rounded-2xl border p-6">
       <header className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <h3

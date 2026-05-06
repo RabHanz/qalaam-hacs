@@ -16,7 +16,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
 
+import { SendToPicker } from './SendToPicker.js';
+
 import type { ReactNode } from 'react';
+
+const HA_URL = typeof process !== 'undefined' ? (process.env.NEXT_PUBLIC_HA_URL ?? null) : null;
 
 interface ReciterItem {
   readonly slug: string;
@@ -304,6 +308,14 @@ export function MiniPlayer({
               value={position}
               onChange={onSeek}
               className="accent-leaf hidden flex-1 sm:block"
+            />
+
+            <SendToPicker
+              audioRef={audioRef}
+              currentSrc={audioUrl ?? null}
+              haUrl={HA_URL}
+              title={`${reciterMeta?.name.en ?? reciterSlug} · ${verseKey}`}
+              artist={reciterMeta?.name.en ?? reciterSlug}
             />
           </div>
 

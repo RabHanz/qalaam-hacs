@@ -91,7 +91,7 @@ export function StickerPicker({
             className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs transition-colors ${
               recipientId === m.userId
                 ? 'border-leaf bg-leaf/10 text-leaf-700'
-                : 'border-hairline hover:border-leaf-300 bg-white'
+                : 'border-hairline hover:border-leaf-300 bg-surface'
             }`}
           >
             <MemberAvatar
@@ -124,7 +124,7 @@ export function StickerPicker({
               className={`flex flex-col items-start gap-1 rounded-lg border p-3 text-left transition-all ${
                 isSelected
                   ? 'border-leaf bg-leaf/10 shadow-sm'
-                  : 'border-hairline hover:border-leaf-300 bg-white'
+                  : 'border-hairline hover:border-leaf-300 bg-surface'
               }`}
             >
               <span

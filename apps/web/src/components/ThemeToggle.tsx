@@ -41,10 +41,13 @@ function applyTheme(theme: Theme): void {
 }
 
 function readStoredTheme(): Theme {
-  if (typeof window === 'undefined') return 'system';
+  // First-visit default is 'light' — only flip to dark/system if the
+  // user has explicitly chosen it. The bootstrap script in layout.tsx
+  // makes the same decision before first paint to avoid FOUC.
+  if (typeof window === 'undefined') return 'light';
   const v = window.localStorage.getItem(STORAGE_KEY);
   if (v === 'light' || v === 'dark' || v === 'system') return v;
-  return 'system';
+  return 'light';
 }
 
 function SunGlyph({ size = 14, className }: { size?: number; className?: string }): ReactNode {
@@ -92,7 +95,7 @@ function SystemGlyph({ size = 14, className }: { size?: number; className?: stri
 }
 
 export function ThemeToggle(): ReactNode {
-  const [theme, setTheme] = useState<Theme>('system');
+  const [theme, setTheme] = useState<Theme>('light');
 
   useEffect(() => {
     const stored = readStoredTheme();

@@ -215,7 +215,7 @@ export function KhatmWall({ khatmId }: Props): ReactNode {
           </div>
 
           {/* Recent contributions */}
-          <div className="border-hairline bg-paper rounded-2xl border p-6">
+          <div className="border-hairline bg-surface rounded-2xl border p-6">
             <h3
               className="text-ink-strong mb-4 text-lg"
               style={{ fontFamily: 'Fraunces, Georgia, serif' }}

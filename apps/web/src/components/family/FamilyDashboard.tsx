@@ -101,7 +101,7 @@ export function FamilyDashboard(): ReactNode {
   }
   if (error || !family || !dashboard) {
     return (
-      <div className="border-hairline bg-paper rounded-2xl border p-6">
+      <div className="border-hairline bg-surface rounded-2xl border p-6">
         <p className="text-ink-muted text-sm">{error ?? 'Could not load your family.'}</p>
       </div>
     );
@@ -135,7 +135,7 @@ export function FamilyDashboard(): ReactNode {
       <FamilyHeader family={family} memberCount={family.members.length} />
 
       <section
-        className="border-hairline bg-paper rounded-2xl border p-6"
+        className="border-hairline bg-surface rounded-2xl border p-6"
         aria-label="Family members"
       >
         <header className="mb-4 flex items-baseline justify-between gap-2">
@@ -156,7 +156,7 @@ export function FamilyDashboard(): ReactNode {
             return (
               <li
                 key={m.userId}
-                className={`border-hairline flex min-w-[16rem] flex-1 items-center gap-3 rounded-xl border bg-white p-4 ${
+                className={`border-hairline bg-surface flex min-w-[16rem] flex-1 items-center gap-3 rounded-xl border p-4 ${
                   isMe ? 'border-leaf-300 bg-leaf/5' : ''
                 }`}
               >
@@ -195,7 +195,7 @@ export function FamilyDashboard(): ReactNode {
                 onClick={() => {
                   setAddChild((s) => ({ ...s, open: !s.open }));
                 }}
-                className="border-hairline hover:border-leaf hover:text-leaf text-ink-muted flex h-full w-full min-w-[12rem] items-center justify-center gap-2 rounded-xl border border-dashed bg-white px-4 py-4 text-sm transition-colors"
+                className="border-hairline hover:border-leaf hover:text-leaf text-ink-muted bg-surface flex h-full w-full min-w-[12rem] items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-4 text-sm transition-colors"
               >
                 <span aria-hidden className="text-lg leading-none">
                   +
@@ -220,7 +220,7 @@ export function FamilyDashboard(): ReactNode {
                   setAddChild((s) => ({ ...s, name: e.currentTarget.value }));
                 }}
                 maxLength={80}
-                className="border-hairline focus:border-leaf focus:ring-leaf/30 rounded-lg border bg-white px-3 py-2 text-sm outline-none focus:ring-2"
+                className="border-hairline focus:border-leaf focus:ring-leaf/30 bg-surface rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2"
               />
             </label>
             {addChild.error ? (
@@ -375,7 +375,7 @@ function MemberCard({
     member.lastSessionDate === new Date().toISOString().slice(0, 10);
   return (
     <section
-      className="border-hairline bg-paper rounded-2xl border p-6"
+      className="border-hairline bg-surface rounded-2xl border p-6"
       aria-label={`Quick actions for ${member.displayName}`}
     >
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -409,7 +409,7 @@ function MemberCard({
             <button
               type="button"
               onClick={onCreatePlan}
-              className="border-hairline hover:border-leaf hover:text-leaf rounded-lg border bg-white px-3 py-1.5 text-xs transition-colors"
+              className="border-hairline hover:border-leaf hover:text-leaf bg-surface rounded-lg border px-3 py-1.5 text-xs transition-colors"
             >
               {member.activePlan ? 'Edit plan' : 'New plan'}
             </button>
@@ -417,7 +417,7 @@ function MemberCard({
           <button
             type="button"
             onClick={onSendSticker}
-            className="border-hairline hover:border-leaf hover:text-leaf rounded-lg border bg-white px-3 py-1.5 text-xs transition-colors"
+            className="border-hairline hover:border-leaf hover:text-leaf bg-surface rounded-lg border px-3 py-1.5 text-xs transition-colors"
           >
             Send a kind word
           </button>
@@ -425,7 +425,7 @@ function MemberCard({
             type="button"
             onClick={onToggleHeatmap}
             aria-pressed={heatmapOpen}
-            className="border-hairline hover:border-leaf hover:text-leaf rounded-lg border bg-white px-3 py-1.5 text-xs transition-colors"
+            className="border-hairline hover:border-leaf hover:text-leaf bg-surface rounded-lg border px-3 py-1.5 text-xs transition-colors"
           >
             {heatmapOpen ? 'Hide heatmap' : 'View heatmap'}
           </button>
@@ -445,7 +445,7 @@ function SeeAlsoLinks(): ReactNode {
   return (
     <nav
       aria-label="Family quick links"
-      className="border-hairline bg-paper rounded-2xl border p-6"
+      className="border-hairline bg-surface rounded-2xl border p-6"
     >
       <h3
         className="text-ink-strong mb-3 text-sm"
@@ -457,7 +457,7 @@ function SeeAlsoLinks(): ReactNode {
         <li>
           <Link
             href="/family/khatm"
-            className="border-hairline hover:border-leaf hover:text-leaf flex flex-col gap-1 rounded-xl border bg-white p-4 transition-colors"
+            className="border-hairline hover:border-leaf hover:text-leaf bg-surface flex flex-col gap-1 rounded-xl border p-4 transition-colors"
           >
             <span
               className="text-ink-strong text-sm"
@@ -473,7 +473,7 @@ function SeeAlsoLinks(): ReactNode {
         <li>
           <Link
             href="/hifdh"
-            className="border-hairline hover:border-leaf hover:text-leaf flex flex-col gap-1 rounded-xl border bg-white p-4 transition-colors"
+            className="border-hairline hover:border-leaf hover:text-leaf bg-surface flex flex-col gap-1 rounded-xl border p-4 transition-colors"
           >
             <span
               className="text-ink-strong text-sm"
@@ -489,7 +489,7 @@ function SeeAlsoLinks(): ReactNode {
         <li>
           <Link
             href="/recite/2:255"
-            className="border-hairline hover:border-leaf hover:text-leaf flex flex-col gap-1 rounded-xl border bg-white p-4 transition-colors"
+            className="border-hairline hover:border-leaf hover:text-leaf bg-surface flex flex-col gap-1 rounded-xl border p-4 transition-colors"
           >
             <span
               className="text-ink-strong text-sm"
@@ -544,7 +544,7 @@ function SignedOutCard(): ReactNode {
         </Link>
         <Link
           href="/signup"
-          className="border-hairline hover:border-leaf hover:text-leaf rounded-lg border bg-white px-5 py-2 text-sm font-medium transition-colors"
+          className="border-hairline hover:border-leaf hover:text-leaf bg-surface rounded-lg border px-5 py-2 text-sm font-medium transition-colors"
         >
           Create account
         </Link>

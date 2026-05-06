@@ -370,6 +370,114 @@
     margin: 0 0.3em;
     vertical-align: middle;
   }
+
+  /*
+   * Buttons — semantic utilities. Both palettes flip via the --c-*
+   * tokens, so "btn-primary" is always a high-contrast inverse of the
+   * page surface (dark in light mode, near-white in dark mode) and the
+   * label is always the inverse so contrast holds.
+   */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--c-text-strong);
+    color: var(--c-bg);
+    border: 1px solid var(--c-text-strong);
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    line-height: 1.2;
+    transition:
+      background var(--motion-fast) var(--easing-standard),
+      border-color var(--motion-fast) var(--easing-standard),
+      color var(--motion-fast) var(--easing-standard),
+      opacity var(--motion-fast) var(--easing-standard);
+    cursor: pointer;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--c-text);
+    border-color: var(--c-text);
+  }
+  .btn-primary:focus-visible {
+    outline: 2px solid var(--c-accent);
+    outline-offset: 2px;
+  }
+  .btn-primary:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--c-surface);
+    color: var(--c-text);
+    border: 1px solid var(--c-rule);
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    line-height: 1.2;
+    transition:
+      background var(--motion-fast) var(--easing-standard),
+      border-color var(--motion-fast) var(--easing-standard),
+      color var(--motion-fast) var(--easing-standard);
+    cursor: pointer;
+  }
+  .btn-ghost:hover:not(:disabled) {
+    border-color: var(--c-accent);
+    color: var(--c-accent);
+  }
+  .btn-ghost:focus-visible {
+    outline: 2px solid var(--c-accent);
+    outline-offset: 2px;
+  }
+  .btn-ghost:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .btn-leaf {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--c-accent);
+    color: #fff;
+    border: 1px solid var(--c-accent);
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    line-height: 1.2;
+    transition:
+      background var(--motion-fast) var(--easing-standard),
+      border-color var(--motion-fast) var(--easing-standard);
+    cursor: pointer;
+  }
+  .btn-leaf:hover:not(:disabled) {
+    background: var(--c-accent-soft);
+    border-color: var(--c-accent-soft);
+  }
+  .btn-leaf:focus-visible {
+    outline: 2px solid var(--c-text-strong);
+    outline-offset: 2px;
+  }
+  .btn-leaf:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .btn-link {
+    background: transparent;
+    color: var(--c-text-muted);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    transition: color var(--motion-fast) var(--easing-standard);
+    cursor: pointer;
+  }
+  .btn-link:hover:not(:disabled) {
+    color: var(--c-text-strong);
+  }
 }
 
 @layer utilities {
@@ -427,6 +535,57 @@
   }
   .border-leaf {
     border-color: var(--c-accent);
+  }
+
+  /* Foreground-on-strong-bg pair. `text-paper` is the inverse of
+     `text-ink-strong` — it always reads against a `bg-ink` /
+     `btn-primary` surface so contrast holds in both light + dark. */
+  .text-paper {
+    color: var(--c-bg);
+  }
+
+  /* Hover variants for hand-rolled semantic utilities. Tailwind's
+     `hover:` prefix does NOT auto-compose against utilities defined
+     inside @layer; we have to declare these explicitly. */
+  .hover\:bg-ink-strong:hover {
+    background: var(--c-text);
+  }
+  .hover\:text-paper:hover {
+    color: var(--c-bg);
+  }
+  .hover\:bg-leaf:hover {
+    background: var(--c-accent);
+  }
+  .hover\:text-leaf:hover {
+    color: var(--c-accent);
+  }
+  .hover\:border-leaf:hover {
+    border-color: var(--c-accent);
+  }
+  .hover\:bg-paper-100:hover {
+    background: var(--c-bg-soft);
+  }
+  .hover\:bg-surface:hover {
+    background: var(--c-surface);
+  }
+  .bg-ink-strong {
+    background: var(--c-text);
+  }
+
+  /* Leaf-tint backgrounds — used for selected-state pills / unread
+     badges. Tailwind v4 won't synthesize bg-leaf/N from our hand-
+     rolled .bg-leaf utility, so we declare each opacity ourselves. */
+  .bg-leaf\/5 {
+    background: color-mix(in srgb, var(--c-accent) 5%, transparent);
+  }
+  .bg-leaf\/10 {
+    background: color-mix(in srgb, var(--c-accent) 10%, transparent);
+  }
+  .bg-leaf\/15 {
+    background: color-mix(in srgb, var(--c-accent) 15%, transparent);
+  }
+  .bg-leaf\/20 {
+    background: color-mix(in srgb, var(--c-accent) 20%, transparent);
   }
 
   /* RTL-mirror */

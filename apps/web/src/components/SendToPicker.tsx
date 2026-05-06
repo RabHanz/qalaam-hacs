@@ -88,16 +88,28 @@ interface ChromeCastWindow extends Window {
 const CAST_SDK_URL = 'https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1';
 const DEFAULT_RECEIVER_APP_ID = 'CC1AD845'; // Google Default Media Receiver
 
+// Module-singleton promise — first caller installs `__onGCastApiAvailable`
+// + injects the script tag, every later caller awaits the same promise.
+// Without this, a second caller would replace the global and never fire,
+// because the Cast SDK only invokes `__onGCastApiAvailable` once per page.
+let castSdkPromise: Promise<boolean> | null = null;
+
 function loadCastSdk(): Promise<boolean> {
   if (typeof window === 'undefined') return Promise.resolve(false);
+  if (castSdkPromise) return castSdkPromise;
   const w = window as ChromeCastWindow;
-  if (w.__qalaamCastReady) return Promise.resolve(Boolean(w.cast?.framework));
-  return new Promise<boolean>((resolve) => {
+  if (w.__qalaamCastReady) {
+    castSdkPromise = Promise.resolve(Boolean(w.cast?.framework));
+    return castSdkPromise;
+  }
+  castSdkPromise = new Promise<boolean>((resolve) => {
     w.__onGCastApiAvailable = (available: boolean): void => {
       w.__qalaamCastReady = true;
       resolve(available && Boolean(w.cast?.framework));
     };
-    if (document.querySelector(`script[src="${CAST_SDK_URL}"]`)) return;
+    // Append the script even if a previous attempt left a tag in the
+    // DOM — duplicate tags are harmless, and a stale tag may have
+    // already fired the (now-overwritten) handler.
     const script = document.createElement('script');
     script.src = CAST_SDK_URL;
     script.async = true;
@@ -106,6 +118,7 @@ function loadCastSdk(): Promise<boolean> {
     };
     document.head.appendChild(script);
   });
+  return castSdkPromise;
 }
 
 function detectAirPlay(): boolean {
@@ -132,8 +145,18 @@ export function SendToPicker({ audioRef, currentSrc, haUrl, title, artist }: Pro
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
-  const airplayCapable = detectAirPlay();
-  const castCapable = detectCastCapable();
+  // Capability probes read `window` / `navigator` and so produce
+  // different results on SSR (always false) vs client (variable).
+  // Gate render with a `mounted` flag so the server emits `null` and
+  // the client emits the same `null` on first paint, then upgrades to
+  // the real picker — no hydration mismatch.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const airplayCapable = mounted ? detectAirPlay() : false;
+  const castCapable = mounted ? detectCastCapable() : false;
 
   useEffect(() => {
     if (!open) return;
@@ -244,7 +267,10 @@ export function SendToPicker({ audioRef, currentSrc, haUrl, title, artist }: Pro
     setOpen(false);
   }
 
-  // None of the targets are available — don't render the picker at all.
+  // SSR + first-paint client + truly nothing-available all return null
+  // (capability probes are always false until `mounted`, and once
+  // mounted, if no transport is reachable we still hide the picker).
+  if (!mounted) return null;
   if (!airplayCapable && !castCapable && !haUrl) return null;
 
   return (
@@ -351,13 +377,13 @@ export function SendToPicker({ audioRef, currentSrc, haUrl, title, artist }: Pro
                   </svg>
                 </span>
                 <span className="flex-1">
-                  <span className="text-ink block text-sm font-medium">Cast to TV</span>
+                  <span className="text-ink block text-sm font-medium">Cast</span>
                   <span className="text-ink-muted block text-xs">
                     {!castCapable
-                      ? 'Chrome only'
+                      ? 'Chrome / Edge only'
                       : castAvailable === false
-                        ? 'No Cast devices nearby'
-                        : (castStatus ?? 'Chromecast / Google TV')}
+                        ? 'Cast SDK unavailable'
+                        : (castStatus ?? 'Pick a Chromecast or Google TV')}
                   </span>
                 </span>
               </button>

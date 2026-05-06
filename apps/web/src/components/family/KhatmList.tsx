@@ -99,7 +99,7 @@ export function KhatmList(): ReactNode {
       </header>
 
       {creating ? (
-        <div className="border-hairline bg-paper rounded-2xl border p-6">
+        <div className="border-hairline bg-surface rounded-2xl border p-6">
           <h3
             className="text-ink-strong mb-3 text-base"
             style={{ fontFamily: 'Fraunces, Georgia, serif' }}
@@ -115,7 +115,7 @@ export function KhatmList(): ReactNode {
                 setTitle(e.currentTarget.value);
               }}
               maxLength={120}
-              className="border-hairline focus:border-leaf focus:ring-leaf/30 rounded-lg border bg-white px-3 py-2 text-sm outline-none focus:ring-2"
+              className="border-hairline focus:border-leaf focus:ring-leaf/30 bg-surface rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2"
             />
           </label>
           <fieldset className="mt-3 grid grid-cols-3 gap-2">
@@ -131,7 +131,7 @@ export function KhatmList(): ReactNode {
                   setMode(m);
                 }}
                 className={`rounded-lg border px-2 py-2 text-xs transition-colors ${
-                  mode === m ? 'border-leaf bg-leaf/10 text-leaf-700' : 'border-hairline bg-white'
+                  mode === m ? 'border-leaf bg-leaf/10 text-leaf-700' : 'border-hairline bg-surface'
                 }`}
               >
                 {MODE_LABELS[m]}
@@ -182,7 +182,7 @@ export function KhatmList(): ReactNode {
       {khatms === null ? (
         <p className="text-ink-muted text-sm">Loading…</p>
       ) : khatms.length === 0 ? (
-        <div className="border-hairline bg-paper rounded-2xl border p-8 text-center">
+        <div className="border-hairline bg-surface rounded-2xl border p-8 text-center">
           <p className="text-ink-muted text-sm leading-relaxed">
             No khatms yet. Start one to track your family's reading together.
           </p>
@@ -193,7 +193,7 @@ export function KhatmList(): ReactNode {
             <li key={k.id}>
               <Link
                 href={`/family/khatm/${k.id}`}
-                className="border-hairline hover:border-leaf hover:shadow-sm flex flex-col gap-1 rounded-xl border bg-white p-4 transition-all"
+                className="border-hairline hover:border-leaf bg-surface flex flex-col gap-1 rounded-xl border p-4 transition-all hover:shadow-sm"
               >
                 <div className="flex items-baseline justify-between gap-2">
                   <h3

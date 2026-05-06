@@ -153,7 +153,7 @@ export function KhatmDetail({ khatmId }: Props): ReactNode {
       </header>
 
       <section
-        className="border-hairline bg-paper rounded-2xl border p-6"
+        className="border-hairline bg-surface rounded-2xl border p-6"
         aria-label="Roster + claim controls"
       >
         <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -171,7 +171,7 @@ export function KhatmDetail({ khatmId }: Props): ReactNode {
               className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition-colors ${
                 claimingFor === m.userId
                   ? 'border-leaf bg-leaf/10 text-leaf-700'
-                  : 'border-hairline hover:border-leaf-300 bg-white'
+                  : 'border-hairline hover:border-leaf-300 bg-surface'
               }`}
             >
               <MemberAvatar
@@ -261,7 +261,7 @@ export function KhatmDetail({ khatmId }: Props): ReactNode {
       </section>
 
       <section
-        className="border-hairline bg-paper rounded-2xl border p-6"
+        className="border-hairline bg-surface rounded-2xl border p-6"
         aria-label="Wall display"
       >
         <h3
@@ -276,7 +276,7 @@ export function KhatmDetail({ khatmId }: Props): ReactNode {
         </p>
         <Link
           href={`/family/khatm/${khatmId}/wall`}
-          className="border-hairline hover:border-leaf hover:text-leaf inline-flex items-center gap-1 rounded-lg border bg-white px-4 py-2 text-sm transition-colors"
+          className="border-hairline hover:border-leaf hover:text-leaf bg-surface inline-flex items-center gap-1 rounded-lg border px-4 py-2 text-sm transition-colors"
         >
           Open wall display →
         </Link>

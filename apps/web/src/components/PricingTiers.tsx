@@ -139,7 +139,7 @@ export function PricingTiers(): ReactNode {
         ))}
       </section>
 
-      <section className="border-hairline bg-paper rounded-2xl border p-6 sm:p-8">
+      <section className="border-hairline bg-surface rounded-2xl border p-6 sm:p-8">
         <header className="mb-3">
           <p className="smallcaps text-leaf text-[10px] tracking-[0.22em]">
             Money should not stand between you and the Quran
@@ -179,7 +179,7 @@ export function PricingTiers(): ReactNode {
       </section>
 
       {showUpgradeForm ? (
-        <section className="border-hairline bg-paper rounded-2xl border p-6 sm:p-8">
+        <section className="border-hairline bg-surface rounded-2xl border p-6 sm:p-8">
           <header className="mb-3">
             <p className="smallcaps text-leaf text-[10px] tracking-[0.22em]">
               Request {showUpgradeForm} access
@@ -225,7 +225,7 @@ function TierCard({
   return (
     <article
       aria-label={`${tier.name} tier`}
-      className={`bg-paper relative flex flex-col gap-4 rounded-2xl border p-6 sm:p-7 ${
+      className={`bg-surface relative flex flex-col gap-4 rounded-2xl border p-6 sm:p-7 ${
         tier.highlight
           ? 'border-leaf-300 shadow-[0_24px_48px_-24px_rgba(198,148,38,0.25)]'
           : 'border-hairline'
@@ -269,7 +269,7 @@ function TierCard({
       ) : tier.id === 'free' ? (
         <Link
           href="/signup"
-          className="border-hairline hover:border-leaf hover:text-leaf inline-flex justify-center rounded-lg border bg-white px-4 py-2.5 text-sm font-medium transition-colors"
+          className="border-hairline hover:border-leaf hover:text-leaf bg-surface inline-flex justify-center rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors"
         >
           Create account · Free
         </Link>
@@ -280,7 +280,7 @@ function TierCard({
           className={`inline-flex justify-center rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
             tier.highlight
               ? 'bg-ink hover:bg-ink-strong text-paper'
-              : 'border-hairline hover:border-leaf hover:text-leaf border bg-white'
+              : 'border-hairline hover:border-leaf hover:text-leaf bg-surface border'
           }`}
         >
           Request {tier.name}
@@ -365,7 +365,7 @@ function SupportForm({
             }}
             inputMode="email"
             autoComplete="email"
-            className="border-hairline focus:border-leaf focus:ring-leaf/30 rounded-lg border bg-white px-3 py-2 text-sm outline-none focus:ring-2"
+            className="border-hairline focus:border-leaf focus:ring-leaf/30 bg-surface rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2"
             placeholder="you@example.com"
           />
         </label>
@@ -379,7 +379,7 @@ function SupportForm({
           }}
           rows={4}
           maxLength={4000}
-          className="border-hairline focus:border-leaf focus:ring-leaf/30 rounded-lg border bg-white px-3 py-2 text-sm outline-none focus:ring-2"
+          className="border-hairline focus:border-leaf focus:ring-leaf/30 bg-surface rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2"
           placeholder={placeholder}
         />
       </label>
@@ -417,7 +417,7 @@ function SupportForm({
 
 function SeeAlso(): ReactNode {
   return (
-    <nav aria-label="Related" className="border-hairline bg-paper rounded-2xl border p-6">
+    <nav aria-label="Related" className="border-hairline bg-surface rounded-2xl border p-6">
       <h3
         className="text-ink-strong mb-3 text-sm"
         style={{ fontFamily: 'Fraunces, Georgia, serif' }}
@@ -428,7 +428,7 @@ function SeeAlso(): ReactNode {
         <li>
           <Link
             href="/credits"
-            className="border-hairline hover:border-leaf hover:text-leaf flex flex-col gap-1 rounded-xl border bg-white p-4 transition-colors"
+            className="border-hairline hover:border-leaf hover:text-leaf bg-surface flex flex-col gap-1 rounded-xl border p-4 transition-colors"
           >
             <span
               className="text-ink-strong text-sm"
@@ -444,7 +444,7 @@ function SeeAlso(): ReactNode {
         <li>
           <Link
             href="/family"
-            className="border-hairline hover:border-leaf hover:text-leaf flex flex-col gap-1 rounded-xl border bg-white p-4 transition-colors"
+            className="border-hairline hover:border-leaf hover:text-leaf bg-surface flex flex-col gap-1 rounded-xl border p-4 transition-colors"
           >
             <span
               className="text-ink-strong text-sm"
@@ -460,7 +460,7 @@ function SeeAlso(): ReactNode {
         <li>
           <Link
             href="/hifdh"
-            className="border-hairline hover:border-leaf hover:text-leaf flex flex-col gap-1 rounded-xl border bg-white p-4 transition-colors"
+            className="border-hairline hover:border-leaf hover:text-leaf bg-surface flex flex-col gap-1 rounded-xl border p-4 transition-colors"
           >
             <span
               className="text-ink-strong text-sm"

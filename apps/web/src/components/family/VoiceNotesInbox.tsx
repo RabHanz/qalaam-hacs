@@ -95,7 +95,7 @@ export function VoiceNotesInbox({ currentUserId, members }: Props): ReactNode {
   }
 
   return (
-    <div className="border-hairline bg-paper rounded-2xl border p-6">
+    <div className="border-hairline bg-surface rounded-2xl border p-6">
       <header className="mb-4 flex items-center justify-between">
         <h3 className="text-ink-strong text-lg" style={{ fontFamily: 'Fraunces, Georgia, serif' }}>
           Voice notes &amp; praise
@@ -139,7 +139,7 @@ export function VoiceNotesInbox({ currentUserId, members }: Props): ReactNode {
               <li
                 key={n.id}
                 className={`border-hairline flex items-start gap-3 rounded-xl border p-4 ${
-                  unread ? 'bg-leaf/5' : 'bg-white'
+                  unread ? 'bg-leaf/5' : 'bg-surface'
                 }`}
               >
                 <MemberAvatar

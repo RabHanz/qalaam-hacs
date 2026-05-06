@@ -96,7 +96,7 @@ export function PlanEditor({ assignee, existingPlan, onSaved, onCancel }: Props)
             onChange={(e) => {
               setTitle(e.currentTarget.value);
             }}
-            className="border-hairline focus:border-leaf focus:ring-leaf/30 rounded-lg border bg-white px-3.5 py-2.5 text-sm outline-none focus:ring-2"
+            className="border-hairline focus:border-leaf focus:ring-leaf/30 bg-surface rounded-lg border px-3.5 py-2.5 text-sm outline-none focus:ring-2"
             maxLength={120}
             placeholder="e.g. Memorize Juz Amma by Eid"
           />
@@ -114,7 +114,7 @@ export function PlanEditor({ assignee, existingPlan, onSaved, onCancel }: Props)
               className={`rounded-lg border px-3 py-2.5 text-left transition-colors ${
                 scopeKind === s.value
                   ? 'border-leaf bg-leaf/10 text-leaf-700'
-                  : 'border-hairline hover:border-leaf-300 bg-white'
+                  : 'border-hairline hover:border-leaf-300 bg-surface'
               }`}
             >
               <p className="text-sm font-medium" style={{ fontFamily: 'Fraunces, Georgia, serif' }}>
@@ -140,7 +140,7 @@ export function PlanEditor({ assignee, existingPlan, onSaved, onCancel }: Props)
               onChange={(e) => {
                 setScopeValue(e.currentTarget.value);
               }}
-              className="border-hairline focus:border-leaf focus:ring-leaf/30 rounded-lg border bg-white px-3.5 py-2.5 text-sm outline-none focus:ring-2"
+              className="border-hairline focus:border-leaf focus:ring-leaf/30 bg-surface rounded-lg border px-3.5 py-2.5 text-sm outline-none focus:ring-2"
               placeholder={scopeKind === 'range' ? '1:1-2:286' : scopeKind === 'juz' ? '30' : '36'}
             />
           </label>
@@ -160,7 +160,7 @@ export function PlanEditor({ assignee, existingPlan, onSaved, onCancel }: Props)
               onChange={(e) => {
                 setDailyPages(Number.parseFloat(e.currentTarget.value) || 1);
               }}
-              className="border-hairline focus:border-leaf focus:ring-leaf/30 rounded-lg border bg-white px-3.5 py-2.5 text-sm outline-none focus:ring-2"
+              className="border-hairline focus:border-leaf focus:ring-leaf/30 bg-surface rounded-lg border px-3.5 py-2.5 text-sm outline-none focus:ring-2"
             />
           </label>
           <label className="flex flex-col gap-1.5">
@@ -173,7 +173,7 @@ export function PlanEditor({ assignee, existingPlan, onSaved, onCancel }: Props)
               onChange={(e) => {
                 setTargetDate(e.currentTarget.value);
               }}
-              className="border-hairline focus:border-leaf focus:ring-leaf/30 rounded-lg border bg-white px-3.5 py-2.5 text-sm outline-none focus:ring-2"
+              className="border-hairline focus:border-leaf focus:ring-leaf/30 bg-surface rounded-lg border px-3.5 py-2.5 text-sm outline-none focus:ring-2"
             />
           </label>
         </div>
@@ -188,7 +188,7 @@ export function PlanEditor({ assignee, existingPlan, onSaved, onCancel }: Props)
               setNotes(e.currentTarget.value);
             }}
             rows={2}
-            className="border-hairline focus:border-leaf focus:ring-leaf/30 rounded-lg border bg-white px-3.5 py-2.5 text-sm outline-none focus:ring-2"
+            className="border-hairline focus:border-leaf focus:ring-leaf/30 bg-surface rounded-lg border px-3.5 py-2.5 text-sm outline-none focus:ring-2"
             placeholder="Reciter, time of day, encouragement…"
             maxLength={400}
           />
