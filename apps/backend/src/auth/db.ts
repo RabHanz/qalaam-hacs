@@ -323,6 +323,24 @@ export function authDb(): DB {
     );
     CREATE INDEX IF NOT EXISTS idx_support_kind_ts ON support_requests(kind, ts);
     CREATE INDEX IF NOT EXISTS idx_support_user    ON support_requests(user_id);
+
+    -- J2 — admin/dev panel audit trail. Every admin action (tier
+    -- bump, minor flag toggle, support resolve, etc.) writes a row
+    -- here so we have a tamper-evident log of who-did-what-when. The
+    -- panel surfaces this as a tail-feed.
+    CREATE TABLE IF NOT EXISTS admin_audit (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      ts              TEXT NOT NULL DEFAULT (datetime('now')),
+      actor_user_id   TEXT NOT NULL,    -- admin who took the action
+      action          TEXT NOT NULL,    -- 'user.tier' | 'user.minor' | 'support.resolve' | …
+      target_user_id  TEXT,             -- user the action was on (NULL for system-wide)
+      payload_json    TEXT,             -- before/after, free-form context
+      FOREIGN KEY (actor_user_id)  REFERENCES users(id) ON DELETE SET NULL,
+      FOREIGN KEY (target_user_id) REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_admin_audit_ts          ON admin_audit(ts DESC);
+    CREATE INDEX IF NOT EXISTS idx_admin_audit_actor       ON admin_audit(actor_user_id, ts DESC);
+    CREATE INDEX IF NOT EXISTS idx_admin_audit_target_user ON admin_audit(target_user_id, ts DESC);
   `);
 
   // Soft migration: backfill is_shadow column on users so parents can

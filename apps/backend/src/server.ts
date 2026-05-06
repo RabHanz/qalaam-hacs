@@ -16,6 +16,7 @@ import { errorHandlerPlugin } from './plugins/error-handler.js';
 import { loggerPlugin } from './plugins/logger.js';
 import { healthRoutes } from './routes/health.js';
 import { mcpServerRoutes } from './routes/mcp-server.js';
+import { adminRoutes } from './routes/v1/admin.js';
 import { apiKeysRoutes } from './routes/v1/api-keys.js';
 import { authRoutes } from './routes/v1/auth.js';
 import { bookmarksRoutes } from './routes/v1/bookmarks.js';
@@ -136,6 +137,7 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   // sessions + bookmarks; doesn't touch the read-only qul.sqlite.
   await app.register(authRoutes);
   await app.register(apiKeysRoutes);
+  await app.register(adminRoutes);
   await app.register(bookmarksRoutes);
   // Family-tier (E1/E2/E5/E6) — also on qalaam.sqlite. Mistakes route
   // also reads from qul.sqlite for verse→page lookups.
