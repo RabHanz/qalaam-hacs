@@ -1071,3 +1071,269 @@ in `qalaam_v1_*` tables, then **#203–#206 V4 Tajweed pipeline** as
 the marquee user-visible improvement.
 
 _Maintained alongside `STRATEGY_AND_ROADMAP.md` and `CLAUDE.md`. Updated on every PR that completes or adds a checklist item._
+
+---
+
+### What this session shipped (snapshot 2026-05-06 evening — pre-deployment cycle)
+
+This block records the second pass of the 2026-05-06 session, after the
+QUL ingest in §28 above. All commits are on `main` and 18/18 smoke green.
+
+**Commit chain (six commits, ~9.5K lines, all type-clean + lint-clean):**
+
+```
+5be3cb6 feat(profile,cast): per-user HA URL + multi-strategy Cast (SDK + remote.prompt + origin diagnostic)
+ee77bd0 fix(web): dark-mode visibility + SendToPicker hydration + Cast SDK + theme default
+bd4cb38 feat(billing): H2 — three-tier pricing UI + "I can't afford it" intake
+d3ad383 feat(ha,web): B5 + D4 — HA mushaf-image media-source + Listen-Mode now-playing wire-up
+1036090 feat(family): E1+E2+E5+E6 — family-tier core (plans, mistakes, khatm, voice notes)
+d630368 feat(auth): H1 — production-grade auth foundation (signup/signin/sessions/bookmarks)
+```
+
+**Tasks completed (9 in total):** #192 H1 ▸ #161 A7 ▸ #178 E1 ▸ #179 E2 ▸
+#182 E5 ▸ #183 E6 ▸ #167 B5 ▸ #175 D4 ▸ #193 H2.
+
+#### #192 H1 — Auth foundation (commit `d630368`)
+
+Self-host-friendly, zero-external-deps auth so Qalaam runs on any VPS
+(Dokploy / Hetzner / bare metal) with one SQLite volume mount.
+
+- **Storage**: separate `qalaam.sqlite` (writes) from read-only
+  `qul.sqlite` (Quran data) — single mutable file, trivial to back up.
+  WAL + foreign_keys + busy_timeout pragmas. Schema is idempotent
+  CREATE TABLE for users / sessions / families / family_members /
+  bookmarks / auth_audit on every boot.
+- **Passwords**: Node-built-in scrypt (N=16384, r=8, p=1, 64-byte
+  derived, 64MB maxmem to fit the default Node ceiling).
+  NFKC normalization + `crypto.timingSafeEqual` + 8-256 char range.
+  Format `scrypt$N$r$p$salt-b64$hash-b64`.
+- **Sessions**: 32-byte hex (64-char) opaque token = PRIMARY KEY → O(1)
+  lookup, no per-request hashing. Rolling 30-day expiry — every
+  successful auth bumps `last_used_at` + extends `expires_at` + bumps
+  `user.last_seen_at`. Lazy GC on lookup; `purgeExpiredSessions()`
+  exposed for future cron sweep.
+- **Brute-force defense**: SQL-backed sliding-window throttle (15-min
+  window, 8 fails/email or 20 fails/IP → 429; 12 fails/email →
+  30-min hard lockout). State survives process restarts (vs in-memory
+  leaky-bucket). Throttle check runs **before** password verify to
+  block timing oracles.
+- **Audit log**: every signup / signin_ok / signin_fail / signout /
+  locked event recorded for forensics + future "recent activity"
+  surface.
+- **Cookie**: httpOnly + SameSite=Lax + Path=/ + Secure-in-production
+  via NODE_ENV check. Manual Set-Cookie header (no
+  @fastify/cookie dep).
+- **Auto-Family on signup**: every new user becomes guardian of an
+  auto-created Family + family_members link → unblocks all family-
+  tier features without a separate setup flow.
+- **A7 closes** alongside H1: `/v1/bookmarks` GET (filterable by
+  ?kind=) / GET by-verse / POST / PATCH / DELETE — auth-gated via
+  shared `requireUser` helper; 401/403/404 codes.
+- **Frontend**: `useUser()` hook with module-level cache +
+  `qalaam:auth-changed` window event broadcast. `lib/auth-api.ts`
+  with typed signin/signup/signout. `AuthForm` in editorial-scripture
+  aesthetic. `UserMenu` in SiteNav (skeleton → "Sign in" pill →
+  initial-avatar menu). `/signin` + `/signup` pages.
+
+#### E1+E2+E5+E6 — Family-tier core (commit `1036090`)
+
+Backend (apps/backend/src/auth/db.ts, routes/v1/{family,plans,mistakes,khatm,voice-notes}.ts):
+
+- **5 new tables** on the same `qalaam.sqlite`: `hifdh_plans`,
+  `hifdh_progress`, `mistakes`, `family_khatm`, `family_khatm_pages`,
+  `family_voice_notes` — all FK-CASCADE off the existing users/families
+  chain. ALTER TABLE users ADD COLUMN `is_shadow` + `avatar_color`
+  (idempotent via PRAGMA table_info check).
+- **/v1/family** — get + dashboard + member CRUD. Shadow users let
+  parents add child profiles without separate signins; avatar_color
+  picked from a 6-color palette.
+- **/v1/plans** — CRUD + `/:id/progress`. Validates juz/surah/range/full
+  scope; humanizable error codes per failure mode.
+- **/v1/mistakes** — record, heatmap, by-page, /:id/resolve,
+  resolve-page. Verse→page lookup against qul.sqlite for canonical
+  604-page Madani-15 keying.
+- **/v1/family/khatm** — start, list, get, claim page (mode-validated
+  for sequential / distributed / by-juz), patch, wall (kiosk view).
+  UNIQUE(khatm_id, page_number) so each page is single-claimed across
+  the entire khatm. Auto-finishes when all 604 pages claimed.
+- **/v1/voice-notes** — send (b64 audio + sticker, no multipart dep,
+  4MB cap, audio in `data/voice-notes/`), list inbox/sent/unread,
+  audio stream (auth-gated read), markRead, delete.
+
+Frontend (apps/web/src/lib/family-api.ts, components/family/, app/family/):
+
+- **MemberAvatar** — initial circle, hash-fallback color, surrogate-safe.
+- **MistakeHeatmap** — 31-col warm-paper → terracotta cell grid; click
+  cell → `/mushaf/madinah/N`. Empty + anonymous-quiet states.
+- **PlanEditor** — inline plan editor, humanized errors per code.
+- **StickerPicker** — 6 explicit Islamic phrases (Subhan-Allah,
+  Masha-Allah, Alhamdulillah, Jazak-Allah, Ahsanta, Baraka). Arabic
+  - meaning shown. Adab note: NOT trophy/XP semantics.
+- **VoiceNotesInbox** — inbox/sent tabs, audio playback marks read on
+  first play, sticker rendering, delete.
+- **FamilyDashboard** — orchestrator: ribbon, members tile row, per-
+  member action card, self-heatmap, voice-notes inbox, see-also links.
+- **KhatmList** + **KhatmDetail** + **KhatmWall** — list, 604-cell page
+  grid with per-mode validation, kiosk view (SVG progress arc with
+  gradient, recent stream, 30s auto-refresh, chrome-less for shared
+  device display).
+- **/family**, **/family/khatm**, **/family/khatm/[id]**,
+  **/family/khatm/[id]/wall** routes.
+- **/hifdh** page now embeds `<MistakeHeatmap />` after the leaderboard.
+- **HifzCheckClient** POSTs every mismatched word to `/v1/mistakes`
+  (source='asr', kind='wrong-word') on listening stop. Anonymous
+  recite-and-check still works — 401 silently swallowed.
+- Adab-strict: NO XP, NO trophies, NO leaderboards in this surface.
+  Stickers are explicit Islamic du'a/encouragement.
+
+#### B5 + D4 — HA media-source + Listen Mode now-playing (commit `d3ad383`)
+
+- **B5 (image-mushaf)**: HA media-source split top-level into Recitation
+  - Mushaf images. Mushaf branch resolves
+    `mushaf/<layout>/<page>` → `${PUBLIC_APP_URL}/mushaf-images/<layout>/<page>.png`
+    with mime image/png. Cast/photo-frame players render natively;
+    speaker-only players fall back gracefully (HA filters by
+    supported_features). Backwards compat: legacy `<reciter>/<surah>/<ayah>`
+    identifiers still resolve via implicit `recite/` prefix. Transliteration
+    audio half remains deferred (needs TTS pipeline).
+- **D4 (Listen Mode now-playing)**: MushafPagePlayer POSTs to
+  `/v1/now-playing/web` on every verse change (debounced by verse-key).
+  Speaker_id = "web" — single logical speaker per origin. HA panel +
+  sensors now reflect live current verse without manual coordinator
+  polling. Verified live: POST 204 → GET returns the recorded state.
+
+#### H2 — Three-tier pricing UI + "I can't afford it" (commit `bd4cb38`)
+
+- **Backend**: new `support_requests` table (kind ∈ {cant-afford, upgrade,
+  feedback}, optional target_tier, free-text message, optional user_id,
+  optional email for anonymous). POST `/v1/support` — auth-optional
+  (anonymous "I can't afford it" pre-signup is a legit flow); 4KB
+  message cap; validates email when anonymous; 201 returns insert id.
+  GET `/v1/support/me` — auth-required for self-status.
+- **Frontend**: `/pricing` route. PricingTiers.tsx renders three
+  TierCards (Free / Premium / Pro). Highlight on Premium ("most
+  families"). `bg-leaf-300` shadow, family-private framing on every
+  card. "I can't afford it" form prominently surfaced in its own card —
+  no urgency tricks, no income proof, no countdown. Upgrade CTA on
+  Premium/Pro opens an inline SupportForm POSTing kind=upgrade +
+  target_tier; backend logs for manual follow-up. /pricing added to
+  SiteFooter SECONDARY links.
+- Stripe checkout deferred to deployment commit; manual activation
+  interim from the support_requests table.
+
+#### Bug-fix bundle — dark-mode visibility, hydration, Cast SDK, theme default (commit `ee77bd0`)
+
+User-reported: buttons "barely visible" in dark mode; hydration
+mismatch on /read/1 from SendToPicker; UserMenu webpack runtime
+"Cannot read properties of undefined (reading 'call')"; theme not
+defaulting to light.
+
+- **Visibility**: hand-rolled the Tailwind utilities I'd used but
+  hadn't declared (`text-paper`, `bg-ink-strong`,
+  `hover:bg-ink-strong`, `hover:text-paper`, `bg-leaf/5..20` opacity
+  tints via `color-mix`). Added semantic `.btn-primary` /
+  `.btn-ghost` / `.btn-leaf` / `.btn-link` components that flip via
+  `--c-*` tokens (light: dark-on-cream, dark: white-on-near-black,
+  18:1 contrast both ways). Bulk-replaced `bg-white` and bare
+  `bg-paper` (page-bg) → `bg-surface` (raised-card surface) across
+  PricingTiers + family/\* + Plan/Khatm/StickerPicker/VoiceNotesInbox.
+- **SendToPicker hydration**: capability probes returned different
+  values on SSR vs client (window/navigator missing on server).
+  Added `mounted` state flipped in useEffect; both passes now match
+  → no hydration error.
+- **UserMenu webpack `call` error**: stale `.next` cache from rapid
+  file additions during the session. `rm -rf apps/web/.next/cache`
+  - clean dev restart resolved.
+- **Theme default**: `readStoredTheme()` defaulted to 'system';
+  aligned to 'light'. `useState('light')` matches. Bootstrap script
+  in layout.tsx already defaulted to light pre-paint.
+
+#### Profile/Cast cycle — per-user HA URL + multi-strategy Cast (commit `5be3cb6`)
+
+User-reported: "Cast SDK unavailable" even though Chrome's right-click
+Cast finds devices; HA URL should be settable per-user, gated by tier.
+
+- **Cast root cause**: page loaded over `http://192.168.10.227:3111`
+  (LAN IP). Cast Sender SDK + HTMLMediaElement.remote + Presentation
+  API all silently refuse on `http://<lan-ip>`; only HTTPS or
+  http://localhost works. Chrome's right-click Cast (tab/file
+  mirroring) is a separate native UI with no such restriction.
+- **Multi-strategy click handler**:
+  - Path A: cast.framework loaded → setOptions + requestSession +
+    loadMedia (best fidelity)
+  - Path B: `audio.remote.prompt()` (HTMLMediaElement RemotePlayback) —
+    Chromium's per-element picker, works when SDK didn't initialize
+  - Path C: detect non-Cast-eligible origin and surface "Cast needs
+    HTTPS or localhost — open via http://localhost:3111"
+  - Path D: retry SDK load + recurse
+- `isCastEligibleOrigin()` checks protocol+hostname for accuracy.
+  Cast button no longer disabled when SDK reports unavailable —
+  click triggers the fallback chain. Cancel/abort errors swallowed.
+- **HA URL → user profile**: `users.ha_url` column added (idempotent
+  ALTER). Plumbed through AuthUser/UserRow/findUserBySession +
+  /v1/auth/me payload. PATCH `/v1/auth/me` — `displayName` open to
+  every tier; `haUrl` gated to premium/pro (403
+  qalaam.auth.tier-required). URL parsed via `new URL()`; only
+  http/https accepted, malformed → 400 qalaam.auth.bad-ha-url.
+- **/settings page** (apps/web/src/app/settings/) with SettingsForm:
+  Display name (every tier) + HA URL (locked with "Premium / Pro"
+  badge for free; deep-links to /pricing instead of a hard error).
+  Tier card at the bottom.
+- **UserMenu** links to /settings between Family + Bookmarks.
+- **Player wiring**: ContinuousReaderPlayer (used by /read + /mushaf)
+  - MiniPlayer (used by /listen) both read `useUser().haUrl` instead
+    of env var / window global. Cast / AirPlay / HA now on every
+    recitation surface. SendToPicker HA copy: "Add your HA URL in
+    Settings" (instead of leaking env var name).
+
+#### Updated DEV_CHECKLIST entries
+
+| Row                                | Old → New                                                                                                                                                            |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Per-user plans (kids, parents)     | None → ✅ /v1/plans CRUD + PlanEditor + /family parent dashboard                                                                                                     |
+| Daily parent dashboard             | seed state → ✅ /family with per-child action cards                                                                                                                  |
+| Per-page mistake heatmap           | None → ✅ /v1/mistakes + MistakeHeatmap on /family + /hifdh                                                                                                          |
+| Family halaqah view                | None → ✅ /family/khatm with 604-cell grid + wall mode                                                                                                               |
+| Voice notes + praise stickers      | None → ✅ /v1/voice-notes + StickerPicker + VoiceNotesInbox                                                                                                          |
+| One-tap "I just heard them recite" | None → ✅ HeardThemRecite live on /hifdh                                                                                                                             |
+| Listen Mode (ambient loop)         | "Concept page only" → ✅ MushafPagePlayer POSTs /v1/now-playing/web on every verse change                                                                            |
+| SaaS                               | "no signup / billing / Stripe" → ✅ signup + sessions + bookmarks live; /pricing UI + /v1/support intake. Stripe checkout still pending — manual activation interim. |
+
+#### Pending tasks remaining (priority order, post-deployment)
+
+1. **#174 D3 Offline downloads** — service worker + per-surah/per-juz
+   audio + page caches. Tractable but needs careful in-browser
+   testing — defer until post-deploy.
+2. **#190 G4 More mushaf layouts** — blocked on QUL authenticated
+   re-scrape of resources #236 / #313 / #569 / #570 / #571 (data not
+   in `qul.sqlite` yet).
+3. **#184 F1 Arabic course bodies (Level 1-4)** — content authoring;
+   multi-week.
+4. **#194 H3 Voice cloning v2** — needs GPU container + Habibi-TTS.
+5. **#195 H4 Personal teacher voice cloning (Pro tier)** — needs GPU.
+6. **#191 G5 Mobile native apps (Kotlin + Swift)** — multi-week.
+
+#### Next: deployment cycle (no further development first)
+
+Per user direction: ship the existing surface to production before
+any further development. Deployment scope:
+
+- Dokploy project + app on the `178.156.218.66` Hetzner host (per
+  CLAUDE.md `Sudo Access` + `New Project Setup Checklist` sections).
+- Single SQLite volume mount → `data/{qul.sqlite, qalaam.sqlite,
+voice-notes/}`. NODE_ENV=production flips Secure cookie.
+- DNS: A `qalaam.app` → 178.156.218.66 (proxied via Cloudflare),
+  CNAME www → root. Let's Encrypt cert via Dokploy domain config.
+- `/api/health` already exposed; verify after deploy.
+- Backend env: DATABASE_URL (postgres for QF Tier B token cache only;
+  primary store remains SQLite), QUL_SQLITE_PATH, PUBLIC_API_URL,
+  PUBLIC_APP_URL, NODE_ENV=production.
+- Stripe wiring (H2 close): publishable + secret key; webhook
+  receiver at `/v1/billing/webhook` (TBD); checkout success/cancel
+  redirects.
+- HA panel host distribution: pin a release of
+  `integrations/homeassistant/custom_components/qalaam/` under
+  releases for HACS install path.
+
+Once deployed and live-verified, resume development with #174 D3
+(offline downloads) as the next user-visible improvement.

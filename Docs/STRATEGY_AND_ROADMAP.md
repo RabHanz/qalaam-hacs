@@ -2924,22 +2924,22 @@ family features.
 
 4. **Comprehensive scrape executed** — 1.3 GB across **2,580 staged files** with per-file SHA256 pins:
 
-   | Category | Files | Disk | Coverage |
-   |---|---:|---:|---|
-   | `ayah-theme` | 2 | 104K | ✅ 1/1 (was 0) |
-   | `font` | 30 | 6.8M | ✅ 15/17 (was 2) — V1/V2 single-file fonts 404; V4 page-by-page in 240 |
-   | `morphology` | 12 | 2.9M | ✅ 6/6 |
-   | `mushaf-layout` | 66 | 7.7M | ✅ 11/12 (was 4) — Indopak 9/13/15/16, KFGQPC v1/v2/v4, DigitalKhatt, Qatar, Nastaleeq |
-   | `mutashabihat` | 2 | 48K | ✅ 1/1 |
-   | `quran-metadata` | 32 | 956K | ✅ 8/8 |
-   | `quran-script` | 168 | 20M | ✅ 28/28 — incl. **QPC V1 / V2 / V4 PUA-encoded scripts** |
-   | `recitation` | 532 | 60M | ✅ 133/133 — full segmented + unsegmented recitation catalogue |
-   | `similar-ayah` | 4 | 80K | ✅ 1/1 |
-   | `surah-info` | 36 | 3.7M | ✅ 6/6 — Tamil, Urdu, Indonesian, English, Italian, Malayalam |
-   | `tafsir` | 430 | 576M | ✅ 108/108 — Ibn Kathir AR/EN/UR/BN, Tabari, Qurtubi, Saadi multilingual, Mukhtasar 30+ langs |
-   | `translation` | 1,224 | 323M | ✅ 198/198 — Sahih, Pickthall, Yusuf Ali, Mokhtasar, Maududi, multilingual |
-   | `transliteration` | 40 | 6.9M | ✅ 8/8 |
-   | `ayah-topics` | 0 | — | 🟡 1/1 (HTTP 500 on detail; covered by existing topics ingest) |
+   | Category          | Files | Disk | Coverage                                                                                      |
+   | ----------------- | ----: | ---: | --------------------------------------------------------------------------------------------- |
+   | `ayah-theme`      |     2 | 104K | ✅ 1/1 (was 0)                                                                                |
+   | `font`            |    30 | 6.8M | ✅ 15/17 (was 2) — V1/V2 single-file fonts 404; V4 page-by-page in 240                        |
+   | `morphology`      |    12 | 2.9M | ✅ 6/6                                                                                        |
+   | `mushaf-layout`   |    66 | 7.7M | ✅ 11/12 (was 4) — Indopak 9/13/15/16, KFGQPC v1/v2/v4, DigitalKhatt, Qatar, Nastaleeq        |
+   | `mutashabihat`    |     2 |  48K | ✅ 1/1                                                                                        |
+   | `quran-metadata`  |    32 | 956K | ✅ 8/8                                                                                        |
+   | `quran-script`    |   168 |  20M | ✅ 28/28 — incl. **QPC V1 / V2 / V4 PUA-encoded scripts**                                     |
+   | `recitation`      |   532 |  60M | ✅ 133/133 — full segmented + unsegmented recitation catalogue                                |
+   | `similar-ayah`    |     4 |  80K | ✅ 1/1                                                                                        |
+   | `surah-info`      |    36 | 3.7M | ✅ 6/6 — Tamil, Urdu, Indonesian, English, Italian, Malayalam                                 |
+   | `tafsir`          |   430 | 576M | ✅ 108/108 — Ibn Kathir AR/EN/UR/BN, Tabari, Qurtubi, Saadi multilingual, Mukhtasar 30+ langs |
+   | `translation`     | 1,224 | 323M | ✅ 198/198 — Sahih, Pickthall, Yusuf Ali, Mokhtasar, Maududi, multilingual                    |
+   | `transliteration` |    40 | 6.9M | ✅ 8/8                                                                                        |
+   | `ayah-topics`     |     0 |    — | 🟡 1/1 (HTTP 500 on detail; covered by existing topics ingest)                                |
 
 5. **Inventory documentation refreshed** — `Docs/research/qul-inventory.md` now has §5 (live snapshot dated 2026-05-06) + §6 (per-sub-task action plan with ranked priority).
 
@@ -3033,3 +3033,237 @@ QUL_EMAIL=... QUL_PASSWORD=... \
 ```
 
 Credentials saved to `~/.claude/projects/.../memory/reference_qul_credentials.md`.
+
+---
+
+## §29. SaaS substrate landed — H1 + family-tier + H2 (snapshot 2026-05-06 evening)
+
+This section records the second half of 2026-05-06 — six commits on
+top of §28's QUL substrate. The platform now has the SaaS surfaces
+the strategy doc has been promising: real auth, the family-tier
+features that auth gates, the HA + Listen Mode cross-cutting wiring,
+and the pricing UI with an honest "I can't afford it" path. After
+this we deploy to Dokploy/VPS before resuming development.
+
+### 29.1 Commits + tasks closed
+
+| Commit    | Tasks closed                                   | Lines |
+| --------- | ---------------------------------------------- | ----- |
+| `d630368` | #192 H1 + #161 A7                              | ~1.8K |
+| `1036090` | #178 E1 + #179 E2 + #182 E5 + #183 E6          | ~5.2K |
+| `d3ad383` | #167 B5 + #175 D4                              | ~0.2K |
+| `bd4cb38` | #193 H2                                        | ~0.7K |
+| `ee77bd0` | bug-fix bundle (visibility / hydration / cast) | ~0.3K |
+| `5be3cb6` | per-user HA URL + multi-strategy Cast          | ~0.6K |
+
+Total: 9 task IDs, ~9.5K lines, all type-clean + lint-clean,
+18/18 smoke green.
+
+### 29.2 Auth foundation (#192 H1) — what makes this self-host-friendly
+
+The SaaS thesis (§17) called for "no external auth provider, single
+mountable substrate so the same backend runs on Dokploy/VPS or
+inside an HA add-on." H1 lands that:
+
+- `data/qalaam.sqlite` — separate from read-only `qul.sqlite`.
+  Single mutable file → one Dokploy volume mount.
+- Node-built-in scrypt (N=16384, 64MB maxmem) — zero native-binding
+  deps, runs identically on alpine/aarch64/x86_64.
+- 64-char-hex opaque session token = PRIMARY KEY → O(1) lookup.
+  Rolling 30-day expiry.
+- SQL-backed sliding-window throttle (15-min) — survives restarts
+  behind a load balancer; runs **before** password verify so timing
+  oracles can't leak account existence.
+- Auto-Family on signup → guardian role implicit; family-tier
+  features unblocked without a separate onboarding flow.
+- httpOnly + SameSite=Lax + Secure-in-production cookie. Manual
+  Set-Cookie header so the dependency footprint stays minimal.
+
+### 29.3 Family-tier (E1 + E2 + E5 + E6)
+
+The flywheel from §15 ("Family-private Hifdh accountability + mutual
+encouragement") is now end-to-end on `qalaam.sqlite`:
+
+```
+hifdh_plans  ◄── E2 per-child plan creator + parent dashboard
+   │
+   └─ hifdh_progress  (sabaq | sabqi | manzil | review)
+mistakes     ◄── E1 ASR + parent-mark + self-mark, page-keyed via
+                  qul.sqlite.qalaam_v1_verses.page_madani_15
+family_khatm ◄── E6 multi-user khatm
+   │
+   └─ family_khatm_pages  (UNIQUE on khatm_id, page_number)
+family_voice_notes ◄── E5 audio + sticker, b64 in JSON,
+                         data/voice-notes/<id>.<ext>
+```
+
+Frontend surfaces:
+
+- `/family` — parent dashboard (members tile row, per-child action
+  card with active plan / portions-this-week / open mistakes,
+  self-heatmap, voice-notes inbox)
+- `/family/khatm` — list + start
+- `/family/khatm/[id]` — 31-col page grid; claim per-page; mode-
+  validated for sequential / distributed / by-juz
+- `/family/khatm/[id]/wall` — kiosk view, SVG progress arc, recent
+  contributions stream, 30s auto-refresh, chrome-less for shared TV
+- `MistakeHeatmap` embedded on /hifdh + per-member on /family
+- `HifzCheckClient` POSTs ASR mismatches to `/v1/mistakes` on stop;
+  401 silently swallowed for anonymous
+
+Adab-strict throughout: NO XP, NO trophies, NO leaderboards in this
+surface (existing FamilyLeaderboard predates the adab pass and is
+honest-time leaderboard with explicit ikhlas framing). Stickers are
+6 explicit Islamic phrases (Subhan-Allah / Masha-Allah / Alhamdulillah
+/ Jazak-Allah / Ahsanta / Baraka) with Arabic + meaning; not
+collectibles.
+
+### 29.4 HA + Listen Mode (#167 B5 + #175 D4)
+
+- HA media-source split top-level into Recitation + Mushaf images.
+  Image branch resolves `mushaf/<layout>/<page>` to an absolute
+  PUBLIC_APP_URL/mushaf-images URL with mime image/png. Cast/photo-
+  frame players render natively; speaker-only players gracefully
+  fall back via HA's supported_features filter.
+- MushafPagePlayer POSTs to `/v1/now-playing/web` on every verse
+  change (debounced by verse-key). HA panel + sensors now reflect
+  live current verse without manual coordinator polling.
+- Transliteration audio half of B5 remains deferred (needs TTS
+  pipeline + transliterating reciter — pairs with #194 H3 / #195 H4
+  in the post-deploy GPU bring-up).
+
+### 29.5 Pricing + intake (#193 H2)
+
+Three-tier UI at `/pricing` with intentionally generous Free tier
+(full Mushaf, every translation, recite-and-check, daily Hifdh,
+bookmarks, audio + Cast/AirPlay/HA). Premium gates the family-tier
+features that take ongoing maintenance work. Pro adds voice cloning
+(deferred — H3/H4) + multi-household + per-student weekly reports.
+
+`/v1/support` intake table records:
+
+- `cant-afford` submissions (anonymous OK pre-signup)
+- `upgrade` requests (kind + target_tier + free-text)
+- `feedback`
+
+These let the operator manually activate paid tiers via SQL
+`UPDATE users SET tier='premium' WHERE email = ?` until Stripe
+checkout lands in the deployment commit.
+
+### 29.6 Per-user HA URL + multi-strategy Cast (`5be3cb6`)
+
+Two user-reported issues fixed in one cycle:
+
+- **HA URL ≠ env var**: `users.ha_url` column added; gated to
+  premium/pro via PATCH `/v1/auth/me` (403 qalaam.auth.tier-required).
+  /settings page surfaces it with a "Premium / Pro" badge for free.
+  Players (ContinuousReaderPlayer + MiniPlayer) read `useUser().haUrl`.
+- **Cast "SDK unavailable"**: rewritten to a multi-strategy click
+  handler:
+  - Path A: cast.framework + requestSession + loadMedia (best path)
+  - Path B: HTMLMediaElement.remote.prompt() — Chromium per-element
+    picker, works when SDK didn't init
+  - Path C: detect `http://<lan-ip>` origin and surface "Cast needs
+    HTTPS or localhost — open via http://localhost:3111"
+  - Path D: retry SDK load + recurse
+
+  Root cause was that Cast Sender + remote.prompt + Presentation API
+  all silently refuse on `http://<lan-ip>` origins; only HTTPS or
+  http://localhost work. This affects production too — deployment
+  must serve over HTTPS for Cast to function (Cloudflare in front
+  of Dokploy will give us that).
+
+### 29.7 Visibility + theme defaults (`ee77bd0`)
+
+Tailwind v4 PurgeCSS was dropping utilities I'd used but never
+declared (`text-paper`, `bg-ink-strong`, `hover:*` of hand-rolled
+classes, `bg-leaf/N` opacity tints). Hand-rolled the missing ones in
+globals.css; added semantic `.btn-primary` / `.btn-ghost` / `.btn-leaf`
+that flip via `--c-*` tokens (light: dark-on-cream, dark: white-on-
+near-black, 18:1 contrast both ways). Bulk-replaced literal
+`bg-white` → `bg-surface` so cards lift visibly in both themes.
+
+SendToPicker hydration fixed via `mounted` gate (capability probes
+read window/navigator synchronously → SSR/client mismatch). Theme
+default now `'light'` (was `'system'`) to align the toggle UI with
+the bootstrap script's pre-paint default.
+
+### 29.8 Pending IDs after this session (post-deployment priority)
+
+```
+#174  D3  Offline downloads — service worker + per-surah/per-juz packs
+#190  G4  More mushaf layouts — blocked on QUL auth-scrape of #236/#313/#569/#570/#571
+#184  F1  Quranic Arabic course bodies (Level 1-4) — content authoring, multi-week
+#194  H3  Voice cloning v2 — needs GPU container + Habibi-TTS
+#195  H4  Personal teacher voice cloning (Pro tier) — needs GPU
+#191  G5  Mobile native apps (Kotlin + Swift) — multi-week
+```
+
+Plus the deferred halves:
+
+- B5 transliteration-audio half (pairs with H3/H4)
+- D4 cross-page ambient auto-advance (current commit ships the
+  now-playing wire; cross-page chain is a follow-up)
+- Stripe checkout (pairs with deployment)
+
+### 29.9 Deployment plan (next, before further development)
+
+Per CLAUDE.md `New Project Setup Checklist` + `Sudo Access` sections:
+
+1. **Dokploy project** on Hetzner `178.156.218.66`. App points at the
+   monorepo, builds via the multi-stage Dockerfile pattern in CLAUDE.md.
+2. **Single mountable volume** at `/app/data/`:
+   - `qul.sqlite` (read-only Quran data)
+   - `qalaam.sqlite` (writes — users / sessions / family / etc.)
+   - `voice-notes/` (subdir for E5 audio uploads)
+   - `mushaf-images/` (read-only, 63MB Madani-16 PNGs)
+3. **DNS via Cloudflare**:
+   - A `qalaam.app` → 178.156.218.66 (proxied)
+   - CNAME `www` → `qalaam.app` (proxied)
+4. **Domain on Dokploy**: Let's Encrypt via Traefik. HTTPS gives us
+   secure cookie + Cast SDK eligibility (§29.6).
+5. **Env vars (production)**:
+   - `NODE_ENV=production` → flips Secure cookie
+   - `PUBLIC_API_URL=https://qalaam.app`
+   - `PUBLIC_APP_URL=https://qalaam.app`
+   - `QUL_SQLITE_PATH=/app/data/qul.sqlite`
+   - `QALAAM_AUTH_SQLITE_PATH=/app/data/qalaam.sqlite`
+   - `QALAAM_VOICE_NOTES_DIR=/app/data/voice-notes`
+   - `DATABASE_URL` + `DIRECT_DATABASE_URL` — only used for QF Tier B
+     token cache; Postgres optional, primary store stays SQLite
+   - `REDIS_URL` — optional rate-limit cache (Fastify rate-limit plugin)
+6. **Stripe wiring** (H2 close — second deploy after first is up):
+   `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, checkout success/
+   cancel redirects, `/v1/billing/webhook` receiver.
+7. **HA panel release**: tag a release of
+   `integrations/homeassistant/custom_components/qalaam/` for HACS.
+8. **Verification**: `curl -s https://qalaam.app/api/health | jq`,
+   18/18 smoke against the production domain, signup → /family
+   round-trip, /v1/now-playing visible in HA.
+
+### 29.10 Next-development priorities (post-deploy)
+
+In order of user-value-per-session:
+
+1. **#174 D3 Offline downloads** — service worker + Cache API for
+   `/mushaf-images/`, `/api/v1/qpc-text/`, `/api/v1/audio/`, plus an
+   IndexedDB pack manifest. `/downloads` page with per-surah /
+   per-juz pack picker. Network-first with cache fallback.
+2. **Stripe close-out** — pricing tier enforcement at the API layer;
+   replace manual SQL UPDATE.
+3. **#190 G4 More mushaf layouts** — re-run the QUL auth-scrape
+   with credentials for #236/#313/#569/#570/#571, ingest the layout
+   tables, expose via `LayoutSwitcher`.
+4. **#194 H3 + #195 H4 Voice cloning** — needs a separate
+   `services/tts-worker/` container with GPU; consent + watermark
+   flow on Premium settings page.
+5. **#184 F1 Arabic course bodies** — content authoring; ship Level
+   1 first to validate the pedagogy + lesson framework.
+6. **#191 G5 Mobile native apps** — Kotlin + Swift; both consume the
+   same `/v1/*` HTTP surface so there's no backend work, just
+   client UI.
+
+Once D3 lands the offline story is real (`add to home screen` on iOS
+gives a near-native experience with bundled Quran + audio), and at
+that point the platform is feature-complete for the Hifdh-first
+audience the strategy was written for.
