@@ -69,8 +69,15 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs \
  && adduser  --system --uid 1001 --ingroup nodejs qalaam
 
-# Bring forward only what the runtime needs.
+# Bring forward only what the runtime needs. pnpm's isolated layout
+# stores the actual resolved deps under `/repo/node_modules/.pnpm/`
+# and symlinks them from each workspace package's local node_modules.
+# The backend imports (e.g. `import '@fastify/cors'`) walk from
+# `/app/apps/backend/node_modules` upward, so BOTH the workspace-root
+# `.pnpm/` store AND the per-app symlink dir must travel forward.
+# `--link` preserves symlinks; `cp -a`-style faithful copy.
 COPY --from=build --chown=qalaam:nodejs /repo/node_modules ./node_modules
+COPY --from=build --chown=qalaam:nodejs /repo/apps/backend/node_modules ./apps/backend/node_modules
 COPY --from=build --chown=qalaam:nodejs /repo/packages ./packages
 COPY --from=build --chown=qalaam:nodejs /repo/apps/backend/dist ./apps/backend/dist
 COPY --from=build --chown=qalaam:nodejs /repo/apps/backend/package.json ./apps/backend/package.json
