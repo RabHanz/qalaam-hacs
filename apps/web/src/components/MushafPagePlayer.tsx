@@ -72,6 +72,33 @@ export function MushafPagePlayer({ lines, initialSurah }: Props): ReactNode {
     }
   }
 
+  // Track last verse pushed to /v1/now-playing so we don't spam the
+  // backend with identical state on every word callback.
+  const lastVerseRef = useState<{ vk: string | null }>({ vk: null })[0];
+
+  // Speaker ID for the web app — single logical speaker per origin.
+  // Future: per-tab UUID for multi-tab Listen Mode.
+  const SPEAKER_ID = 'web';
+
+  function pushNowPlaying(verseKey: string, isPlaying: boolean): void {
+    if (lastVerseRef.vk === verseKey && isPlaying) return;
+    lastVerseRef.vk = verseKey;
+    void fetch(`${resolveApiBase()}/v1/now-playing/${SPEAKER_ID}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        speaker_id: SPEAKER_ID,
+        verse_key: verseKey,
+        reciter_slug: reciter,
+        position_ms: 0,
+        is_playing: isPlaying,
+        updated_at: new Date().toISOString(),
+      }),
+    }).catch(() => {
+      /* fire-and-forget — backend may be down on standalone web */
+    });
+  }
+
   // Broadcast active-word events on the window bus so any client
   // sibling (notably <MushafLines/> rendered server-side as a sibling
   // of this player) can paint the active word in gold without us
@@ -83,6 +110,8 @@ export function MushafPagePlayer({ lines, initialSurah }: Props): ReactNode {
       reciterName={reciters.find((r) => r.slug === reciter)?.name.en}
       onHighlight={(h) => {
         window.dispatchEvent(new CustomEvent('qalaam:current-word', { detail: h }));
+        // Verse changed → push to backend so HA panel + sensors see it.
+        if (h?.verseKey) pushNowPlaying(h.verseKey, true);
       }}
       currentSurah={initialSurah}
     />
