@@ -22,6 +22,8 @@ import { useEffect, useState } from 'react';
 import { updateProfile } from '../lib/auth-api.js';
 import { useUser } from '../lib/use-user.js';
 
+import { ApiKeysSection } from './ApiKeysSection.js';
+
 import type { ReactNode } from 'react';
 
 export function SettingsForm(): ReactNode {
@@ -235,6 +237,9 @@ export function SettingsForm(): ReactNode {
         ) : null}
         {haStatus ? <p className="text-leaf-700 mt-3 text-xs">{haStatus}</p> : null}
       </section>
+
+      {/* Programmatic-access keys (Premium / Pro) */}
+      <ApiKeysSection tier={user.tier} />
 
       {/* Tier card */}
       <section className="bg-surface border-hairline rounded-2xl border p-6">
