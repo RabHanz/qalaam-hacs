@@ -113,6 +113,65 @@ Trigger for Phase 2:
 - First household with two active devices (a parent's phone + a kid's iPad) — surfaces the "I want to start on my phone, finish in the kitchen" use case naturally.
 - OR first paying customer (so we can justify the WebSocket infra cost).
 
+## Phase 2.1 — Same-device cross-surface continuity (SHIPPED 2026-05-06)
+
+Phase 2's SSE-based session sync handles the _cross-device_ case for
+authenticated users, but anonymous users (and same-device navigations
+between /listen and /read) need a lighter-weight handoff that doesn't
+require an SSE round-trip. The fix is a small canonical-localStorage
+contract that BOTH players honour:
+
+- `apps/web/src/lib/playback-store.ts` — three keys:
+  - `qalaam-reciter` (slug)
+  - `qalaam-verse-key` ("S:A")
+  - `qalaam-playing` ('1' when audio is actively rolling)
+- `MiniPlayer` (/listen) writes the verse-key on every change, the
+  reciter via `ListenSurfaceClient.pickReciter`, and the playing flag
+  via a tiny effect that mirrors `playing` state.
+- `ContinuousReaderPlayer` (/read) reads the snapshot on mount: if
+  `qalaam-verse-key` falls within the current surah AND `qalaam-playing
+=== '1'`, it auto-resumes at that verse. It then mirrors verse +
+  playing back into the store as the user reads.
+
+User flow this unblocks:
+
+- Start audio on /listen at 5:10 with reciter X. Click Read in nav.
+  /read/5 mounts, finds the snapshot, resumes at 5:10 with reciter X.
+  No silence, no re-tap of play.
+- Browse a surah on /read with continuous playback rolling. Click
+  Listen. /listen mounts, the same verse + reciter are already
+  loaded, the player resumes within ~the URL-fetch round-trip.
+
+This sits BELOW Phase 2 in the architecture: Phase 2's SSE state is
+authoritative when present (active device controls); Phase 2.1
+handles the trivial "same browser, two URLs" case without the
+cloud round-trip.
+
+## Phase 2.2 — Cast routing on /read (SHIPPED 2026-05-06)
+
+Earlier `ContinuousReaderPlayer` only opened a Cast session via
+`SendToPicker.handleCast` and never reloaded media on the receiver
+when the user changed reciter / verse / surah, nor advanced the
+receiver on end-of-track. Symptom: cast worked for one ayah and froze.
+
+Fix: integrate the same `useCast` hook MiniPlayer uses.
+
+- Routing flag is `cast.isConnected` alone (Phase 2's chicken-and-egg
+  fix applies here too — gating on `isMediaLoaded` deadlocks because
+  media is loaded BY us).
+- Every active-bundle URL change pushes to the receiver via
+  `cast.loadMedia(url, { title, artist })` with `autoplay=true`.
+- `cast.onMediaEnded` drives `onEnded()` so cross-surah chaining,
+  sleep timers, and repeat-mode all work on the receiver.
+- Local audio plays muted (volume=0) during cast so the rAF-driven
+  word-by-word highlight loop tracks accurately against the receiver
+  (both stream the same URL — drift is bounded within an ayah).
+- Local audio's `onEnded` is gated by `isCasting` to prevent
+  double-advance.
+
+Manual prev/next at surah boundaries also navigates cross-surah now
+(`/read/N±1?continue=1`) instead of disabling.
+
 ## Phase 3 — HA integration as a peer device (SHIPPED 2026-05-06)
 
 `integrations/homeassistant/custom_components/qalaam/playback_bridge.py`:

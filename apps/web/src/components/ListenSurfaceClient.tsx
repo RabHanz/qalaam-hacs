@@ -12,6 +12,8 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 
+import { readPlaybackSnapshot, writeReciter, writeVerseKey } from '../lib/playback-store.js';
+
 import { MiniPlayer } from './MiniPlayer.js';
 
 import type { ReactNode } from 'react';
@@ -40,9 +42,6 @@ interface Props {
   readonly surahs: readonly SurahMeta[];
 }
 
-const STORE_R = 'qalaam-listen-reciter';
-const STORE_VK = 'qalaam-listen-verse-key';
-
 function arabicNumeral(n: number): string {
   return n
     .toString()
@@ -58,17 +57,17 @@ export function ListenSurfaceClient({ reciters, surahs }: Props): ReactNode {
   const [filter, setFilter] = useState('');
   const [hydrated, setHydrated] = useState(false);
 
-  // Restore + write-through to localStorage
+  // Restore from canonical playback store (shared with /read so the
+  // user's reciter + verse selection carries between the two pages).
   useEffect(() => {
-    try {
-      const r = window.localStorage.getItem(STORE_R);
-      const vk = window.localStorage.getItem(STORE_VK);
-      if (r && reciters.some((x) => x.slug === r)) setActiveReciter(r);
-      if (vk && /^[1-9][0-9]?[0-9]?:[1-9][0-9]?[0-9]?$/.test(vk)) setActiveVerseKey(vk);
-    } catch {
-      /* ignore */
+    const snap = readPlaybackSnapshot();
+    if (snap.reciterSlug && reciters.some((x) => x.slug === snap.reciterSlug)) {
+      setActiveReciter(snap.reciterSlug);
     }
+    if (snap.verseKey) setActiveVerseKey(snap.verseKey);
     setHydrated(true);
+    // Reciters list is stable for the page lifetime; deps left empty
+    // so we restore once on mount and don't re-trigger.
   }, []);
 
   // Listen for cross-component jump-to-verse events (from JumpToPicker)
@@ -78,8 +77,8 @@ export function ListenSurfaceClient({ reciters, surahs }: Props): ReactNode {
       const { surah, ayah } = ce.detail;
       const vk = `${surah.toString()}:${ayah.toString()}`;
       setActiveVerseKey(vk);
+      writeVerseKey(vk);
       try {
-        window.localStorage.setItem(STORE_VK, vk);
         // Reflect the verse-key in the URL hash so the page can be
         // shared/refreshed without losing position. replaceState avoids
         // polluting browser history (the user is just choosing where to
@@ -106,36 +105,18 @@ export function ListenSurfaceClient({ reciters, surahs }: Props): ReactNode {
 
   function pickReciter(slug: string): void {
     setActiveReciter(slug);
-    if (hydrated) {
-      try {
-        window.localStorage.setItem(STORE_R, slug);
-      } catch {
-        /* ignore */
-      }
-    }
+    if (hydrated) writeReciter(slug);
   }
 
   function pickSurah(surah: number): void {
     const vk = `${surah.toString()}:1`;
     setActiveVerseKey(vk);
-    if (hydrated) {
-      try {
-        window.localStorage.setItem(STORE_VK, vk);
-      } catch {
-        /* ignore */
-      }
-    }
+    if (hydrated) writeVerseKey(vk);
   }
 
   function handleVerseKeyChange(next: string): void {
     setActiveVerseKey(next);
-    if (hydrated) {
-      try {
-        window.localStorage.setItem(STORE_VK, next);
-      } catch {
-        /* ignore */
-      }
-    }
+    if (hydrated) writeVerseKey(next);
   }
 
   const filteredSurahs = useMemo(() => {

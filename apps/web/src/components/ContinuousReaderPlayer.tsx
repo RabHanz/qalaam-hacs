@@ -17,9 +17,16 @@
  * the parent renders the actual word highlights by reading
  * { highlightedVerseKey, highlightedWordIndex } from the callback.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
+import {
+  parseVerseKey,
+  readPlaybackSnapshot,
+  writePlaying,
+  writeVerseKey,
+} from '../lib/playback-store.js';
+import { useCast } from '../lib/use-cast.js';
 import { useUser } from '../lib/use-user.js';
 
 import { SendToPicker } from './SendToPicker.js';
@@ -105,6 +112,17 @@ export function ContinuousReaderPlayer({
 }: Props): ReactNode {
   const { user } = useUser();
   const haUrl = user?.haUrl ?? null;
+  // Receiver-side cast session — same hook MiniPlayer uses on /listen.
+  // Routes audio to the user's TV / Chromecast and intercepts verse /
+  // reciter changes so the receiver is always in sync, not stuck on
+  // whatever was playing when the user first cast. Without this, the
+  // chicken-and-egg deadlock from MiniPlayer's history applies here
+  // too (initial cast loads, but no subsequent verse change reaches
+  // the receiver).
+  const cast = useCast();
+  const isCasting = cast.isConnected;
+  const castRef = useRef(cast);
+  castRef.current = cast;
   // The player keeps its own running list of verses so it can chain
   // surahs without unmounting. Starts with the parent-supplied surah's
   // verses and appends the next surah's verses when we reach the end.
@@ -116,8 +134,20 @@ export function ContinuousReaderPlayer({
     setActiveSurah(currentSurah);
   }, [initialVerses, currentSurah]);
 
+  // Surah verse-counts cache — drives cross-surah manual prev/next
+  // (clicking Next at the last verse navigates to the next surah's
+  // first verse instead of going dead). Same data + pattern as
+  // MiniPlayer's surahLengthsRef.
+  const surahLengthsRef = useRef<Map<number, number>>(new Map());
+  const apiBaseRef = useRef<string>('');
+
   // Auto-resume continuous playback on mount if the previous surah's
-  // chain set the qalaam-continue-on-load flag (cross-surah hand-off).
+  // chain set the qalaam-continue-on-load flag (cross-surah hand-off),
+  // OR if the user was actively listening on /listen and navigated here.
+  // The canonical playback store ('qalaam-playing' + 'qalaam-verse-key')
+  // is the cross-page handoff: when /listen had audio rolling and the
+  // user clicks Read, we resume here at the same verse on the same
+  // surah (if the verse-key falls within this surah).
   useEffect(() => {
     if (typeof window === 'undefined') return;
     let shouldResume = false;
@@ -133,12 +163,23 @@ export function ContinuousReaderPlayer({
       url.searchParams.delete('continue');
       window.history.replaceState(null, '', url.toString());
     }
+    // Cross-page handoff from /listen → /read.
+    let resumeIdx = 0;
+    const snap = readPlaybackSnapshot();
+    if (snap.verseKey) {
+      const parsed = parseVerseKey(snap.verseKey);
+      if (parsed?.[0] === currentSurah) {
+        const idx = initialVerses.findIndex((v) => v.verseKey === snap.verseKey);
+        if (idx >= 0) resumeIdx = idx;
+      }
+    }
+    if (snap.isPlaying) shouldResume = true;
     if (shouldResume) {
       window.dispatchEvent(
         new CustomEvent('qalaam:audio-claim', { detail: { source: 'continuous' } }),
       );
       setActive(true);
-      setVerseIdx(0);
+      setVerseIdx(resumeIdx);
     }
     // Restore playback speed if the user picked one previously.
     try {
@@ -244,8 +285,51 @@ export function ContinuousReaderPlayer({
     }
   }, [active, verseIdx, verses, activeSurah]);
   const apiBase = resolveApiBase();
+  apiBaseRef.current = apiBase;
   const lastWordIdxRef = useRef<number>(-1);
   const lastVerseKeyRef = useRef<string>('');
+
+  // Fetch surah verse-counts once on mount + cache. Used by jumpVerse
+  // to cross surah boundaries (clicking Next at the last verse should
+  // navigate to the next surah's first verse, not stop dead).
+  useEffect(() => {
+    const lifecycle = { cancelled: false };
+    void (async () => {
+      try {
+        const res = await fetch(`${apiBaseRef.current}/v1/metadata/surahs`);
+        if (!res.ok) return;
+        const body = (await res.json()) as {
+          data: { surah: number; verseCount: number }[];
+        };
+        if (lifecycle.cancelled) return;
+        const m = new Map<number, number>();
+        for (const s of body.data) m.set(s.surah, s.verseCount);
+        surahLengthsRef.current = m;
+      } catch {
+        /* fallback: cross-surah jump uses bare surah+1 navigation */
+      }
+    })();
+    return () => {
+      lifecycle.cancelled = true;
+    };
+  }, []);
+
+  // Mirror the active verse + playing flag to the canonical playback
+  // store so /listen (and any other player surface) sees where the
+  // user is when they navigate. Keys shared via lib/playback-store.
+  useEffect(() => {
+    if (!active) return;
+    const vk = verses[verseIdx]?.verseKey;
+    if (vk) writeVerseKey(vk);
+  }, [active, verseIdx, verses]);
+  useEffect(() => {
+    writePlaying(active && playing);
+    return () => {
+      // Clearing on unmount could be wrong if we're navigating
+      // between pages while still playing — leave the flag for the
+      // destination page to read, and let the next pause/stop clear it.
+    };
+  }, [active, playing]);
 
   function activeAudio(): HTMLAudioElement | null {
     return activeBuffer === 'A' ? audioARef.current : audioBRef.current;
@@ -378,6 +462,93 @@ export function ContinuousReaderPlayer({
     };
   }, [active, verseIdx, verses, reciterSlug, apiBase, activeBuffer]);
 
+  // ─── Cast routing ───────────────────────────────────────────────
+  // When a cast session is active, push every active-bundle URL change
+  // to the receiver (autoplay=true on the LoadRequest). The local
+  // <audio> elements get paused so the user doesn't hear two tracks.
+  // When local audio is muted/silent, segment timing still ticks
+  // through the rAF loop above, so word-by-word highlighting keeps
+  // working off the local audio's currentTime — close enough to the
+  // receiver for highlights since both play the same source URL.
+  const lastCastSrcRef = useRef<string | null>(null);
+  // Forward-ref to onEnded — declared later in the function body.
+  // Storing it in a ref lets the cast end-of-media subscription call
+  // the latest version without forcing every cast event to re-attach
+  // and without a use-before-declaration error.
+  const onEndedRef = useRef<() => void>(() => undefined);
+  useEffect(() => {
+    if (!isCasting || !active) return;
+    const bundle = activeBuffer === 'A' ? bundleA : bundleB;
+    const url = bundle?.url ?? null;
+    if (!url) return;
+    if (lastCastSrcRef.current === url) return;
+    lastCastSrcRef.current = url;
+    // Mute local audio (don't pause) so its currentTime keeps ticking
+    // and the rAF-driven word-by-word highlight loop above stays in
+    // sync with the receiver. Both streams play the same URL — the
+    // user only hears the receiver but sees real-time word highlights
+    // that match the audio they hear within ~one segment of accuracy.
+    if (audioARef.current) audioARef.current.volume = 0;
+    if (audioBRef.current) audioBRef.current.volume = 0;
+    const vk = verses[verseIdx]?.verseKey ?? '';
+    const title = `${reciterName ?? reciterSlug} · ${vk}`;
+    const artist = reciterName ?? reciterSlug;
+    void castRef.current.loadMedia(url, { title, artist });
+  }, [
+    isCasting,
+    active,
+    activeBuffer,
+    bundleA,
+    bundleB,
+    verses,
+    verseIdx,
+    reciterName,
+    reciterSlug,
+  ]);
+
+  // Receiver finished an ayah — advance to the next, which triggers
+  // the bundle-load effect above to push the new src to the receiver.
+  useEffect(() => {
+    if (!isCasting) return;
+    const off = cast.onMediaEnded(() => {
+      // Reuse the same end-of-track logic as local audio so cross-surah
+      // chaining + sleep timer + repeat mode all behave identically.
+      onEndedRef.current();
+    });
+    return off;
+  }, [isCasting, cast]);
+
+  // Reset the cast-src memo when leaving the session so re-engaging
+  // works (without this, the same URL is treated as already-loaded
+  // and the receiver doesn't restart).
+  const wasCastingRef = useRef(isCasting);
+  useEffect(() => {
+    const wasCasting = wasCastingRef.current;
+    wasCastingRef.current = isCasting;
+    if (wasCasting && !isCasting) {
+      lastCastSrcRef.current = null;
+      // Restore local volume — the cast effect set it to 0 to mute
+      // the local stream while the receiver played.
+      if (audioARef.current) audioARef.current.volume = 1;
+      if (audioBRef.current) audioBRef.current.volume = 1;
+      // Cast just ended → keep playback continuous on local audio so
+      // the user doesn't hit dead silence.
+      if (active) {
+        const a = activeAudio();
+        if (a && a.readyState >= 2) {
+          void Promise.resolve(a.play()).then(
+            () => {
+              setPlaying(true);
+            },
+            () => {
+              setPlaying(false);
+            },
+          );
+        }
+      }
+    }
+  }, [isCasting, active]);
+
   function toggle(): void {
     if (active) {
       setActive(false);
@@ -385,6 +556,10 @@ export function ContinuousReaderPlayer({
       onHighlight(null);
       audioARef.current?.pause();
       audioBRef.current?.pause();
+      // Pause the receiver too so cast doesn't keep playing past
+      // the user's intent. Stop short of endSession — the user can
+      // resume on this device or take over from another device.
+      if (isCasting) cast.pause();
       return;
     }
     // Resume from the last-played verse if the user has listened to a
@@ -630,10 +805,69 @@ export function ContinuousReaderPlayer({
       setPlaying(false);
     }
   }
+  // Keep the cast end-of-media subscriber pointed at the latest
+  // onEnded closure (which closes over verseIdx + verses + sleepTimer
+  // + repeatMode etc).
+  onEndedRef.current = onEnded;
 
-  function jumpVerse(direction: 1 | -1): void {
-    setVerseIdx((i) => Math.max(0, Math.min(verses.length - 1, i + direction)));
-  }
+  // Manual prev/next that mirrors MiniPlayer's advance: at surah
+  // boundaries, navigate to the adjacent surah instead of going
+  // dead. Forward at last verse → /read/N+1?continue=1. Backward at
+  // first verse → /read/N-1 + last-played map seeded to the previous
+  // surah's last verse so the resume picks up there.
+  const jumpVerse = useCallback(
+    (direction: 1 | -1): void => {
+      const verseCount = verses.length;
+      // Same-surah: simple buffer swap + index bump.
+      if (direction === 1 && verseIdx + 1 < verseCount) {
+        setActiveBuffer((b) => (b === 'A' ? 'B' : 'A'));
+        setVerseIdx((i) => i + 1);
+        return;
+      }
+      if (direction === -1 && verseIdx > 0) {
+        setActiveBuffer((b) => (b === 'A' ? 'B' : 'A'));
+        setVerseIdx((i) => i - 1);
+        return;
+      }
+      // Cross-surah forward — navigate to next surah at ayah 1.
+      if (direction === 1 && activeSurah < 114) {
+        try {
+          window.localStorage.setItem('qalaam-continue-on-load', '1');
+          const nextVk = `${(activeSurah + 1).toString()}:1`;
+          writeVerseKey(nextVk);
+        } catch {
+          /* ignore */
+        }
+        const path = window.location.pathname;
+        const mushafMatch = /^\/mushaf\/([^/]+)\//.exec(path);
+        if (mushafMatch) {
+          const layout = mushafMatch[1] ?? 'madinah';
+          const nextVk = `${(activeSurah + 1).toString()}:1`;
+          window.location.href = `/mushaf/${layout}/page-for/${encodeURIComponent(nextVk)}?continue=1`;
+        } else {
+          window.location.href = `/read/${(activeSurah + 1).toString()}?continue=1`;
+        }
+        return;
+      }
+      // Cross-surah backward — navigate to previous surah's last ayah.
+      if (direction === -1 && activeSurah > 1) {
+        const prevSurah = activeSurah - 1;
+        const lastAyah = surahLengthsRef.current.get(prevSurah);
+        const prevVk = `${prevSurah.toString()}:${(lastAyah ?? 1).toString()}`;
+        try {
+          window.localStorage.setItem('qalaam-continue-on-load', '1');
+          writeVerseKey(prevVk);
+        } catch {
+          /* ignore */
+        }
+        window.location.href = `/read/${prevSurah.toString()}?continue=1`;
+        return;
+      }
+      // At absolute boundaries (1:1 going back, 114:end going forward),
+      // do nothing — we're at the edge of the mushaf.
+    },
+    [verses.length, verseIdx, activeSurah],
+  );
 
   const currentVerseKey = verses[verseIdx]?.verseKey ?? '';
 
@@ -670,6 +904,11 @@ export function ContinuousReaderPlayer({
         if (buffer === activeBuffer) setPlaying(false);
       },
       onEnded: (): void => {
+        // While casting the receiver is authoritative — its
+        // onMediaEnded subscription drives advance(). The local
+        // (muted) audio finishing first must NOT also advance, or
+        // we'd skip every other ayah.
+        if (isCasting) return;
         if (buffer === activeBuffer) onEnded();
       },
     };

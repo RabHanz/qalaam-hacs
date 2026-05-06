@@ -15,6 +15,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
+import { writePlaying, writeVerseKey } from '../lib/playback-store.js';
 import { useCast } from '../lib/use-cast.js';
 import { usePlaybackSession } from '../lib/use-playback-session.js';
 import { useUser } from '../lib/use-user.js';
@@ -152,6 +153,24 @@ export function MiniPlayer({
     };
   }, [apiBase]);
 
+  // Auto-resume — if the user was playing on /read (or another page)
+  // when they navigated to /listen, the canonical playback flag is
+  // set. Arm `shouldResumeRef` so the URL-resolve effect kicks
+  // playback off as soon as the audio URL lands. Browsers gate
+  // autoplay behind a user gesture, but the click on the nav link
+  // counts as one — so this works in practice on first navigation.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (window.localStorage.getItem('qalaam-playing') === '1') {
+        shouldResumeRef.current = true;
+      }
+    } catch {
+      /* ignore */
+    }
+    // Mount-only — we don't want to re-arm resume during the session.
+  }, []);
+
   // Broadcast highlight while playing — any listener (AyahCard, etc.)
   // can subscribe to qalaam:highlight and paint the matching word.
   useEffect(() => {
@@ -192,6 +211,16 @@ export function MiniPlayer({
       cancelAnimationFrame(raf);
     };
   }, [playing, verseKey]);
+
+  // Mirror canonical playback state to localStorage so the OTHER
+  // player surface (ContinuousReaderPlayer on /read) can pick up
+  // where we left off when the user navigates between pages.
+  useEffect(() => {
+    writeVerseKey(verseKey);
+  }, [verseKey]);
+  useEffect(() => {
+    writePlaying(playing);
+  }, [playing]);
 
   // Resolve audio URL + segments whenever (verseKey, reciter) changes,
   // and broadcast the current word so any listener (e.g. an AyahCard
