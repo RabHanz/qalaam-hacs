@@ -14,6 +14,7 @@
  *   - Surah picker as a long, restrained list — like a table of contents,
  *     not a card grid
  */
+import { cookies } from 'next/headers';
 import Link from 'next/link';
 
 import {
@@ -25,6 +26,7 @@ import {
 } from '../components/Glyph.js';
 import { HijriNudge } from '../components/HijriNudge.js';
 import { SiteNav } from '../components/SiteNav.js';
+import { TodaySurface } from '../components/today/TodaySurface.js';
 
 import type { ReactNode } from 'react';
 
@@ -47,6 +49,28 @@ async function fetchSurahs(baseUrl: string): Promise<readonly Surah[]> {
   }
 }
 
+interface AuthMe {
+  id: string;
+  email: string;
+  displayName: string | null;
+  tier: string;
+}
+
+async function fetchAuthMe(baseUrl: string, cookieHeader: string): Promise<AuthMe | null> {
+  if (!cookieHeader) return null;
+  try {
+    const res = await fetch(`${baseUrl}/v1/auth/me`, {
+      headers: { cookie: cookieHeader },
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { user: AuthMe | null };
+    return body.user;
+  } catch {
+    return null;
+  }
+}
+
 // Always render per-request — the backend is on the Docker network at
 // http://qalaam-backend:4111 and ISN'T running during `next build`,
 // so static generation would bake empty/null data. Per-request
@@ -55,7 +79,32 @@ export const dynamic = 'force-dynamic';
 
 export default async function HomePage(): Promise<ReactNode> {
   const baseUrl = process.env.PUBLIC_API_URL ?? 'http://localhost:4111';
-  const surahs = await fetchSurahs(baseUrl);
+  const cookieHeader = (await cookies()).toString();
+  const [surahs, me] = await Promise.all([
+    fetchSurahs(baseUrl),
+    fetchAuthMe(baseUrl, cookieHeader),
+  ]);
+
+  // Authenticated visitors get the editorial "Today" surface up top —
+  // verse of the day, next prayer, continue-where-you-left-off, hifdh
+  // queue. The hero / index sections still render below for navigation.
+  if (me) {
+    return (
+      <>
+        <SiteNav />
+        <TodaySurface
+          displayName={me.displayName ?? me.email.split('@')[0] ?? null}
+          apiBase={baseUrl}
+          surahs={surahs}
+        />
+        <section className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+          <HijriNudge />
+        </section>
+        <SurahIndex surahs={surahs} />
+        <HomeFooter />
+      </>
+    );
+  }
 
   return (
     <>
@@ -273,6 +322,88 @@ export default async function HomePage(): Promise<ReactNode> {
         </div>
       </footer>
     </>
+  );
+}
+
+function SurahIndex({ surahs }: { surahs: readonly Surah[] }): ReactNode {
+  return (
+    <section className="border-hairline border-b">
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-20">
+        <div className="mb-8 grid items-baseline gap-6 sm:mb-12 md:grid-cols-12">
+          <div className="md:col-span-4">
+            <p className="smallcaps text-leaf text-[11px] tracking-widest">Index · فِهْرِس</p>
+            <h2 className="font-display mt-3 text-3xl font-light tracking-tight sm:text-4xl">
+              The 114 surahs
+            </h2>
+          </div>
+          <p className="text-ink-muted text-sm leading-relaxed sm:text-base md:col-span-8">
+            All 6,236 verses, sourced from the Quranic Universal Library. Tap any surah to read in
+            full, or jump to deep study for a single verse with translations, tafsir, word-by-word,
+            and the mutashabihat watchlist.
+          </p>
+        </div>
+        {surahs.length === 0 ? (
+          <p className="paper-card text-ink-muted p-8 text-center text-sm">
+            We couldn’t reach the mushaf right now — please refresh in a moment.
+          </p>
+        ) : (
+          <ul className="bg-paper-200/50 grid gap-px sm:grid-cols-2 md:grid-cols-3">
+            {surahs.map((s) => (
+              <li key={s.surah}>
+                <Link
+                  href={`/read/${s.surah.toString()}`}
+                  className="bg-paper hover:bg-paper-100 group flex items-baseline justify-between gap-4 px-5 py-4 transition-colors"
+                >
+                  <div className="flex min-w-0 items-baseline gap-4">
+                    <span className="smallcaps text-ink-muted w-6 shrink-0 font-mono text-xs tabular-nums">
+                      {s.surah.toString().padStart(3, '0')}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-display text-ink group-hover:text-leaf truncate text-lg leading-tight transition-colors">
+                        {s.nameEnglish}
+                      </p>
+                      <p className="text-ink-muted text-xs">
+                        {s.verseCount.toString()} verses · {s.revelationPlace}
+                      </p>
+                    </div>
+                  </div>
+                  <span
+                    dir="rtl"
+                    className="font-arabic text-ink-strong shrink-0 text-2xl"
+                    style={{ lineHeight: 1, unicodeBidi: 'plaintext' }}
+                  >
+                    {s.nameArabic}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function HomeFooter(): ReactNode {
+  return (
+    <footer className="mx-auto max-w-6xl px-6 py-12">
+      <div className="rule-hairline" />
+      <div className="text-ink-muted mt-6 flex flex-wrap items-baseline justify-between gap-3 text-xs">
+        <p>
+          Quranic text via{' '}
+          <a
+            href="https://qul.tarteel.ai"
+            className="text-leaf underline-offset-4 hover:underline"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Quranic Universal Library
+          </a>{' '}
+          · Tarteel AI · MIT
+        </p>
+        <p className="smallcaps">v0 · qalaam</p>
+      </div>
+    </footer>
   );
 }
 
