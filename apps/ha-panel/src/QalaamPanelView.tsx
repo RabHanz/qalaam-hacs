@@ -41,6 +41,13 @@ export interface HassLike {
 interface QalaamPanelViewProps {
   readonly hass: HassLike | undefined;
   readonly narrow: boolean;
+  /** Standalone Qalaam web app origin — supplied by the HA component
+   *  via `panel.config.qalaam.web_url` (default `https://qalaam.app`).
+   *  All "Open Qalaam →" buttons window.open this + a path so the user
+   *  leaves HA into the actual web app. `?: string | undefined` (rather
+   *  than `?: string`) is required for exactOptionalPropertyTypes — the
+   *  caller passes `string | undefined` directly. */
+  readonly webUrl?: string | undefined;
 }
 
 const T = {
@@ -517,7 +524,19 @@ function isPrayerImminent(iso: string): boolean {
   }
 }
 
-export function QalaamPanelView({ hass, narrow }: QalaamPanelViewProps): preact.VNode {
+export function QalaamPanelView({ hass, narrow, webUrl }: QalaamPanelViewProps): preact.VNode {
+  // Default web URL when the HA component hasn't yet supplied one — happens
+  // briefly on first panel mount before the registration data hydrates,
+  // and forever for users who haven't upgraded the integration yet.
+  const trimmed = webUrl?.trim();
+  const resolvedWebUrl = trimmed && trimmed.length > 0 ? trimmed : 'https://qalaam.app';
+  const openQalaam = (path: string): void => {
+    const sep = path.startsWith('/') ? '' : '/';
+    const target = `${resolvedWebUrl.replace(/\/+$/, '')}${sep}${path}`;
+    if (typeof window !== 'undefined') {
+      window.open(target, '_blank', 'noopener,noreferrer');
+    }
+  };
   const e = useMemo(() => {
     return {
       currentVerse: findEntity(hass, 'sensor.qalaam_current_verse'),
@@ -607,7 +626,7 @@ export function QalaamPanelView({ hass, narrow }: QalaamPanelViewProps): preact.
                 type="button"
                 class="qalaam secondary"
                 onClick={() => {
-                  navigateToFrontend(`/topics/${topicSlug}`);
+                  openQalaam(`/topics/${topicSlug}`);
                 }}
               >
                 Read every verse on this topic →
@@ -732,7 +751,7 @@ export function QalaamPanelView({ hass, narrow }: QalaamPanelViewProps): preact.
               type="button"
               class="qalaam secondary"
               onClick={() => {
-                navigateToFrontend('/qalaam');
+                openQalaam('/qalaam');
               }}
             >
               Open Qalaam →
@@ -741,7 +760,7 @@ export function QalaamPanelView({ hass, narrow }: QalaamPanelViewProps): preact.
               type="button"
               class="qalaam secondary"
               onClick={() => {
-                navigateToFrontend('/mushaf/tajweed/1');
+                openQalaam('/mushaf/tajweed/1');
               }}
             >
               Open tajweed mushaf →
@@ -813,7 +832,9 @@ function callQalaamService(
   ).callService?.('qalaam', service, data);
 }
 
-function navigateToFrontend(path: string): void {
-  // HA frontend uses history-API navigation; window.location works as a fallback.
-  if (typeof window !== 'undefined') window.history.pushState({}, '', path);
-}
+/* The in-component openQalaam helper near the top of QalaamPanelView
+ * is the active one — it closes over `resolvedWebUrl` (panel.config.qalaam.web_url
+ * or the default https://qalaam.app) and uses window.open(... '_blank') so
+ * the HA panel cleanly hands the user off to the standalone web app
+ * instead of trying to push window.history at the HA frontend (which is
+ * already serving us at /qalaam, making any same-origin pushState a no-op). */
