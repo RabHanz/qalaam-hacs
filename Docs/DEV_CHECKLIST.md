@@ -1372,6 +1372,60 @@ for `RabHanz/the-margin`) is also installed on `RabHanz/qalaam`.
 **Going forward: push to `main` triggers autoDeploy.** The webhook
 fires the build + deploy without any manual step.
 
+##### Production layers — modular upgrade plan
+
+Every layer below has three columns: what's running now, the
+trigger that promotes it to the next tier, and the eventual
+end-state when scale demands it. Modular by design — we upgrade
+one layer at a time, never preemptively.
+
+| Layer                        | Now (2026-05-06)                                                                 | Next (trigger)                                                                    | Later (end-state)                                              |
+| ---------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| **L1 — Edge / CDN**          | Cloudflare DNS un-proxied → Hetzner direct                                       | First 100 active users → flip CF orange-cloud ON (free CDN edge)                  | R2 + Workers when >300 GB static or audio self-hosted          |
+| **L2 — Compute**             | Single Hetzner CCX23 shared w/ Margin + SignzArt                                 | Sustained 50% CPU on Qalaam containers → dedicated CCX33                          | Multi-region when EU + US paid customers > 1k                  |
+| **L3 — Storage (data)**      | Docker named volumes on host (qul + qalaam + mushaf)                             | qalaam.sqlite > 5 GB → Hetzner Volume (block, snapshot-able)                      | R2 + RDS-style replicas when shared-row writes need it         |
+| **L4 — Database**            | SQLite (qul read-only + qalaam writes), per ADR-0023                             | Sustained 100 writes/sec OR multi-host replicas → Postgres switchover             | Read replicas + WAL streaming, see ADR-0023 migration triggers |
+| **L5 — Backups**             | NONE for qalaam.sqlite (host-loss = data-loss)                                   | First paying household → nightly `sqlite3 .backup` → R2 + 30-day retention        | PITR via Postgres WAL streaming after L4 switchover            |
+| **L6 — Logs**                | Pino → stdout → docker logs (no aggregation)                                     | First incident → Grafana Cloud free tier OR Loki on host                          | Centralized OTel + structured tracing per request              |
+| **L7 — Errors**              | None captured                                                                    | First public user → Sentry free tier (5k events/mo)                               | Paid Sentry tier with replay + perf monitoring                 |
+| **L8 — Auth**                | Cookie sessions (custom, in qalaam.sqlite)                                       | First abuse signal → per-IP signin throttle + audit log                           | WebAuthn / passkeys for Premium+ accounts                      |
+| **L9 — Email (transac.)**    | NONE — no signup/reset/family-invite emails yet                                  | Auth opens to public → Resend free (100/day) for password reset + invites         | SES + DKIM when >3 k/day                                       |
+| **L10 — Audio (reciters)**   | Proxied external (everyayah.com, quran.com) per ADR-0002                         | First offline-pack premium user → self-host top-3 reciters in R2 (~30 GB)         | All 50+ reciters in R2 + on-demand transcoding                 |
+| **L11 — CI/CD**              | GitHub push → Dokploy webhook → docker compose up                                | First production rollback → smoke-test gate before swap                           | Blue/green or canary when first paying customer                |
+| **L12 — Secrets**            | `.env.secrets` (gitignored) + Dokploy env                                        | First key-rotation incident → Dokploy Vault built-in                              | HashiCorp Vault when multi-team                                |
+| **L13 — TLS / proxy**        | Cloudflare DNS un-proxied + Traefik Let's Encrypt                                | After CF orange-cloud flip → set CF SSL Mode = Full (Strict)                      | Dedicated domain (qalaam.app) once moved off margin subdomain  |
+| **L14 — Cost tracking**      | Untracked (rolled into Margin's CCX23 cost)                                      | First Pro-tier paid sub → break out per-tenant CPU/RAM/disk attribution           | Stripe metering tied to actual usage when usage-priced         |
+| **L15 — Compliance**         | Privacy boundary ADR-0005 only; no public surface                                | First paying customer → publish privacy.md + terms.md                             | GDPR data-export / delete + DPA when first EU enterprise       |
+| **L16 — Voice notes UGC**    | `/app/data/voice-notes/` on the qalaam-data volume                               | Volume hits 5 GB → R2 + signed URLs + per-household quota                         | Object-storage with retention policy + CDN delivery            |
+| **L17 — Disaster recovery**  | qul.sqlite re-seedable from `data/qul-source/` ingest                            | First incident → documented host-rebuild runbook + RTO target                     | Multi-region backup + auto-failover                            |
+| **L18 — Performance budget** | Untracked                                                                        | First user complaint → set TTFB targets (<500 ms p95 /, <200 ms p95 /api)         | RUM (Real User Monitoring) once paid users                     |
+| **L19 — Anti-abuse**         | Per-IP rate limit 6000/min (Fastify rate-limit plugin)                           | First abuse incident → per-account caps on premium routes                         | WAF (Cloudflare or Traefik plugin) for sustained abuse         |
+| **L20 — Static assets**      | Baked into web image (142 MB fonts + 540 KB CSS) + 57 MB mushaf-images on volume | When first asset version-bump triggers a 142 MB image rebuild → split fonts to R2 | Full asset CDN with content-hash invalidation                  |
+
+##### Tracked upgrade tasks (queued, modular triggers)
+
+These are explicitly **not on the active sprint** — each fires when
+its trigger hits. Logged here so the next maintainer doesn't
+rediscover them under pressure:
+
+- **#219 K1.** Flip Cloudflare orange-cloud ON for `qalaam.themarginapp.com` (L1) — trigger: first 100 active users.
+- **#220 K2.** Nightly SQLite backup → R2 (L5) — trigger: first paying household.
+- **#221 K3.** Sentry free tier wire-up (L7) — trigger: public auth opens.
+- **#222 K4.** Resend transactional email (L9) — trigger: signup / family-invite goes live.
+- **#223 K5.** Self-host top-3 reciters on R2 (L10) — trigger: first offline-pack premium user (post-#174 D3).
+- **#224 K6.** Smoke-test gate in autoDeploy (L11) — trigger: first prod rollback or any deploy that breaks `/healthz` for >2 min.
+- **#225 K7.** privacy.md + terms.md (L15) — trigger: first paying customer.
+- **#226 K8.** Voice notes → R2 (L16) — trigger: qalaam-data volume hits 5 GB.
+- **#227 K9.** Host-rebuild runbook (L17) — trigger: first incident.
+- **#228 K10.** Static-asset version + CDN split (L20) — trigger: image rebuild on font version-bump > 30 s.
+
+**Anti-pattern guard:** None of the L_n upgrades ship until its
+trigger fires. Per CLAUDE.md §6 (Build for the foundation, not the
+demo) AND production rules #1 (ship complete or defer): a
+half-shipped CDN integration is worse than no CDN. When a trigger
+fires, the entire layer upgrades end-to-end with documentation in
+the same commit.
+
 #### Future: Margin × Qalaam integration track (Q3+ research → product)
 
 Tracked separately as a new programme since Margin is its own

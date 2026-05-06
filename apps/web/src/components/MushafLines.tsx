@@ -193,13 +193,22 @@ export function MushafLines({
       // "isolated presentation forms" the user reported on first
       // tajweed page load. We only need to verify the unique fonts
       // referenced by this page's verses (typically 1-2 page fonts).
+      //
+      // If ANY of the page fonts fail to load (e.g. 404 on a missing
+      // woff2), bail out entirely — leaving the V4 map empty falls
+      // through to the CSS-overlay tajweed render, which uses plain
+      // Unicode text + colored spans and can NEVER paint PUA. That's
+      // the only safe behaviour: PUA codepoints in a non-V4 font are
+      // always gibberish; better to paint coloured Unicode than to
+      // paint anything in the fallback.
       const uniqueFonts = new Set<string>();
       for (const v of v4Next.values()) {
         if (v.fontFamily) uniqueFonts.add(v.fontFamily);
       }
-      await Promise.all(Array.from(uniqueFonts).map((f) => ensureQpcV4Font(f)));
+      const fontsReady = await Promise.all(Array.from(uniqueFonts).map((f) => ensureQpcV4Font(f)));
+      const allFontsLoaded = fontsReady.every((ok) => ok);
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- mutated by the cleanup closure on unmount.
-      if (!cancelled) setQpcV4ByVerse(v4Next);
+      if (!cancelled && allFontsLoaded) setQpcV4ByVerse(v4Next);
     })();
     return () => {
       cancelled = true;
