@@ -26,7 +26,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
 import { SILENT_MARK_REGEX } from '../lib/arabic-render.js';
-import { loadTajweedCss } from '../lib/load-tajweed-css.js';
+import { ensureQpcV4Font, loadTajweedCss } from '../lib/load-tajweed-css.js';
 import { fetchQpcV4, isTajweedLayout, type QpcV4Verse } from '../lib/qpc-v4.js';
 import { applyTajweed, fetchTajweed, type TajweedAnnotation } from '../lib/tajweed.js';
 
@@ -164,7 +164,7 @@ export function MushafLines({
   // is what fixed the page sluggishness + STATUS_BREAKPOINT crashes.
   useEffect(() => {
     if (!isTajweedLayout(layoutSlug)) return;
-    loadTajweedCss();
+    void loadTajweedCss();
     const apiBase = resolveApiBase();
     const verseKeys = new Set<string>();
     for (const line of lines) {
@@ -182,11 +182,24 @@ export function MushafLines({
           v4Next.set(vk, v4);
         }),
       );
+      // Surface CSS-overlay tajweed annotations immediately — those
+      // operate on plain Unicode text and never produce gibberish.
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- mutated by the cleanup closure on unmount.
-      if (!cancelled) {
-        setTajweedByVerse(tajNext);
-        setQpcV4ByVerse(v4Next);
+      if (!cancelled) setTajweedByVerse(tajNext);
+
+      // For V4 PUA, WAIT for the per-page COLR fonts to load before
+      // exposing PUA spans — otherwise U+FC41-FC64 codepoints render
+      // with the system Arabic fallback, producing the gibberish
+      // "isolated presentation forms" the user reported on first
+      // tajweed page load. We only need to verify the unique fonts
+      // referenced by this page's verses (typically 1-2 page fonts).
+      const uniqueFonts = new Set<string>();
+      for (const v of v4Next.values()) {
+        if (v.fontFamily) uniqueFonts.add(v.fontFamily);
       }
+      await Promise.all(Array.from(uniqueFonts).map((f) => ensureQpcV4Font(f)));
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- mutated by the cleanup closure on unmount.
+      if (!cancelled) setQpcV4ByVerse(v4Next);
     })();
     return () => {
       cancelled = true;
@@ -668,12 +681,19 @@ function renderLineText(
       highlight !== null &&
       highlight.verseKey === w.verseKey &&
       highlight.wordIndex === w.wordIndex;
+    // ['a', 'b'].filter(Boolean).join(' ') — array form so prettier
+    // (which keeps "fixing" a leading space inside a template literal
+    // by stripping it) cannot break the class output. This space-loss
+    // bug has been re-introduced by auto-format twice already.
+    const cls = ['mushaf-word', isHighlighted ? 'recite-highlight' : null]
+      .filter(Boolean)
+      .join(' ');
     out.push(
       <a
         key={w.wordId.toString()}
         href={`/study/${sn}/${an}#w${w.wordIndex.toString()}`}
         title={`${w.verseKey} · word ${(w.wordIndex + 1).toString()}`}
-        className={`mushaf-word${isHighlighted ? 'recite-highlight' : ''}`}
+        className={cls}
       >
         {wordChildren}
       </a>,

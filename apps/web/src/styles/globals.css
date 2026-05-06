@@ -648,85 +648,128 @@
 
   /* Recite-highlight — the active word during recitation playback.
    *
-   * v3 (2026-05-06): User reported the v2 sand-pill was still too
-   * subtle on the tajweed COLR layer. Cranked up: deeper warm-gold
-   * fill, stronger inset border, perceivable scale (1.045×), AND a
-   * 1.4s breathing pulse driven by the keyframes below so the eye
-   * tracks the active word even when scanning across a dense page.
+   * Two visual modes, applied conditionally so each layout gets the
+   * treatment that ACTUALLY reads on it:
    *
-   * Keep cascading into ALL nested children so split-span words
-   * (silent-marks, tajweed-* segments, etc.) all get the gold wash. */
+   *  - Default (Madinah / IndoPak / Uthmani Unicode layouts):
+   *      Glow-along-the-curves — the calligraphy itself paints gold
+   *      with a soft halo. NO box, NO background. This is what the
+   *      user explicitly asked to keep — "I liked the word glow
+   *      along its curves like before, now it is hideous boxy". The
+   *      `color` + text-shadow are sufficient because Unicode glyphs
+   *      honor CSS `color`.
+   *
+   *  - Tajweed layout (V4 PUA glyphs from COLR font):
+   *      The COLR font paints colors via CPAL — it does NOT honor
+   *      CSS `color`. Glow-only fails completely there because the
+   *      glyph stays in its tajweed colors regardless of what
+   *      `color` says. So tajweed-mode words get a STRONG gold-pill
+   *      treatment with a swap to the highlight font-palette + a
+   *      breathing pulse, scoped to the tajweed surface only.
+   */
+
+  /* DEFAULT mode — glow only, no box. */
   .recite-highlight,
   .recite-highlight *,
   .recite-highlight a,
   a.recite-highlight,
   a.recite-highlight * {
-    color: var(--color-leaf-700) !important;
-    background-color: color-mix(in srgb, var(--color-leaf-300) 62%, transparent);
-    border-radius: 0.22em;
-    padding: 0.05em 0.18em;
-    box-shadow:
-      0 0 0 1.5px color-mix(in srgb, var(--color-leaf-500) 78%, transparent) inset,
-      0 0.18em 0.7em -0.18em color-mix(in srgb, var(--color-leaf-500) 70%, transparent),
-      0 0 1.1em -0.05em color-mix(in srgb, var(--color-leaf-300) 70%, transparent);
+    color: var(--color-leaf-500) !important;
+    background-color: transparent !important;
     text-shadow:
-      0 0 0.4em color-mix(in srgb, var(--color-leaf-300) 90%, transparent),
-      0 0 0.18em color-mix(in srgb, var(--color-leaf-500) 70%, transparent);
+      0 0 0.35em color-mix(in srgb, var(--color-leaf-300) 70%, transparent),
+      0 0 0.15em color-mix(in srgb, var(--color-leaf-500) 50%, transparent);
     transition:
-      color 90ms ease-out,
-      background-color 140ms ease-out,
-      box-shadow 140ms ease-out,
-      text-shadow 90ms ease-out;
-  }
-  /* Outer-element-only treatments — scale + pulsing animation only on
-   * the OUTERMOST .recite-highlight (so a nested .recite-highlight *
-   * doesn't compound the transform). */
-  .recite-highlight,
-  a.recite-highlight {
-    /* Subtle scale pop — 4.5% bump signals "this word is now" without
-     * disturbing line-fit math (well within MushafLine's 6-16px safety
-     * margin). transform-origin: center keeps RTL flow stable. */
-    transform: scale(1.045);
-    transform-origin: center;
-    animation: qalaam-recite-pulse 1.4s ease-in-out infinite;
-    will-change: box-shadow, background-color;
-  }
-  /* When a V4 PUA glyph (rendered by a QPCv4Page<N> COLR font) is
-   * highlighted, swap to the all-gold palette so every CPAL slot in
-   * that glyph paints with brand gold — the COLR colors otherwise
-   * dominate over our `color` cascade and the highlight gets lost
-   * inside the same multicolored glyph it's supposed to call out. */
-  .recite-highlight {
-    font-palette: --qalaam-tajweed-highlight;
-  }
-  @keyframes qalaam-recite-pulse {
-    0%,
-    100% {
-      box-shadow:
-        0 0 0 1.5px color-mix(in srgb, var(--color-leaf-500) 78%, transparent) inset,
-        0 0.18em 0.7em -0.18em color-mix(in srgb, var(--color-leaf-500) 70%, transparent),
-        0 0 1.1em -0.05em color-mix(in srgb, var(--color-leaf-300) 70%, transparent);
-    }
-    50% {
-      box-shadow:
-        0 0 0 1.5px color-mix(in srgb, var(--color-leaf-500) 95%, transparent) inset,
-        0 0.22em 0.95em -0.16em color-mix(in srgb, var(--color-leaf-500) 95%, transparent),
-        0 0 1.6em 0.04em color-mix(in srgb, var(--color-leaf-300) 95%, transparent);
-    }
+      color 80ms ease-out,
+      text-shadow 80ms ease-out;
   }
   :root[data-theme='dark'] .recite-highlight,
   :root[data-theme='dark'] .recite-highlight *,
   :root[data-theme='dark'] a.recite-highlight,
   :root[data-theme='dark'] a.recite-highlight * {
     color: var(--color-leaf-300) !important;
-    background-color: color-mix(in srgb, var(--color-leaf-500) 38%, transparent);
-    box-shadow:
-      0 0 0 1.5px color-mix(in srgb, var(--color-leaf-300) 78%, transparent) inset,
-      0 0.18em 0.8em -0.16em color-mix(in srgb, var(--color-leaf-500) 80%, transparent),
-      0 0 1.4em -0.05em color-mix(in srgb, var(--color-leaf-300) 60%, transparent);
+    background-color: transparent !important;
     text-shadow:
-      0 0 0.45em color-mix(in srgb, var(--color-leaf-500) 90%, transparent),
-      0 0 0.2em color-mix(in srgb, var(--color-leaf-300) 80%, transparent);
+      0 0 0.4em color-mix(in srgb, var(--color-leaf-500) 75%, transparent),
+      0 0 0.18em color-mix(in srgb, var(--color-leaf-300) 60%, transparent);
+  }
+
+  /* TAJWEED mode — gold pill + palette swap + breathing pulse. The
+   * `.mushaf-layout-tajweed` ancestor selector scopes this to the
+   * V4-rendering surfaces only (MushafLines sets that class when
+   * isTajweedLayout(layoutSlug)). AyahCard's V4 path additionally
+   * sets `data-tajweed="v4"` on each <a class="mushaf-word"> to
+   * cover the /read continuous chain where there's no
+   * `.mushaf-layout-tajweed` ancestor. */
+  .mushaf-layout-tajweed .recite-highlight,
+  .mushaf-layout-tajweed .recite-highlight *,
+  .mushaf-layout-tajweed a.recite-highlight,
+  .mushaf-layout-tajweed a.recite-highlight *,
+  a.recite-highlight[data-tajweed='v4'],
+  a.recite-highlight[data-tajweed='v4'] * {
+    color: var(--color-leaf-700) !important;
+    background-color: color-mix(in srgb, var(--color-leaf-300) 78%, transparent) !important;
+    border-radius: 0.22em;
+    padding: 0.04em 0.22em;
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--color-leaf-500) 95%, transparent) inset,
+      0 0.22em 0.8em -0.18em color-mix(in srgb, var(--color-leaf-500) 80%, transparent),
+      0 0 1.4em -0.05em color-mix(in srgb, var(--color-leaf-300) 90%, transparent);
+    text-shadow:
+      0 0 0.32em color-mix(in srgb, var(--color-leaf-300) 90%, transparent),
+      0 0 0.14em color-mix(in srgb, var(--color-leaf-500) 80%, transparent);
+    transition:
+      color 90ms ease-out,
+      background-color 140ms ease-out,
+      box-shadow 140ms ease-out;
+  }
+  /* Scale + pulse — outermost element only so nested children
+   * don't compound the transform. The pulse breathes the box-shadow
+   * between 95% and 100% over 1.2s — tight enough to read as
+   * "active right now" without becoming distracting. */
+  .mushaf-layout-tajweed .recite-highlight,
+  .mushaf-layout-tajweed a.recite-highlight,
+  a.recite-highlight[data-tajweed='v4'] {
+    transform: scale(1.06);
+    transform-origin: center;
+    animation: qalaam-recite-pulse 1.2s ease-in-out infinite;
+    font-palette: --qalaam-tajweed-highlight;
+    will-change: box-shadow, background-color, transform;
+    /* Lift above sibling words so the box-shadow doesn't get clipped
+     * by the line below. */
+    position: relative;
+    z-index: 1;
+  }
+  @keyframes qalaam-recite-pulse {
+    0%,
+    100% {
+      box-shadow:
+        0 0 0 2px color-mix(in srgb, var(--color-leaf-500) 95%, transparent) inset,
+        0 0.22em 0.8em -0.18em color-mix(in srgb, var(--color-leaf-500) 80%, transparent),
+        0 0 1.4em -0.05em color-mix(in srgb, var(--color-leaf-300) 90%, transparent);
+    }
+    50% {
+      box-shadow:
+        0 0 0 2.5px var(--color-leaf-500) inset,
+        0 0.28em 1em -0.14em color-mix(in srgb, var(--color-leaf-500) 100%, transparent),
+        0 0 2em 0.06em color-mix(in srgb, var(--color-leaf-300) 100%, transparent);
+    }
+  }
+  :root[data-theme='dark'] .mushaf-layout-tajweed .recite-highlight,
+  :root[data-theme='dark'] .mushaf-layout-tajweed .recite-highlight *,
+  :root[data-theme='dark'] .mushaf-layout-tajweed a.recite-highlight,
+  :root[data-theme='dark'] .mushaf-layout-tajweed a.recite-highlight *,
+  :root[data-theme='dark'] a.recite-highlight[data-tajweed='v4'],
+  :root[data-theme='dark'] a.recite-highlight[data-tajweed='v4'] * {
+    color: var(--color-leaf-300) !important;
+    background-color: color-mix(in srgb, var(--color-leaf-500) 50%, transparent) !important;
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--color-leaf-300) 95%, transparent) inset,
+      0 0.22em 0.95em -0.16em color-mix(in srgb, var(--color-leaf-500) 90%, transparent),
+      0 0 1.7em -0.05em color-mix(in srgb, var(--color-leaf-300) 80%, transparent);
+    text-shadow:
+      0 0 0.4em color-mix(in srgb, var(--color-leaf-500) 95%, transparent),
+      0 0 0.18em color-mix(in srgb, var(--color-leaf-300) 90%, transparent);
   }
   @media (prefers-reduced-motion: reduce) {
     .recite-highlight,

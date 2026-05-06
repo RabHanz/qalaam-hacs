@@ -30,7 +30,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
 import { SILENT_MARK_REGEX } from '../lib/arabic-render.js';
-import { loadTajweedCss } from '../lib/load-tajweed-css.js';
+import { ensureQpcV4Font, loadTajweedCss } from '../lib/load-tajweed-css.js';
 import { fetchQpcV4, isTajweedLayout, type QpcV4Verse } from '../lib/qpc-v4.js';
 import { sanitizeHtml } from '../lib/sanitize-html.js';
 import { applyTajweed, fetchTajweed, type TajweedAnnotation } from '../lib/tajweed.js';
@@ -230,7 +230,7 @@ export function AyahCard({
   // public/, so this is a single network fetch + cache hit on every
   // subsequent tajweed view.
   useEffect(() => {
-    if (tajweedActive) loadTajweedCss();
+    if (tajweedActive) void loadTajweedCss();
   }, [tajweedActive]);
   useEffect(() => {
     if (!tajweedActive) {
@@ -262,7 +262,19 @@ export function AyahCard({
     const cancelled = { v: false };
     void (async () => {
       const v = await fetchQpcV4(resolveApiBase(), verseKey);
-      if (!cancelled.v) setQpcV4(v);
+      if (cancelled.v) return;
+      // Don't expose PUA spans until the per-page COLR font is loaded
+      // — otherwise U+FC41-FC64 paints with the system Arabic fallback
+      // and the user sees garbled "presentation forms" glyphs for ~half
+      // a second on first load. Resolves once unicode-range gating
+      // pulls the woff2 down. If anything fails the V4 path stays
+      // dormant and the CSS-overlay fallback renders Unicode text.
+      if (v.fontFamily) {
+        const ok = await ensureQpcV4Font(v.fontFamily);
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- cancelled.v can flip during the awaited ensureQpcV4Font; eslint flow analysis can't model cross-closure mutation.
+        if (cancelled.v || !ok) return;
+      }
+      setQpcV4(v);
     })();
     return () => {
       cancelled.v = true;
@@ -606,7 +618,15 @@ export function AyahCard({
                   key={`qpc-v4-${w.wordIndex.toString()}`}
                   href={`/study/${sn ?? '1'}/${an ?? '1'}#w${w.wordIndex.toString()}`}
                   title={`${verseKey} · word ${w.wordIndex.toString()}`}
-                  className={`mushaf-word${isActive ? 'recite-highlight' : ''}`}
+                  // data-tajweed="v4" is the hook the
+                  // .mushaf-layout-tajweed-scoped recite-highlight CSS
+                  // rules use to reach AyahCards on /read continuous,
+                  // where there's no .mushaf-layout-tajweed ancestor
+                  // (that class only lives on /mushaf pages).
+                  data-tajweed="v4"
+                  className={['mushaf-word', isActive ? 'recite-highlight' : null]
+                    .filter(Boolean)
+                    .join(' ')}
                   style={{
                     fontFamily: `"${fontFamily}"`,
                     // Qalaam's refined warm-earth palette overrides the
