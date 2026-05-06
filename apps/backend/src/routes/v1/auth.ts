@@ -21,6 +21,7 @@ import { randomUUID } from 'node:crypto';
 
 import { checkAuthThrottle, recordAuthEvent } from '../../auth/audit.js';
 import { authDb } from '../../auth/db.js';
+import { FEATURE_CATALOG, tierSatisfies } from '../../auth/features.js';
 import { hashPassword, verifyPassword } from '../../auth/passwords.js';
 import {
   SESSION_COOKIE_NAME,
@@ -357,10 +358,18 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
         args.push(trimmed);
       }
       if (body.haUrl !== undefined) {
-        if (user.tier !== 'premium' && user.tier !== 'pro') {
-          return reply
-            .code(403)
-            .send({ code: 'qalaam.auth.tier-required', requiredTier: 'premium' });
+        // Tier check goes through the feature catalog so the admin
+        // panel (#214) can flip ha.url-config between tiers without
+        // touching this route.
+        if (!tierSatisfies(user.tier, FEATURE_CATALOG['ha.url-config'].minTier)) {
+          void reply.code(403).send({
+            code: 'qalaam.feature.tier-required',
+            feature: 'ha.url-config',
+            featureLabel: FEATURE_CATALOG['ha.url-config'].label,
+            requiredTier: FEATURE_CATALOG['ha.url-config'].minTier,
+            currentTier: user.tier,
+          });
+          return;
         }
         const v = body.haUrl === null ? null : body.haUrl.trim();
         if (v !== null) {

@@ -1,0 +1,133 @@
+Qalaam Proprietary License
+==========================
+
+Version 1.0, effective 2026-05-06.
+
+Copyright (c) 2026 Qalaam Maintainers. All rights reserved.
+
+This license applies to the software contained in the directories
+`apps/` and `services/` of this repository (collectively, the
+"Proprietary Code"). Other directories are licensed separately —
+see the root LICENSE file for the full allocation.
+
+------------------------------------------------------------------------
+1. SCOPE
+------------------------------------------------------------------------
+
+The Proprietary Code is the commercial product of the Qalaam
+Maintainers. It includes — without limitation — the application
+frontend, the application backend, the family-tier features, the
+authentication foundation, the mistake heatmap, the khatm wall, the
+recite-and-check pipeline, the MCP server, the billing intake, the
+editorial-scripture UI/UX, and any associated services.
+
+------------------------------------------------------------------------
+2. PERMITTED USES — WITHOUT A SEPARATE WRITTEN LICENSE
+------------------------------------------------------------------------
+
+You may, free of charge:
+
+(a) READ this repository for personal study, audit, security review,
+    interoperability research, or contributing pull requests.
+
+(b) RUN the official Qalaam-published builds (Docker images, hosted
+    SaaS at qalaam.app or any subsequent canonical domain, the
+    Qalaam-distributed Home Assistant integration) under their
+    accompanying terms of service.
+
+(c) BUILD and RUN the Proprietary Code locally for non-commercial
+    personal evaluation, including a single-household self-hosted
+    deployment for your own family's use, provided that:
+
+    (i)   You do not distribute, sublicense, or make the running
+          deployment available to anyone outside your immediate
+          household.
+    (ii)  You do not remove, obscure, or alter any copyright notice,
+          license notice, branding, or watermark.
+    (iii) You comply with the terms of every upstream component (see
+          the /credits page and `*.license.json` sidecars).
+
+------------------------------------------------------------------------
+3. PROHIBITED USES — WITHOUT A SEPARATE WRITTEN LICENSE
+------------------------------------------------------------------------
+
+You may NOT, without prior written permission from the Qalaam
+Maintainers:
+
+(a) Distribute, sublicense, sell, lease, or otherwise transfer the
+    Proprietary Code or any modified version of it.
+
+(b) Operate the Proprietary Code as a commercial service or hosted
+    offering, whether for direct revenue, advertising revenue, or
+    any indirect commercial benefit.
+
+(c) Operate the Proprietary Code on behalf of any organization
+    larger than a single household — schools, mosques, halaqahs,
+    nonprofits, businesses, or government bodies all require a
+    separate license from the Qalaam Maintainers.
+
+(d) Remove, obscure, or alter any copyright notice, license notice,
+    branding mark, watermark, or attribution surface.
+
+(e) Use the Proprietary Code to train any machine-learning model
+    whose outputs would compete with the Qalaam product.
+
+------------------------------------------------------------------------
+4. CONTRIBUTIONS
+------------------------------------------------------------------------
+
+By submitting a pull request, issue, or other contribution to this
+repository you agree that the Qalaam Maintainers may incorporate
+your contribution under any of the licenses applicable to the
+relevant directory of this monorepo, including this Proprietary
+License when the contribution targets `apps/` or `services/`.
+
+You retain copyright in your contributions. You grant the Qalaam
+Maintainers a perpetual, worldwide, non-exclusive, royalty-free,
+sublicensable, irrevocable license to use, modify, distribute, and
+relicense your contributions as part of the Qalaam product.
+
+------------------------------------------------------------------------
+5. COMMERCIAL LICENSING
+------------------------------------------------------------------------
+
+To use the Proprietary Code in any way not permitted under Section 2
+— including for any organizational, commercial, school, mosque,
+halaqah, or hosted-service deployment — please contact the Qalaam
+Maintainers to discuss a commercial license. We're reasonable. We
+prefer to say yes.
+
+Email: licensing@qalaam.app
+
+------------------------------------------------------------------------
+6. WARRANTY DISCLAIMER
+------------------------------------------------------------------------
+
+THE PROPRIETARY CODE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+TITLE, AND NON-INFRINGEMENT. THE QALAAM MAINTAINERS SHALL NOT BE
+LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN
+ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN
+CONNECTION WITH THE PROPRIETARY CODE OR THE USE OR OTHER DEALINGS
+IN THE PROPRIETARY CODE.
+
+------------------------------------------------------------------------
+7. TERMINATION
+------------------------------------------------------------------------
+
+If you breach any term of this License, your rights under it
+terminate automatically. Termination does not affect any commercial
+license you have obtained separately.
+
+------------------------------------------------------------------------
+8. GOVERNING LAW
+------------------------------------------------------------------------
+
+This License is governed by the laws of the jurisdiction in which
+the Qalaam Maintainers principally operate, without regard to
+conflicts-of-laws principles.
+
+------------------------------------------------------------------------
+END OF QALAAM PROPRIETARY LICENSE
+------------------------------------------------------------------------

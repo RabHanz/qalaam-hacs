@@ -17,7 +17,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { authDb } from '../../auth/db.js';
-import { requireUser } from '../../auth/require-user.js';
+import { requireFeature } from '../../auth/features.js';
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 
@@ -174,7 +174,10 @@ export async function familyRoutes(fastify: FastifyInstance): Promise<void> {
     '/v1/family',
     { schema: { description: "Current user's family + members.", tags: ['family'] } },
     async (req: FastifyRequest, reply: FastifyReply) => {
-      const user = requireUser(req, reply);
+      // GET /v1/family is the personal Hifdh dashboard — Free tier
+      // gets the auto-Family + their own member row, Premium adds
+      // additional child profiles.
+      const user = requireFeature(req, reply, 'hifdh.dashboard.personal');
       if (!user) return;
       const family = loadFamily(user.id);
       if (!family) {
@@ -205,7 +208,7 @@ export async function familyRoutes(fastify: FastifyInstance): Promise<void> {
       },
     },
     async (req: FastifyRequest, reply: FastifyReply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.members.multiple');
       if (!user) return;
       const family = loadFamily(user.id);
       if (!family) {
@@ -281,7 +284,7 @@ export async function familyRoutes(fastify: FastifyInstance): Promise<void> {
     '/v1/family/members/:id',
     { schema: { tags: ['family'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.members.multiple');
       if (!user) return;
       const family = loadFamily(user.id);
       if (!family) {
@@ -356,7 +359,7 @@ export async function familyRoutes(fastify: FastifyInstance): Promise<void> {
     '/v1/family/members/:id',
     { schema: { tags: ['family'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.members.multiple');
       if (!user) return;
       const family = loadFamily(user.id);
       if (!family) {
@@ -397,7 +400,7 @@ export async function familyRoutes(fastify: FastifyInstance): Promise<void> {
 
   // GET /v1/family/dashboard — 7-day per-member stats (parent overview).
   fastify.get('/v1/family/dashboard', { schema: { tags: ['family'] } }, async (req, reply) => {
-    const user = requireUser(req, reply);
+    const user = requireFeature(req, reply, 'family.members.multiple');
     if (!user) return;
     const family = loadFamily(user.id);
     if (!family) {

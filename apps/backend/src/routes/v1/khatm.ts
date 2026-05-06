@@ -22,7 +22,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { authDb } from '../../auth/db.js';
-import { requireUser } from '../../auth/require-user.js';
+import { requireFeature } from '../../auth/features.js';
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 
@@ -168,7 +168,7 @@ export async function khatmRoutes(fastify: FastifyInstance): Promise<void> {
     '/v1/family/khatm',
     { schema: { tags: ['khatm'] } },
     async (req: FastifyRequest, reply: FastifyReply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.khatm');
       if (!user) return;
       const familyId = familyOf(user.id);
       if (!familyId) {
@@ -211,7 +211,7 @@ export async function khatmRoutes(fastify: FastifyInstance): Promise<void> {
     '/v1/family/khatm',
     { schema: { tags: ['khatm'] } },
     async (req: FastifyRequest, reply: FastifyReply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.khatm');
       if (!user) return;
       const familyId = familyOf(user.id);
       if (!familyId) {
@@ -232,7 +232,7 @@ export async function khatmRoutes(fastify: FastifyInstance): Promise<void> {
     '/v1/family/khatm/:id',
     { schema: { tags: ['khatm'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.khatm');
       if (!user) return;
       const k = loadKhatm(req.params.id);
       if (!k) {
@@ -258,7 +258,7 @@ export async function khatmRoutes(fastify: FastifyInstance): Promise<void> {
     '/v1/family/khatm/:id/page',
     { schema: { tags: ['khatm'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.khatm');
       if (!user) return;
       const k = loadKhatm(req.params.id);
       if (!k) {
@@ -337,7 +337,7 @@ export async function khatmRoutes(fastify: FastifyInstance): Promise<void> {
     '/v1/family/khatm/:id',
     { schema: { tags: ['khatm'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.khatm');
       if (!user) return;
       const k = loadKhatm(req.params.id);
       if (!k) {
@@ -385,7 +385,7 @@ export async function khatmRoutes(fastify: FastifyInstance): Promise<void> {
     '/v1/family/khatm/:id',
     { schema: { tags: ['khatm'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.khatm');
       if (!user) return;
       const k = loadKhatm(req.params.id);
       if (!k) {
@@ -408,7 +408,7 @@ export async function khatmRoutes(fastify: FastifyInstance): Promise<void> {
     '/v1/family/khatm/:id/wall',
     { schema: { tags: ['khatm'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.khatm');
       if (!user) return;
       const k = loadKhatm(req.params.id);
       if (!k) {

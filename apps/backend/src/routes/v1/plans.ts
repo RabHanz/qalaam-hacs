@@ -16,7 +16,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { authDb } from '../../auth/db.js';
-import { requireUser } from '../../auth/require-user.js';
+import { requireFeature } from '../../auth/features.js';
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 
@@ -199,7 +199,7 @@ export async function plansRoutes(fastify: FastifyInstance): Promise<void> {
     '/v1/plans',
     { schema: { description: 'Plans I own or am assigned to.', tags: ['plans'] } },
     async (req: FastifyRequest, reply: FastifyReply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.plans');
       if (!user) return;
       const rows = authDb()
         .prepare(
@@ -216,7 +216,7 @@ export async function plansRoutes(fastify: FastifyInstance): Promise<void> {
     '/v1/plans/:id',
     { schema: { tags: ['plans'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.plans');
       if (!user) return;
       const plan = loadPlan(req.params.id);
       if (!plan) {
@@ -243,7 +243,7 @@ export async function plansRoutes(fastify: FastifyInstance): Promise<void> {
     '/v1/plans',
     { schema: { tags: ['plans'] } },
     async (req: FastifyRequest, reply: FastifyReply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.plans');
       if (!user) return;
       const familyId = familyOf(user.id);
       if (!familyId) {
@@ -330,7 +330,7 @@ export async function plansRoutes(fastify: FastifyInstance): Promise<void> {
     '/v1/plans/:id',
     { schema: { tags: ['plans'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.plans');
       if (!user) return;
       const plan = loadPlan(req.params.id);
       if (!plan) {
@@ -423,7 +423,7 @@ export async function plansRoutes(fastify: FastifyInstance): Promise<void> {
     '/v1/plans/:id',
     { schema: { tags: ['plans'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.plans');
       if (!user) return;
       const plan = loadPlan(req.params.id);
       if (!plan) {
@@ -443,7 +443,7 @@ export async function plansRoutes(fastify: FastifyInstance): Promise<void> {
     '/v1/plans/:id/progress',
     { schema: { tags: ['plans'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.plans');
       if (!user) return;
       const plan = loadPlan(req.params.id);
       if (!plan) {

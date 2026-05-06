@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 
 import { khatm as khatmApi, type Khatm } from '../../lib/family-api.js';
 import { useUser } from '../../lib/use-user.js';
+import { UpgradeCard } from '../FeatureGate.js';
 
 import type { ReactNode } from 'react';
 
@@ -22,17 +23,25 @@ export function KhatmList(): ReactNode {
   const [mode, setMode] = useState<Khatm['mode']>('distributed');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsUpgrade, setNeedsUpgrade] = useState(false);
 
   useEffect(() => {
     if (status !== 'authenticated') return;
     let cancelled = false;
+    setNeedsUpgrade(false);
     khatmApi
       .list()
       .then((data) => {
         if (!cancelled) setKhatms(data.khatms);
       })
-      .catch(() => {
-        if (!cancelled) setKhatms([]);
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        const e = err as { status?: number };
+        if (e.status === 403) {
+          setNeedsUpgrade(true);
+        } else {
+          setKhatms([]);
+        }
       });
     return (): void => {
       cancelled = true;
@@ -67,12 +76,16 @@ export function KhatmList(): ReactNode {
         <p className="text-ink-muted mt-3 text-sm leading-relaxed">
           Sign in to start or join a family khatm.
         </p>
-        <Link
-          href="/signin"
-          className="bg-ink hover:bg-ink-strong text-paper mt-6 inline-flex rounded-lg px-5 py-2 text-sm font-medium transition-colors"
-        >
+        <Link href="/signin" className="btn-primary mt-6 inline-flex text-sm">
           Sign in
         </Link>
+      </div>
+    );
+  }
+  if (needsUpgrade) {
+    return (
+      <div className="mx-auto max-w-2xl px-5 pb-20 pt-10 sm:px-8 sm:pt-14">
+        <UpgradeCard feature="family.khatm" />
       </div>
     );
   }

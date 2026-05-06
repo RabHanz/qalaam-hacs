@@ -14,6 +14,7 @@ import {
   type FamilyMember,
   type VoiceNote,
 } from '../../lib/family-api.js';
+import { UpgradeCard } from '../FeatureGate.js';
 
 import { MemberAvatar } from './MemberAvatar.js';
 
@@ -50,17 +51,25 @@ export function VoiceNotesInbox({ currentUserId, members }: Props): ReactNode {
   const [tab, setTab] = useState<'inbox' | 'sent'>('inbox');
   const [notes, setNotes] = useState<VoiceNote[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [needsUpgrade, setNeedsUpgrade] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setNeedsUpgrade(false);
     voiceNotes
       .list(tab === 'inbox' ? 'inbox' : 'sent')
       .then((data) => {
         if (!cancelled) setNotes(data.notes);
       })
-      .catch(() => {
-        if (!cancelled) setNotes([]);
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        const e = err as { status?: number };
+        if (e.status === 403) {
+          setNeedsUpgrade(true);
+        } else {
+          setNotes([]);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -69,6 +78,10 @@ export function VoiceNotesInbox({ currentUserId, members }: Props): ReactNode {
       cancelled = true;
     };
   }, [tab]);
+
+  if (needsUpgrade) {
+    return <UpgradeCard feature="family.voice-notes" />;
+  }
 
   const memberFor = (id: string): FamilyMember | undefined => members.find((m) => m.userId === id);
 

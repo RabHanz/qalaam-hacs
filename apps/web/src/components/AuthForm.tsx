@@ -209,8 +209,8 @@ export function AuthForm({ mode }: Props): ReactNode {
             <>By signing in you agree to keep your family-private Hifdh data on this device.</>
           ) : (
             <>
-              By creating an account you agree audio + Hifdh state never leaves your installation
-              without explicit consent. Per ADR-0005.
+              By creating an account you agree that audio and Hifdh state stay on your installation
+              and are never shared without your explicit consent.
             </>
           )}
         </p>

@@ -1,18 +1,63 @@
 Qalaam — License Allocation
-============================
+===========================
 
-Per ADR-0011 (Docs/adrs/ADR-0011-licensing.md), Qalaam uses a mixed-license
-allocation across the monorepo:
+Qalaam is a multi-license codebase. Different parts of this monorepo
+are licensed differently to balance moat protection (the proprietary
+product surfaces) with permissive distribution of utility libraries,
+adapters, and integration clients that are most useful to the
+community when they remain free to fork + extend.
 
-  - packages/*                     → Apache License 2.0
-  - integrations/homeassistant/    → Apache License 2.0
-  - apps/*                         → GNU Affero General Public License v3.0
-  - services/*                     → GNU Affero General Public License v3.0
-  - tooling/*                      → Apache License 2.0
-  - ml/                            → Apache License 2.0 (code); model weights
-                                     distributed per upstream weight licenses
+  apps/*                            → Qalaam Proprietary License
+                                      (see LICENSE-PROPRIETARY)
+  services/*                        → Qalaam Proprietary License
+                                      (see LICENSE-PROPRIETARY)
+  packages/*                        → Apache License 2.0
+                                      (see LICENSE-APACHE-2.0)
+  integrations/homeassistant/*      → Apache License 2.0
+                                      (see LICENSE-APACHE-2.0)
+  tooling/*                         → Apache License 2.0
+                                      (see LICENSE-APACHE-2.0)
+  ml/*                              → Apache License 2.0 for code;
+                                      model weights distributed per
+                                      upstream weight licenses
 
-Each package's own LICENSE file is authoritative. The root LICENSE files
-LICENSE-APACHE-2.0 and LICENSE-AGPL-3.0 contain the full text of each license.
+Each subdirectory's own LICENSE file is authoritative when present.
+The root LICENSE-APACHE-2.0 and LICENSE-PROPRIETARY files contain
+the full text of each license.
 
-Copyright (c) 2026 Qalaam Maintainers
+Upstream data sources (Quranic Universal Library, KFGQPC fonts,
+public-domain translations, etc.) carry their own original licenses
+and attributions on every record we ingest from them. See the
+/credits page in the deployed app and the `*.license.json` sidecars
+under `data/qul-source/raw/` for verbatim upstream license tags.
+
+Copyright (c) 2026 Qalaam Maintainers. All rights reserved (where
+not otherwise specified).
+
+-----------------------------------------------------------------------
+
+Why mixed licensing?
+
+The `apps/` and `services/` directories contain the proprietary
+product surface — the family-tier features, the auth foundation, the
+mistake heatmap, the khatm wall, the recite-and-check ASR pipeline,
+the editorial-scripture UI/UX, the MCP server, the billing intake.
+These represent a unique bundle that took substantial original work
+to develop and is the commercial moat of the platform.
+
+The `packages/`, `integrations/homeassistant/`, and `tooling/`
+directories contain utility libraries, type definitions, the Home
+Assistant integration client, and developer tooling. These are most
+valuable to the community when they remain permissively licensed —
+they let third-party projects integrate with Qalaam, let HACS
+distribute the Home Assistant integration without licensing friction,
+and let contributors send patches without IP-assignment hurdles.
+
+The Home Assistant integration (Apache 2.0) is a thin client that
+calls the Qalaam backend API. For Premium- and Pro-tier features the
+backend requires a Qalaam API key issued to the user's account via
+the in-app settings page. The integration itself is free; the
+infrastructure it talks to is the paid product.
+
+Anyone can read this repository; not everyone can run the proprietary
+parts in production. See LICENSE-PROPRIETARY for the exact terms.

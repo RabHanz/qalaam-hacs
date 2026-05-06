@@ -23,7 +23,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { authDb } from '../../auth/db.js';
-import { SESSION_COOKIE_NAME, findUserBySession } from '../../auth/sessions.js';
+import { requireFeature } from '../../auth/features.js';
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 
@@ -40,28 +40,13 @@ interface BookmarkRow {
   updated_at: string;
 }
 
-function readCookie(req: FastifyRequest, name: string): string | null {
-  const header = req.headers.cookie;
-  if (!header) return null;
-  for (const piece of header.split(';')) {
-    const [k, ...rest] = piece.trim().split('=');
-    if (k === name) return rest.join('=');
-  }
-  return null;
-}
-
-function requireUser(req: FastifyRequest, reply: FastifyReply): string | null {
-  const sessionId = readCookie(req, SESSION_COOKIE_NAME);
-  if (!sessionId) {
-    void reply.code(401).send({ code: 'qalaam.auth.no-session' });
-    return null;
-  }
-  const user = findUserBySession(sessionId);
-  if (!user) {
-    void reply.code(401).send({ code: 'qalaam.auth.session-expired' });
-    return null;
-  }
-  return user.id;
+function gateBookmarks(req: FastifyRequest, reply: FastifyReply): string | null {
+  // Bookmarks gates through the feature catalog so a future tier
+  // change (e.g. capping bookmarks to Premium for new users) only
+  // requires flipping FEATURE_CATALOG.bookmarks.minTier — no route
+  // edits, no SQL.
+  const user = requireFeature(req, reply, 'bookmarks');
+  return user?.id ?? null;
 }
 
 function rowToJson(r: BookmarkRow): {
@@ -114,7 +99,7 @@ export async function bookmarksRoutes(fastify: FastifyInstance): Promise<void> {
     },
 
     async (req, reply) => {
-      const userId = requireUser(req, reply);
+      const userId = gateBookmarks(req, reply);
       if (!userId) return;
       const q = req.query as { kind?: string };
       const rows = (
@@ -158,7 +143,7 @@ export async function bookmarksRoutes(fastify: FastifyInstance): Promise<void> {
     },
 
     async (req, reply) => {
-      const userId = requireUser(req, reply);
+      const userId = gateBookmarks(req, reply);
       if (!userId) return;
       const rows = authDb()
         .prepare(
@@ -193,7 +178,7 @@ export async function bookmarksRoutes(fastify: FastifyInstance): Promise<void> {
     },
 
     async (req, reply) => {
-      const userId = requireUser(req, reply);
+      const userId = gateBookmarks(req, reply);
       if (!userId) return;
       const { verseKey, kind } = req.body;
       if (!verseKey || !kind || !VALID_KINDS.has(kind)) {
@@ -239,7 +224,7 @@ export async function bookmarksRoutes(fastify: FastifyInstance): Promise<void> {
     },
 
     async (req, reply) => {
-      const userId = requireUser(req, reply);
+      const userId = gateBookmarks(req, reply);
       if (!userId) return;
       const db = authDb();
       const existing = db
@@ -287,7 +272,7 @@ export async function bookmarksRoutes(fastify: FastifyInstance): Promise<void> {
     },
 
     async (req, reply) => {
-      const userId = requireUser(req, reply);
+      const userId = gateBookmarks(req, reply);
       if (!userId) return;
       const db = authDb();
       const existing = db

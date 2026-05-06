@@ -240,23 +240,14 @@ export default async function CreditsPage(): Promise<ReactNode> {
       <footer className="border-hairline border-t">
         <div className="mx-auto max-w-5xl px-6 py-10">
           <p className="text-ink-muted text-xs leading-relaxed">
-            License classifications are auto-tagged via{' '}
-            <code className="text-ink-strong font-mono">scripts/data/license-auto-tag.py</code> and
-            reviewed manually for per-translator + per-reciter rows before publication (per
-            ADR-0020). Each downloaded resource carries a SHA-256 pin per ADR-0002. Re-run the
-            pipeline:
+            Every resource above is sourced from the original publishers and carries its license tag
+            verbatim. Where a translator or reciter requested specific attribution wording, we use
+            theirs. If you spot a missing or incorrect credit, please write to{' '}
+            <a href="mailto:credits@qalaam.app" className="text-leaf hover:underline">
+              credits@qalaam.app
+            </a>{' '}
+            — corrections are typically published within a week.
           </p>
-          <pre className="bg-paper-100 mt-3 overflow-x-auto rounded-md p-3 text-[11px] leading-snug">
-            {`# 1. inventory: rebuild /tmp/qul-inventory.json
-QUL_EMAIL=... QUL_PASSWORD=... \\
-  python3 scripts/data/scrape-qul-full.py --resume
-
-# 2. classify license tags
-python3 scripts/data/license-auto-tag.py
-
-# 3. ingest into qalaam_v1_*
-tsx scripts/data/ingest-qul-from-scrape.ts`}
-          </pre>
         </div>
       </footer>
     </>

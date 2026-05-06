@@ -23,7 +23,7 @@ import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from '
 import path from 'node:path';
 
 import { authDb } from '../../auth/db.js';
-import { requireUser } from '../../auth/require-user.js';
+import { requireFeature } from '../../auth/features.js';
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 
@@ -141,7 +141,7 @@ export async function voiceNotesRoutes(fastify: FastifyInstance): Promise<void> 
       },
     },
     async (req: FastifyRequest, reply: FastifyReply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.voice-notes');
       if (!user) return;
       const familyId = familyOf(user.id);
       if (!familyId) {
@@ -286,7 +286,7 @@ export async function voiceNotesRoutes(fastify: FastifyInstance): Promise<void> 
     '/v1/voice-notes',
     { schema: { tags: ['voice-notes'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.voice-notes');
       if (!user) return;
       const limit = Math.min(Math.max(Number.parseInt(req.query.limit ?? '50', 10) || 50, 1), 200);
       const box = req.query.box ?? 'all';
@@ -322,7 +322,7 @@ export async function voiceNotesRoutes(fastify: FastifyInstance): Promise<void> 
     '/v1/voice-notes/:id/audio',
     { schema: { tags: ['voice-notes'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.voice-notes');
       if (!user) return;
       const row = authDb()
         .prepare(`SELECT * FROM family_voice_notes WHERE id = ?`)
@@ -351,7 +351,7 @@ export async function voiceNotesRoutes(fastify: FastifyInstance): Promise<void> 
     '/v1/voice-notes/:id/read',
     { schema: { tags: ['voice-notes'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.voice-notes');
       if (!user) return;
       const row = authDb()
         .prepare(`SELECT to_user_id FROM family_voice_notes WHERE id = ?`)
@@ -375,7 +375,7 @@ export async function voiceNotesRoutes(fastify: FastifyInstance): Promise<void> 
     '/v1/voice-notes/:id',
     { schema: { tags: ['voice-notes'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.voice-notes');
       if (!user) return;
       const row = authDb()
         .prepare(`SELECT * FROM family_voice_notes WHERE id = ?`)

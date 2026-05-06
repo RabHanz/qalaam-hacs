@@ -3461,3 +3461,117 @@ These are not on the active task list yet — they get queued via
 TaskCreate when the user explicitly green-lights the integration
 sprint. For now the only deliverable is this strategic write-up so
 the direction is durable across sessions.
+
+---
+
+## §31. Moat protection — license + feature gates + repo visibility (2026-05-06)
+
+This section captures the production-state decisions made entering
+the deploy phase: what's open, what's closed, how features are
+gated, and where the moat actually lives.
+
+### 31.1 What's the moat?
+
+The unique bundle. Hifdh-first family-tier (per-child plans + parent
+dashboard + mistake heatmap + family khatm wall + voice notes +
+praise stickers) + recite-and-check ASR (privacy-first) + multi-mode
+Mushaf (KFGQPC V4 tajweed COLR/CPAL fonts + Madinah + IndoPak +
+image-mushaf overlays) + adhan + qibla + Hijri + azkar + HA
+integration with custom panel + media-source + sensors + services +
+MCP-routed Quran tooling. **No other product ships this bundle as a
+single integrated experience.**
+
+### 31.2 Code license allocation (ADR-0024 supersedes parts of ADR-0011)
+
+```
+apps/*                 → Qalaam Proprietary License
+services/*             → Qalaam Proprietary License
+packages/*             → Apache License 2.0
+integrations/homeassistant/  → Apache License 2.0
+tooling/*              → Apache License 2.0
+ml/*                   → Apache License 2.0 (code); upstream weights as licensed
+```
+
+Permissive on the integration code (HACS-friendly, contribution-
+friendly); proprietary on the product surface. Free for personal
+study + single-household self-host; paid commercial license for any
+organizational deployment. See `LICENSE-PROPRIETARY` for the full
+text. Repo visibility flips to private (#215) once the license
+commit lands.
+
+### 31.3 Tier model with full-coverage feature gates
+
+Every customer-visible capability is now gated through a single
+catalog (apps/backend/src/auth/features.ts). The gate handles:
+
+- Anonymous + authenticated paths in one helper.
+- Tier hierarchy is monotone — Pro ⊇ Premium ⊇ Free, never
+  strict-equality compared.
+- Closed-by-default for unknown features / hostile tier values.
+- 401 vs 403 distinction with `featureKey` + `requiredTier` +
+  `currentTier` so the client can render tier-aware upgrade prompts.
+- Public catalog at `/v1/features` for the web client mirror.
+
+Even today's Free features go through the gate, so the admin panel
+(#214) can flip any feature to Premium / Pro from a UI without a
+code deploy. When the DB-backed `feature_overrides` table lands
+behind the admin panel, tier flips become a one-row UPDATE.
+
+The pattern is documented project-agnostic at
+`Docs/patterns/feature-gates.md` for reuse on other SaaS products.
+
+### 31.4 HA integration — free client, gated backend
+
+The Home Assistant integration code stays Apache 2.0 so HACS
+distribution + community contributions work cleanly. The integration
+is a thin client; tier-gating happens at the backend. Free-tier API
+keys unlock prayer-times + basic Mushaf reading. Premium unlocks
+family-tier features (heatmap, khatm, voice notes, listen mode).
+Pro adds voice cloning. The integration itself is free; the
+infrastructure it talks to is the paid product.
+
+API-key auth (`Authorization: Bearer qk_<key>`) ships as #213 once
+the first deploy is live. Until then the HA panel uses cookie
+sessions (the existing CONF_API_KEY config slot is reserved for the
+cutover).
+
+### 31.5 Repo visibility
+
+Public source means a competitor can read patterns even when they
+can't legally redistribute. The proprietary license blocks
+redistribution; private repo blocks pattern-leak. Both layers work
+together. `#215` flips RabHanz/qalaam → private after the license
+commit lands; the existing Dokploy GitHub binding is already
+authorized for the RabHanz org.
+
+### 31.6 What this does NOT do
+
+- It does not interfere with **upstream attributions** — every QUL
+  resource, every translator, every reciter is credited verbatim on
+  /credits and in `*.license.json` sidecars.
+- It does not change the **self-host story** for individual users.
+  ADR-0023 + LICENSE-PROPRIETARY §2(c) explicitly permit single-
+  household self-hosting under the proprietary license.
+- It does not introduce **OAuth / Google / Apple sign-in** — the
+  privacy contract per §15 holds, scrypt sessions remain the only
+  auth path.
+- It does not change the **MCP-first integration story**. Margin ×
+  Qalaam direction in §30 still composes cleanly via tool federation,
+  not shared rows. Each product's MCP stays its own surface.
+
+### 31.7 New tracking IDs (post-deploy queue)
+
+```
+#213  Premium API-key auth gate for HA integration + tier-gated routes
+#214  Admin/dev panel — manual tier bumps, system settings, audit log
+#215  GitHub repo visibility flip to private
+#216  HA integration — submit to HACS with Premium-API-key onboarding
+#217  Stripe checkout close-out (replaces manual SQL UPDATE)
+#218  Strip dev lingo from customer-facing UI — full sweep (ongoing)
+```
+
+These are explicit-deferred per the production rules — the moat is
+_structurally_ protected by the license + feature gates + the upcoming
+private repo, even before the API-key gate (#213) and admin panel
+(#214) ship. They sharpen the moat further; they don't open holes
+that don't already close at the proprietary-license layer.

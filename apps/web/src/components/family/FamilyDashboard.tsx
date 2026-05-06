@@ -27,6 +27,7 @@ import {
   type Plan,
 } from '../../lib/family-api.js';
 import { useUser } from '../../lib/use-user.js';
+import { UpgradeCard } from '../FeatureGate.js';
 
 import { MemberAvatar } from './MemberAvatar.js';
 import { MistakeHeatmap } from './MistakeHeatmap.js';
@@ -44,7 +45,7 @@ interface AddChildState {
 }
 
 export function FamilyDashboard(): ReactNode {
-  const { status, user } = useUser();
+  const { status, user, hasFeature } = useUser();
   const [family, setFamily] = useState<FamilyPayload | null>(null);
   const [dashboard, setDashboard] = useState<DashboardMember[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,26 +64,51 @@ export function FamilyDashboard(): ReactNode {
   const [heatmapFor, setHeatmapFor] = useState<FamilyMember | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
+  // Effect 1 — fetch the free-tier /v1/family roster. Sets `family`
+  // + drives `loading` + `error`.
   useEffect(() => {
     if (status !== 'authenticated') return;
-    let cancelled = false;
+    const lifecycle = { cancelled: false };
     setLoading(true);
     setError(null);
-    Promise.all([familyApi.get(), familyApi.dashboard()])
-      .then(([f, d]) => {
-        if (cancelled) return;
+    void (async (): Promise<void> => {
+      try {
+        const f = await familyApi.get();
+        if (lifecycle.cancelled) return;
         setFamily(f);
-        setDashboard([...d.members]);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setError('Could not load your family right now.');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+      } catch {
+        if (!lifecycle.cancelled) setError('Could not load your family right now.');
+      } finally {
+        if (!lifecycle.cancelled) setLoading(false);
+      }
+    })();
     return (): void => {
-      cancelled = true;
+      lifecycle.cancelled = true;
+    };
+  }, [status, refreshKey]);
+
+  // Effect 2 — fetch the premium-only /v1/family/dashboard. 403 on
+  // free tier just leaves `dashboard` null; the basic roster from
+  // effect 1 still renders.
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    const lifecycle = { cancelled: false };
+    void (async (): Promise<void> => {
+      try {
+        const d = await familyApi.dashboard();
+        if (lifecycle.cancelled) return;
+        setDashboard([...d.members]);
+      } catch (err: unknown) {
+        const e = err as { status?: number };
+        if (e.status === 403) {
+          if (!lifecycle.cancelled) setDashboard(null);
+        }
+        // Other errors are silent here — effect 1 already surfaces
+        // the connectivity error.
+      }
+    })();
+    return (): void => {
+      lifecycle.cancelled = true;
     };
   }, [status, refreshKey]);
 
@@ -99,7 +125,10 @@ export function FamilyDashboard(): ReactNode {
   if (loading) {
     return <DashboardSkeleton />;
   }
-  if (error || !family || !dashboard) {
+  // dashboard is null when the user is on the Free tier — we still
+  // render the basic family roster from /v1/family. Only `error`
+  // and `family` being absent are real failure modes.
+  if (error || !family) {
     return (
       <div className="border-hairline bg-surface rounded-2xl border p-6">
         <p className="text-ink-muted text-sm">{error ?? 'Could not load your family.'}</p>
@@ -151,7 +180,7 @@ export function FamilyDashboard(): ReactNode {
         </header>
         <ul className="m-0 flex list-none flex-wrap gap-3 p-0">
           {family.members.map((m) => {
-            const stats = dashboard.find((d) => d.userId === m.userId);
+            const stats = dashboard?.find((d) => d.userId === m.userId);
             const isMe = m.userId === user.id;
             return (
               <li
@@ -188,7 +217,7 @@ export function FamilyDashboard(): ReactNode {
               </li>
             );
           })}
-          {isGuardian ? (
+          {isGuardian && hasFeature('family.members.multiple') ? (
             <li>
               <button
                 type="button"
@@ -202,6 +231,10 @@ export function FamilyDashboard(): ReactNode {
                 </span>
                 <span>Add child profile</span>
               </button>
+            </li>
+          ) : isGuardian ? (
+            <li className="min-w-[12rem] flex-1">
+              <UpgradeCard feature="family.members.multiple" />
             </li>
           ) : null}
         </ul>
@@ -256,8 +289,11 @@ export function FamilyDashboard(): ReactNode {
         ) : null}
       </section>
 
-      {/* Per-member action panel — shown for assignees other than self */}
-      {dashboard
+      {/* Per-member action panel — shown for assignees other than self.
+          Free-tier users see no per-member panels (the dashboard
+          payload is gated to Premium); the family-roster section
+          above + the upgrade CTA below give them the path. */}
+      {(dashboard ?? [])
         .filter((m) => m.userId !== user.id)
         .map((m) => (
           <MemberCard

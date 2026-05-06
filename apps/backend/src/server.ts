@@ -10,6 +10,7 @@ import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import Fastify, { type FastifyInstance } from 'fastify';
 
+import { featureGuardPlugin } from './auth/feature-guard-plugin.js';
 import { type Config, loadConfig } from './config.js';
 import { errorHandlerPlugin } from './plugins/error-handler.js';
 import { loggerPlugin } from './plugins/logger.js';
@@ -21,6 +22,7 @@ import { chaptersRoutes } from './routes/v1/chapters.js';
 import { creditsRoutes } from './routes/v1/credits.js';
 import { curriculumRoutes } from './routes/v1/curriculum.js';
 import { familyRoutes } from './routes/v1/family.js';
+import { featuresRoutes } from './routes/v1/features.js';
 import { hifdhStateRoutes } from './routes/v1/hifdh-state.js';
 import { hifdhRoutes } from './routes/v1/hifdh.js';
 import { imageMushafRoutes } from './routes/v1/image-mushaf.js';
@@ -95,6 +97,12 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   });
   await app.register(swaggerUi, { routePrefix: '/docs' });
 
+  // Feature-gate hook — runs on every request before route handlers.
+  // Closed-by-default for any /v1/* path that isn't catalogued in
+  // ROUTE_RULES. See `apps/backend/src/auth/feature-guard-plugin.ts`
+  // for the full rule table.
+  await app.register(featureGuardPlugin);
+
   await app.register(healthRoutes);
   await app.register(versesRoutes, { config });
   await app.register(chaptersRoutes, { config });
@@ -135,6 +143,9 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   await app.register(voiceNotesRoutes);
   // H2 — billing/support intake (no Stripe yet — that lands in deploy commit).
   await app.register(supportRoutes);
+  // Public feature catalog — frontend mirror reads this so we can
+  // ship tier flips from the admin panel (#214) without redeploying.
+  await app.register(featuresRoutes);
 
   return app;
 }

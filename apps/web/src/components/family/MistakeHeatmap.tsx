@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
 import { mistakes, type HeatmapPage } from '../../lib/family-api.js';
+import { UpgradeCard } from '../FeatureGate.js';
 
 import type { ReactNode } from 'react';
 
@@ -46,11 +47,13 @@ export function MistakeHeatmap({ userId, userDisplayName, windowDays = 30 }: Pro
   const [open, setOpen] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [needsUpgrade, setNeedsUpgrade] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
+    setNeedsUpgrade(false);
     const args: { days: number; userId?: string } = { days: windowDays };
     if (userId !== undefined) args.userId = userId;
     mistakes
@@ -67,6 +70,11 @@ export function MistakeHeatmap({ userId, userDisplayName, windowDays = 30 }: Pro
         if (e.status === 401) {
           // Anonymous — quietly hide; the page header has a sign-in CTA already.
           setPages([]);
+          return;
+        }
+        if (e.status === 403) {
+          // Free tier — surface the upgrade card.
+          setNeedsUpgrade(true);
           return;
         }
         setError('Could not load the heatmap right now.');
@@ -92,6 +100,9 @@ export function MistakeHeatmap({ userId, userDisplayName, windowDays = 30 }: Pro
         <div className="bg-paper-100 grid h-44 animate-pulse rounded" />
       </div>
     );
+  }
+  if (needsUpgrade) {
+    return <UpgradeCard feature="family.mistakes.heatmap" />;
   }
   if (error) {
     return (

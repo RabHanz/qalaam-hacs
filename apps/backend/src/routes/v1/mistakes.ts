@@ -19,7 +19,7 @@
 import Database from 'better-sqlite3';
 
 import { authDb } from '../../auth/db.js';
-import { requireUser } from '../../auth/require-user.js';
+import { requireFeature } from '../../auth/features.js';
 
 import type { Config } from '../../config.js';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
@@ -130,7 +130,7 @@ export async function mistakesRoutes(
       },
     },
     async (req: FastifyRequest, reply: FastifyReply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.mistakes.heatmap');
       if (!user) return;
       const body = (req.body ?? {}) as CreateBody;
       const verseKey = (body.verseKey ?? '').trim();
@@ -187,7 +187,7 @@ export async function mistakesRoutes(
     '/v1/mistakes/heatmap',
     { schema: { tags: ['mistakes'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.mistakes.heatmap');
       if (!user) return;
       const days = Math.min(Math.max(Number.parseInt(req.query.days ?? '30', 10) || 30, 1), 365);
       const targetUserId = req.query.userId ?? user.id;
@@ -242,7 +242,7 @@ export async function mistakesRoutes(
     '/v1/mistakes/by-page/:n',
     { schema: { tags: ['mistakes'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.mistakes.heatmap');
       if (!user) return;
       const n = Number.parseInt(req.params.n, 10);
       if (!Number.isFinite(n) || n < 1 || n > 604) {
@@ -272,7 +272,7 @@ export async function mistakesRoutes(
     '/v1/mistakes/:id/resolve',
     { schema: { tags: ['mistakes'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.mistakes.heatmap');
       if (!user) return;
       const id = Number.parseInt(req.params.id, 10);
       if (!Number.isFinite(id)) {
@@ -299,7 +299,7 @@ export async function mistakesRoutes(
     '/v1/mistakes/resolve-page',
     { schema: { tags: ['mistakes'] } },
     async (req, reply) => {
-      const user = requireUser(req, reply);
+      const user = requireFeature(req, reply, 'family.mistakes.heatmap');
       if (!user) return;
       const body = req.body;
       const pageNumber = body.pageNumber;
