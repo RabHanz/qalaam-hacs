@@ -694,82 +694,76 @@
       0 0 0.18em color-mix(in srgb, var(--color-leaf-300) 60%, transparent);
   }
 
-  /* TAJWEED mode — gold pill + palette swap + breathing pulse. The
-   * `.mushaf-layout-tajweed` ancestor selector scopes this to the
-   * V4-rendering surfaces only (MushafLines sets that class when
-   * isTajweedLayout(layoutSlug)). AyahCard's V4 path additionally
-   * sets `data-tajweed="v4"` on each <a class="mushaf-word"> to
-   * cover the /read continuous chain where there's no
-   * `.mushaf-layout-tajweed` ancestor. */
-  .mushaf-layout-tajweed .recite-highlight,
-  .mushaf-layout-tajweed .recite-highlight *,
-  .mushaf-layout-tajweed a.recite-highlight,
-  .mushaf-layout-tajweed a.recite-highlight *,
-  a.recite-highlight[data-tajweed='v4'],
-  a.recite-highlight[data-tajweed='v4'] * {
-    color: var(--color-leaf-700) !important;
-    background-color: color-mix(in srgb, var(--color-leaf-300) 78%, transparent) !important;
-    border-radius: 0.22em;
-    padding: 0.04em 0.22em;
-    box-shadow:
-      0 0 0 2px color-mix(in srgb, var(--color-leaf-500) 95%, transparent) inset,
-      0 0.22em 0.8em -0.18em color-mix(in srgb, var(--color-leaf-500) 80%, transparent),
-      0 0 1.4em -0.05em color-mix(in srgb, var(--color-leaf-300) 90%, transparent);
-    text-shadow:
-      0 0 0.32em color-mix(in srgb, var(--color-leaf-300) 90%, transparent),
-      0 0 0.14em color-mix(in srgb, var(--color-leaf-500) 80%, transparent);
-    transition:
-      color 90ms ease-out,
-      background-color 140ms ease-out,
-      box-shadow 140ms ease-out;
-  }
-  /* Scale + pulse — outermost element only so nested children
-   * don't compound the transform. The pulse breathes the box-shadow
-   * between 95% and 100% over 1.2s — tight enough to read as
-   * "active right now" without becoming distracting. */
+  /* TAJWEED mode — same conceptual treatment as the default layouts
+   * (glow along the calligraphic curves, no box) but cranked up
+   * because the COLR font ignores CSS `color` so we have to use
+   * filter: drop-shadow which operates on the rendered pixels.
+   * Result: the COLR glyph itself reads as one solid gold mark
+   * (via the highlight palette swap) and a stacked halo traces its
+   * curves — same vibe as Madinah/IndoPak/Uthmani highlight, just
+   * loud enough to be unmistakable inside a multicolored mushaf.
+   *
+   * The `.mushaf-layout-tajweed` ancestor selector scopes this to
+   * /mushaf surfaces; the `[data-tajweed="v4"]` attribute reaches
+   * AyahCard's V4 anchors on /read continuous (where there's no
+   * `.mushaf-layout-tajweed` ancestor). */
   .mushaf-layout-tajweed .recite-highlight,
   .mushaf-layout-tajweed a.recite-highlight,
   a.recite-highlight[data-tajweed='v4'] {
-    transform: scale(1.06);
-    transform-origin: center;
-    animation: qalaam-recite-pulse 1.2s ease-in-out infinite;
+    /* Override the default mode's background-color !important from
+     * the rule above so the box doesn't ghost through. */
+    background-color: transparent !important;
+    /* All-gold palette so the COLR glyph reads as a single solid
+     * mark — gives the drop-shadow halo a clean silhouette to trace. */
     font-palette: --qalaam-tajweed-highlight;
-    will-change: box-shadow, background-color, transform;
-    /* Lift above sibling words so the box-shadow doesn't get clipped
-     * by the line below. */
+    /* Stacked halo — drop-shadow operates on the actual painted
+     * pixels of the COLR glyph, so each shadow traces the calligraphic
+     * curves (not a rectangular box). Three layers compound into a
+     * dense gold luminance around every stroke. */
+    filter: drop-shadow(0 0 0.06em color-mix(in srgb, var(--color-leaf-500) 100%, transparent))
+      drop-shadow(0 0 0.22em color-mix(in srgb, var(--color-leaf-300) 95%, transparent))
+      drop-shadow(0 0 0.55em color-mix(in srgb, var(--color-leaf-500) 80%, transparent))
+      drop-shadow(0 0 1em color-mix(in srgb, var(--color-leaf-300) 60%, transparent));
+    transform: scale(1.05);
+    transform-origin: center;
+    animation: qalaam-recite-glow 1.4s ease-in-out infinite;
+    will-change: filter, transform;
+    /* Lift above sibling lines so the halo doesn't clip. */
     position: relative;
     z-index: 1;
+    transition: filter 140ms ease-out;
   }
-  @keyframes qalaam-recite-pulse {
+  /* Inner spans inherit the palette from the anchor — no need for
+   * any color overrides here. We DO need to clear the default-mode
+   * `color: var(--color-leaf-500) !important` from cascading into
+   * COLR glyphs (they ignore it anyway) so the inheritance stays
+   * clean for non-COLR descendants like silent-mark spans. */
+  .mushaf-layout-tajweed .recite-highlight *,
+  a.recite-highlight[data-tajweed='v4'] * {
+    background-color: transparent !important;
+  }
+  @keyframes qalaam-recite-glow {
     0%,
     100% {
-      box-shadow:
-        0 0 0 2px color-mix(in srgb, var(--color-leaf-500) 95%, transparent) inset,
-        0 0.22em 0.8em -0.18em color-mix(in srgb, var(--color-leaf-500) 80%, transparent),
-        0 0 1.4em -0.05em color-mix(in srgb, var(--color-leaf-300) 90%, transparent);
+      filter: drop-shadow(0 0 0.06em color-mix(in srgb, var(--color-leaf-500) 100%, transparent))
+        drop-shadow(0 0 0.22em color-mix(in srgb, var(--color-leaf-300) 95%, transparent))
+        drop-shadow(0 0 0.55em color-mix(in srgb, var(--color-leaf-500) 80%, transparent))
+        drop-shadow(0 0 1em color-mix(in srgb, var(--color-leaf-300) 60%, transparent));
     }
     50% {
-      box-shadow:
-        0 0 0 2.5px var(--color-leaf-500) inset,
-        0 0.28em 1em -0.14em color-mix(in srgb, var(--color-leaf-500) 100%, transparent),
-        0 0 2em 0.06em color-mix(in srgb, var(--color-leaf-300) 100%, transparent);
+      filter: drop-shadow(0 0 0.08em color-mix(in srgb, var(--color-leaf-500) 100%, transparent))
+        drop-shadow(0 0 0.32em color-mix(in srgb, var(--color-leaf-300) 100%, transparent))
+        drop-shadow(0 0 0.75em color-mix(in srgb, var(--color-leaf-500) 100%, transparent))
+        drop-shadow(0 0 1.4em color-mix(in srgb, var(--color-leaf-300) 90%, transparent));
     }
   }
   :root[data-theme='dark'] .mushaf-layout-tajweed .recite-highlight,
-  :root[data-theme='dark'] .mushaf-layout-tajweed .recite-highlight *,
   :root[data-theme='dark'] .mushaf-layout-tajweed a.recite-highlight,
-  :root[data-theme='dark'] .mushaf-layout-tajweed a.recite-highlight *,
-  :root[data-theme='dark'] a.recite-highlight[data-tajweed='v4'],
-  :root[data-theme='dark'] a.recite-highlight[data-tajweed='v4'] * {
-    color: var(--color-leaf-300) !important;
-    background-color: color-mix(in srgb, var(--color-leaf-500) 50%, transparent) !important;
-    box-shadow:
-      0 0 0 2px color-mix(in srgb, var(--color-leaf-300) 95%, transparent) inset,
-      0 0.22em 0.95em -0.16em color-mix(in srgb, var(--color-leaf-500) 90%, transparent),
-      0 0 1.7em -0.05em color-mix(in srgb, var(--color-leaf-300) 80%, transparent);
-    text-shadow:
-      0 0 0.4em color-mix(in srgb, var(--color-leaf-500) 95%, transparent),
-      0 0 0.18em color-mix(in srgb, var(--color-leaf-300) 90%, transparent);
+  :root[data-theme='dark'] a.recite-highlight[data-tajweed='v4'] {
+    filter: drop-shadow(0 0 0.06em color-mix(in srgb, var(--color-leaf-300) 100%, transparent))
+      drop-shadow(0 0 0.26em color-mix(in srgb, var(--color-leaf-500) 100%, transparent))
+      drop-shadow(0 0 0.65em color-mix(in srgb, var(--color-leaf-300) 90%, transparent))
+      drop-shadow(0 0 1.2em color-mix(in srgb, var(--color-leaf-500) 70%, transparent));
   }
   @media (prefers-reduced-motion: reduce) {
     .recite-highlight,
