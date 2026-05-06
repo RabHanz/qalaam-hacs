@@ -155,11 +155,11 @@ export function useAsrWebSocket({
 
   const start = useCallback(async () => {
     if (!wsUrl) {
-      setError('ASR worker not configured (NEXT_PUBLIC_ASR_WS_URL)');
+      setError('Live recitation listening isn’t available right now.');
       return;
     }
     if (typeof window === 'undefined' || typeof MediaRecorder === 'undefined') {
-      setError('MediaRecorder is not available in this browser');
+      setError('Microphone recording isn’t supported in this browser.');
       return;
     }
     setError(null);

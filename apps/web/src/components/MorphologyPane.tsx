@@ -99,7 +99,9 @@ export function MorphologyPane({ verseKey }: Props): ReactNode {
         };
         if (!cancelled.v) setData(sanitised);
       } catch (err) {
-        if (!cancelled.v) setError(err instanceof Error ? err.message : 'unknown');
+        if (!cancelled.v) {
+          setError(err instanceof Error ? err.message : 'Could not load morphology right now.');
+        }
       } finally {
         if (!cancelled.v) setLoading(false);
       }

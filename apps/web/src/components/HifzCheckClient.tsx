@@ -122,7 +122,7 @@ export function HifzCheckClient({ expectedText, verseKey }: Props): ReactNode {
 
   function start(): void {
     if (!SR) {
-      setError('Speech recognition not supported in this browser. Try Chrome on desktop.');
+      setError('Live recitation listening isn’t available in this browser. Try Chrome on desktop.');
       return;
     }
     setError(null);
@@ -173,8 +173,8 @@ export function HifzCheckClient({ expectedText, verseKey }: Props): ReactNode {
       }
       setProgress(next);
     };
-    rec.onerror = (ev) => {
-      setError(`speech-recognition: ${ev.error}`);
+    rec.onerror = () => {
+      setError('We couldn’t hear you clearly. Please try again.');
     };
     rec.onend = () => {
       setListening(false);
@@ -343,16 +343,8 @@ export function HifzCheckClient({ expectedText, verseKey }: Props): ReactNode {
 
       {mode === 'browser' && !supported ? (
         <p className="text-ink-muted text-center text-sm">
-          Speech recognition is not available in this browser. Use Chrome on desktop, or
-          {ws.available ? (
-            ' switch to self-hosted ASR above.'
-          ) : (
-            <>
-              {' '}
-              set <code className="mx-1">NEXT_PUBLIC_ASR_WS_URL</code> and run the asr-worker for
-              the WebSocket-backed hifz session.
-            </>
-          )}
+          Speech recognition isn’t available in this browser. Try Chrome on desktop
+          {ws.available ? ', or switch to the on-device option above.' : '.'}
         </p>
       ) : null}
 

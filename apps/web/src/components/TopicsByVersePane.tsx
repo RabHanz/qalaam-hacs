@@ -40,7 +40,9 @@ export function TopicsByVersePane({ verseKey }: Props): ReactNode {
         const body = (await res.json()) as { topics: readonly TopicTag[] };
         if (!cancel.v) setTopics(body.topics);
       } catch (err) {
-        if (!cancel.v) setError(err instanceof Error ? err.message : 'unknown');
+        if (!cancel.v) {
+          setError(err instanceof Error ? err.message : 'Could not load topics right now.');
+        }
       }
     })();
     return () => {
