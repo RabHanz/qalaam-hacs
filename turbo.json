@@ -8,7 +8,13 @@
       "dependsOn": ["^build", "^codegen", "codegen"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**", "build/**"],
       "inputs": ["src/**", "schemas/**", "package.json", "tsconfig.json", "next.config.*"],
-      "env": ["NODE_ENV"]
+      "env": [
+        "NODE_ENV",
+        "NEXT_PUBLIC_APP_URL",
+        "PUBLIC_API_URL",
+        "QALAAM_REACT_COMPILER",
+        "QALAAM_SKIP_PYTHON_CODEGEN"
+      ]
     },
     "dev": {
       "cache": false,
