@@ -10,6 +10,7 @@
  */
 import '../styles/globals.css';
 
+import { NowPlayingPill } from '../components/NowPlayingPill.js';
 import { SiteFooter } from '../components/SiteFooter.js';
 import { DEFAULT_LOCALE, dirOf } from '../lib/i18n.js';
 
@@ -135,6 +136,7 @@ export default function RootLayout({ children }: { readonly children: ReactNode 
         <main id="main" className="min-h-screen">
           {children}
         </main>
+        <NowPlayingPill />
         <SiteFooter />
       </body>
     </html>

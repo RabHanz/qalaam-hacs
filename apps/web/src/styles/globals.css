@@ -644,6 +644,44 @@
       transform: translateY(0);
     }
   }
+
+  /* NowPlayingPill equalizer — three vertical bars pulsing out of phase.
+     Calm, not flashy. Reduced-motion replaces it with static bars. */
+  .q-eq {
+    height: 14px;
+    line-height: 0;
+  }
+  .q-eq-bar {
+    height: 4px;
+    border-radius: 1px;
+    animation: q-eq-pulse 1.1s ease-in-out infinite;
+    transform-origin: bottom;
+  }
+  .q-eq-bar-2 {
+    animation-delay: 0.18s;
+  }
+  .q-eq-bar-3 {
+    animation-delay: 0.36s;
+  }
+  @keyframes q-eq-pulse {
+    0% {
+      transform: scaleY(0.5);
+    }
+    50% {
+      transform: scaleY(2.5);
+    }
+    100% {
+      transform: scaleY(0.5);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .q-eq-bar,
+    .q-eq-bar-2,
+    .q-eq-bar-3 {
+      animation: none;
+      transform: scaleY(1.4);
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
     .reveal,
     .reveal-1,
