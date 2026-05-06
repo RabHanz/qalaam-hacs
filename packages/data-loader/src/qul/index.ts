@@ -140,8 +140,14 @@ class QulReaderImpl implements QulReader {
       );
     }
     this.db = new Database(dbPath, { readonly: true, fileMustExist: true });
-    this.db.pragma('journal_mode = WAL');
-    this.db.pragma('synchronous = NORMAL');
+    // Connection-level perf tuning. `temp_store = MEMORY` is the only
+    // pragma that's safe on a read-only handle — it lives in process
+    // memory and never touches disk. `journal_mode = WAL` and
+    // `synchronous = NORMAL` mutate the database file header and need
+    // write access to the directory (for -wal/-shm files); on a
+    // production read-only volume mount they raise SQLITE_READONLY.
+    // The DB is opened readonly anyway, so the journal mode is moot —
+    // we only ever issue SELECTs against this handle.
     this.db.pragma('temp_store = MEMORY');
     // Prepare hot statements once at open time — keeps lookups under 5ms p95.
     this.stmt = {
