@@ -32,6 +32,7 @@ import { mistakesRoutes } from './routes/v1/mistakes.js';
 import { morphologyRoutes } from './routes/v1/morphology.js';
 import { nowPlayingRoutes } from './routes/v1/now-playing.js';
 import { plansRoutes } from './routes/v1/plans.js';
+import { playbackRoutes } from './routes/v1/playback.js';
 import { prayerTimesRoutes } from './routes/v1/prayer-times.js';
 import { qiblaHijriRoutes } from './routes/v1/qibla-hijri.js';
 import { qpcTextRoutes } from './routes/v1/qpc-text.js';
@@ -146,6 +147,9 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   // Public feature catalog — frontend mirror reads this so we can
   // ship tier flips from the admin panel (#214) without redeploying.
   await app.register(featuresRoutes);
+  // Cross-device playback session sync (ADR-0025 Phase 2). Owns
+  // /v1/playback/state, /command, /subscribe (SSE), /devices.
+  await app.register(playbackRoutes);
 
   return app;
 }

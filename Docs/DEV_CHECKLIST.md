@@ -1418,6 +1418,9 @@ rediscover them under pressure:
 - **#226 K8.** Voice notes → R2 (L16) — trigger: qalaam-data volume hits 5 GB.
 - **#227 K9.** Host-rebuild runbook (L17) — trigger: first incident.
 - **#228 K10.** Static-asset version + CDN split (L20) — trigger: image rebuild on font version-bump > 30 s.
+- **#229 K11.** Cross-device playback session (ADR-0025 Phase 2) — **SHIPPED 2026-05-06.** SSE-based, per-user isolated, EventSource + REST commands. Dormant for anonymous users; cloud-mirrors verse/reciter/play/pause/seek across all signed-in user's devices.
+- **#230 K12.** HA integration as peer device (ADR-0025 Phase 3) — trigger: Phase 2 has visible adoption.
+- **#231 K13.** Local Connect agent — LAN-only mode (ADR-0025 Phase 4) — trigger: Pro-tier launch.
 
 **Anti-pattern guard:** None of the L_n upgrades ship until its
 trigger fires. Per CLAUDE.md §6 (Build for the foundation, not the

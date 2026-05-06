@@ -27,6 +27,8 @@ export type FeatureKey =
   | 'recite-and-check.browser'
   | 'bookmarks'
   | 'hifdh.dashboard.personal'
+  | 'playback.session.read'
+  | 'playback.session.write'
   // Premium
   | 'family.members.multiple'
   | 'family.plans'
@@ -81,6 +83,16 @@ export const FALLBACK_CATALOG: Record<FeatureKey, FeatureSpec> = {
     minTier: 'free',
     requiresAuth: true,
     label: 'Daily Hifdh dashboard',
+  },
+  'playback.session.read': {
+    minTier: 'free',
+    requiresAuth: true,
+    label: 'Cross-device playback',
+  },
+  'playback.session.write': {
+    minTier: 'free',
+    requiresAuth: true,
+    label: 'Control playback across devices',
   },
   'family.members.multiple': {
     minTier: 'premium',

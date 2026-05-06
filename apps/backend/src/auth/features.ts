@@ -94,6 +94,12 @@ export type FeatureKey =
   | 'bookmarks'
   // Free — Quran MCP server (open for third-party AI clients)
   | 'mcp.tools'
+  // Free — cross-device playback session (ADR-0025 Phase 2).
+  // Read is anon-friendly so unauthenticated users can still listen
+  // locally; write requires auth so only the owner can mutate the
+  // backend session row.
+  | 'playback.session.read'
+  | 'playback.session.write'
   // Premium — family-tier
   | 'family.members.multiple'
   | 'family.plans'
@@ -264,6 +270,20 @@ export const FEATURE_CATALOG: Record<FeatureKey, FeatureSpec> = {
     requiresAuth: false,
     description: 'qalaam-mcp server (third-party AI clients)',
     label: 'MCP tools',
+  },
+  'playback.session.read': {
+    minTier: 'free',
+    requiresAuth: true,
+    description:
+      'Read the cross-device playback session — what the user is listening to, where, and on which device. Per-user isolated; no cross-account leakage.',
+    label: 'Cross-device playback',
+  },
+  'playback.session.write': {
+    minTier: 'free',
+    requiresAuth: true,
+    description:
+      'Mutate the playback session (play / pause / seek / load / transfer). Auth-required so only the owner can drive their own session.',
+    label: 'Control playback across devices',
   },
   'family.members.multiple': {
     minTier: 'premium',

@@ -1,6 +1,6 @@
 # ADR-0025 — Cross-device playback sync (Spotify-Connect-style)
 
-**Status:** Accepted (architecture); Phase-1 in progress; Phase-2/3 deferred per modular triggers.
+**Status:** Phase-1 + Phase-2 shipped; Phase-3/4 deferred per modular triggers.
 **Date:** 2026-05-06
 **Supersedes:** none. Extends ADR-0009 (Fastify), ADR-0023 (SQLite-only).
 
@@ -35,7 +35,32 @@ The `useCast` hook (apps/web/src/lib/use-cast.ts) wraps the Cast Framework's `Re
 
 **Status:** shipped commit `a6f4190` + the cast-hook commit landing now.
 
-## Phase 2 — Cross-device sync via cloud-mediated session (DEFERRED — trigger: first multi-device household OR first paying customer)
+## Phase 2 — Cross-device sync via cloud-mediated session (SHIPPED 2026-05-06)
+
+Implementation chose **SSE** over WebSocket: one-way pushes are all
+we need (commands go via REST POST), and EventSource gives free
+auto-reconnect, native cookie auth, and zero new deps. The WS
+sketch below remains accurate apart from that protocol swap.
+
+Live surface:
+
+- `playback_sessions` + `playback_devices` tables in `qalaam.sqlite`
+  (auto-created on boot per `apps/backend/src/auth/db.ts`).
+- `apps/backend/src/lib/playback-bus.ts` — in-memory pub/sub keyed
+  by `user_id`, broadcasts state to each user's SSE subscribers.
+- `apps/backend/src/routes/v1/playback.ts` — five endpoints:
+  GET `/state`, POST `/command` (action ∈ play|pause|seek|load|
+  transfer|sync), GET `/subscribe` (SSE), POST `/devices/heartbeat`,
+  GET `/devices`. All gated by the new `playback.session.read` /
+  `playback.session.write` feature keys.
+- `apps/web/src/lib/use-playback-session.ts` — frontend hook with
+  auto-reconnect EventSource, 60-second device heartbeat, command
+  primitives. Dormant when `enabled: false` (anonymous users).
+- MiniPlayer wires the hook in: every local play/pause/seek mirrors
+  to the cloud session; remote state pushes from another device
+  mirror back into local state via `qalaam:remote-reciter` window
+  event + parent `onVerseKeyChange` callback. Echo-suppression via
+  `activeDeviceId === deviceId` check.
 
 Backend authoritative state:
 

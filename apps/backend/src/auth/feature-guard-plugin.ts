@@ -91,6 +91,22 @@ const ROUTE_RULES: readonly RouteRule[] = [
   // ─── MCP server ────────────────────────────────────────────────
   { methods: '*', pattern: /^\/v1\/mcp(\/|$)/, feature: 'mcp.tools' },
 
+  // ─── Cross-device playback session (ADR-0025 Phase 2) ──────────
+  // GET routes use the read gate; POST routes use the write gate.
+  // Order matters here — list the GET-only matchers BEFORE the
+  // method='*' write rule so the closed-by-default fallthrough
+  // doesn't trip.
+  {
+    methods: ['GET'],
+    pattern: /^\/v1\/playback\/(state|subscribe|devices)(\/|$)?$/,
+    feature: 'playback.session.read',
+  },
+  {
+    methods: ['POST'],
+    pattern: /^\/v1\/playback\/(command|devices\/heartbeat)(\/|$)?$/,
+    feature: 'playback.session.write',
+  },
+
   // ─── Premium — family-tier ─────────────────────────────────────
   // Note: the per-handler `requireFeature` calls in these route files
   // remain — this hook is defense-in-depth + future-proofing for

@@ -36,6 +36,37 @@ export function authDb(): DB {
   db.pragma('foreign_keys = ON');
   db.pragma('busy_timeout = 5000');
 
+  // Playback session — one row per user. The cross-device sync layer
+  // (ADR-0025) is the source of truth for "what's playing right now"
+  // for this user. Devices push state via /v1/playback/command and
+  // subscribe via /v1/playback/subscribe (SSE). Updated_at is millis
+  // since epoch — used by the heartbeat-prune logic that drops
+  // stale device rows.
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS playback_sessions (
+      user_id           TEXT PRIMARY KEY,
+      verse_key         TEXT NOT NULL DEFAULT '1:1',
+      reciter_slug      TEXT NOT NULL DEFAULT 'sudais',
+      position_seconds  REAL NOT NULL DEFAULT 0,
+      is_paused         INTEGER NOT NULL DEFAULT 1,
+      target            TEXT NOT NULL DEFAULT 'local',
+      active_device_id  TEXT,
+      updated_at        INTEGER NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS playback_devices (
+      device_id     TEXT PRIMARY KEY,
+      user_id       TEXT NOT NULL,
+      name          TEXT NOT NULL,
+      capabilities  TEXT NOT NULL DEFAULT '[]', -- JSON array
+      last_seen     INTEGER NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_playback_devices_user
+      ON playback_devices(user_id, last_seen DESC);
+  `);
+
   // Schema. Created idempotently — safe to call on every boot.
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (

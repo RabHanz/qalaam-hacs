@@ -61,6 +61,10 @@ interface RemotePlayer {
   isMediaLoaded: boolean;
   currentTime: number;
   duration: number;
+  /** 0..1 (Cast SDK: linear scale). */
+  volumeLevel: number;
+  isMuted: boolean;
+  /** PLAYING | PAUSED | BUFFERING | IDLE | undefined (mapped from chrome.cast.media.PlayerState). */
   playerState?: string;
   mediaInfo?: MediaInfo | null;
 }
@@ -68,6 +72,8 @@ interface RemotePlayerController {
   playOrPause(): void;
   seek(): void;
   stop(): void;
+  setVolumeLevel(): void;
+  muteOrUnmute(): void;
   addEventListener(event: string, handler: () => void): void;
   removeEventListener(event: string, handler: () => void): void;
 }
@@ -204,6 +210,15 @@ export interface UseCastResult {
   /** Seek the receiver to `seconds` (uses controller.seek() after
    *  setting RemotePlayer.currentTime per Cast SDK contract). */
   readonly seek: (seconds: number) => void;
+  /** Receiver volume (0..1). */
+  readonly volume: number;
+  /** Set receiver volume (0..1). Cast SDK is linear-scale; the UI
+   *  may want a perceptual curve before passing it here. */
+  readonly setVolume: (level: number) => void;
+  /** Whether the receiver is muted. */
+  readonly isMuted: boolean;
+  /** Toggle mute on the receiver. */
+  readonly toggleMute: () => void;
   /** End the current session (returns control to local playback). */
   readonly endSession: () => void;
   /** Subscribe to "media just ended" — fires when the receiver
@@ -219,11 +234,20 @@ export function useCast(): UseCastResult {
   const [duration, setDuration] = useState(0);
   const [isMediaLoaded, setIsMediaLoaded] = useState(false);
   const [isAvailable, setIsAvailable] = useState(false);
+  const [volume, setVolumeState] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
 
   const playerRef = useRef<RemotePlayer | null>(null);
   const controllerRef = useRef<RemotePlayerController | null>(null);
   const endedHandlersRef = useRef<Set<() => void>>(new Set());
-  const wasPlayingRef = useRef(false);
+  // Track previous playerState for end-of-media detection. Chromecast
+  // signals end via the player transitioning to 'IDLE' AFTER having
+  // reached 'PLAYING' or 'BUFFERING'. We also keep a "had-loaded-this-
+  // src" map so reseting media via loadMedia doesn't accidentally fire
+  // ended for a track that just got replaced.
+  const prevPlayerStateRef = useRef<string | undefined>(undefined);
+  const lastLoadedSrcRef = useRef<string | null>(null);
+  const sawPlayingRef = useRef(false);
 
   // Boot SDK on mount (lazy: only when this hook is actually used).
   useEffect(() => {
@@ -243,26 +267,43 @@ export function useCast(): UseCastResult {
       setIsAvailable(true);
 
       const sync = (): void => {
-        const wasPlayingBefore = wasPlayingRef.current;
-        const isPlayingNow = player.isMediaLoaded && !player.isPaused;
-        wasPlayingRef.current = isPlayingNow;
-
         setIsConnected(player.isConnected);
         setIsPaused(player.isPaused);
         setCurrentTime(player.currentTime);
         setDuration(player.duration);
         setIsMediaLoaded(player.isMediaLoaded);
+        setVolumeState(player.volumeLevel);
+        setIsMuted(player.isMuted);
 
-        // "Ended" signal — receiver finishes when playerState
-        // transitions to IDLE while currentTime is at duration.
-        // The Cast SDK exposes this via `IS_MEDIA_LOADED_CHANGED`
-        // flipping to false AFTER having been true; we also catch
-        // the (currentTime >= duration > 0) case since some
-        // receivers don't unload media on end.
-        const justEnded =
-          (wasPlayingBefore && !player.isMediaLoaded) ||
-          (player.duration > 0 && player.currentTime >= player.duration - 0.25 && player.isPaused);
+        // End-of-media detection — Cast SDK contract is that
+        // `playerState` transitions to 'IDLE' after reaching
+        // 'PLAYING'. The previous heuristic (currentTime ≥ duration
+        // - 0.25 while paused) fired prematurely on user-initiated
+        // pause near the end AND missed the case where the receiver
+        // unloads media a beat before duration is reached.
+        //
+        // Track:
+        //   - sawPlayingRef: have we observed PLAYING/BUFFERING for
+        //     the currently-loaded src? Reset on every loadMedia()
+        //     so a stale "ended" from a previous track can't fire.
+        //   - prevPlayerStateRef: the state on the previous tick.
+        //
+        // Fire onMediaEnded only when state transitions FROM
+        // (PLAYING|BUFFERING) → IDLE AND we've been actively playing
+        // for the current load. That matches the Chromecast
+        // documented end-of-media signal.
+        const ps = player.playerState;
+        const wasActive =
+          prevPlayerStateRef.current === 'PLAYING' || prevPlayerStateRef.current === 'BUFFERING';
+        if (ps === 'PLAYING' || ps === 'BUFFERING') sawPlayingRef.current = true;
+        const justEnded = wasActive && ps === 'IDLE' && sawPlayingRef.current;
+        prevPlayerStateRef.current = ps;
+
         if (justEnded) {
+          // Reset for the next track — the next loadMedia() arms
+          // sawPlayingRef again the moment the receiver enters
+          // PLAYING.
+          sawPlayingRef.current = false;
           for (const h of endedHandlersRef.current) {
             try {
               h();
@@ -319,6 +360,14 @@ export function useCast(): UseCastResult {
       if (!session) return;
       const cast = w.chrome?.cast;
       if (!cast?.media) return;
+      // Track the src so the end-of-media detector resets between
+      // tracks — a transient IDLE that fires DURING the loadMedia
+      // round-trip must not be classified as "previous track ended"
+      // for the new track. Reset sawPlayingRef so the next PLAYING
+      // event arms end-detection for THIS src.
+      lastLoadedSrcRef.current = src;
+      sawPlayingRef.current = false;
+      prevPlayerStateRef.current = undefined;
       const info = new cast.media.MediaInfo(src, opts.contentType ?? 'audio/mpeg');
       info.metadata = {
         metadataType: 0,
@@ -326,6 +375,13 @@ export function useCast(): UseCastResult {
         subtitle: opts.artist,
       };
       const req = new cast.media.LoadRequest(info);
+      // Per Cast SDK: setting `autoplay: true` on the LoadRequest
+      // tells the receiver to start playing immediately on load.
+      // Without it, the receiver loads silently and waits for an
+      // explicit play() — which is the bug ("only plays one ayah"):
+      // auto-advance loaded the next ayah but the receiver stayed
+      // paused.
+      (req as { autoplay?: boolean }).autoplay = true;
       try {
         await session.loadMedia(req);
       } catch {
@@ -353,8 +409,35 @@ export function useCast(): UseCastResult {
     const c = controllerRef.current;
     const p = playerRef.current;
     if (!c || !p) return;
+    // Cast SDK contract: set RemotePlayer.currentTime to the target,
+    // THEN call controller.seek() — the controller reads the player
+    // property to know where to seek. Setting and immediately
+    // calling is the documented pattern.
     p.currentTime = seconds;
     c.seek();
+    // Optimistic local mirror — the receiver will broadcast
+    // CURRENT_TIME_CHANGED in the next tick, but updating the
+    // setState immediately makes the scrub UI feel responsive
+    // instead of snapping back to the old position.
+    setCurrentTime(seconds);
+  }, []);
+
+  const setVolume = useCallback((level: number): void => {
+    const c = controllerRef.current;
+    const p = playerRef.current;
+    if (!c || !p) return;
+    const clamped = Math.max(0, Math.min(1, level));
+    p.volumeLevel = clamped;
+    c.setVolumeLevel();
+    setVolumeState(clamped);
+  }, []);
+
+  const toggleMute = useCallback((): void => {
+    const c = controllerRef.current;
+    const p = playerRef.current;
+    if (!c || !p) return;
+    c.muteOrUnmute();
+    setIsMuted(!p.isMuted);
   }, []);
 
   const endSession = useCallback((): void => {
@@ -379,11 +462,15 @@ export function useCast(): UseCastResult {
     duration,
     isMediaLoaded,
     isAvailable,
+    volume,
+    isMuted,
     requestSession,
     loadMedia,
     play,
     pause,
     seek,
+    setVolume,
+    toggleMute,
     endSession,
     onMediaEnded,
   };

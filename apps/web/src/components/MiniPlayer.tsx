@@ -16,6 +16,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
 import { useCast } from '../lib/use-cast.js';
+import { usePlaybackSession } from '../lib/use-playback-session.js';
 import { useUser } from '../lib/use-user.js';
 
 import { SendToPicker } from './SendToPicker.js';
@@ -61,6 +62,11 @@ export function MiniPlayer({
   const { user } = useUser();
   const haUrl = user?.haUrl ?? null;
   const cast = useCast();
+  // Cross-device session sync (ADR-0025 Phase 2). Dormant for
+  // anonymous users — they get the same single-tab experience as
+  // before. Authenticated users get cloud-mirrored playback
+  // across all their devices.
+  const session = usePlaybackSession({ enabled: Boolean(user) });
   // While casting we drive the receiver and ignore the local audio
   // element. This single flag is the routing decision for every
   // play / pause / seek / advance call below.
@@ -68,6 +74,13 @@ export function MiniPlayer({
   const [localPlaying, setLocalPlaying] = useState(false);
   const [localDuration, setLocalDuration] = useState(0);
   const [localPosition, setLocalPosition] = useState(0);
+  // Volume is persisted per-user via localStorage; default to 1.0
+  // (full) on first mount. Hydrated in the dedicated effect below.
+  const [localVolume, setLocalVolume] = useState(1);
+  // Effective volume — receiver volume when casting, local volume
+  // otherwise.
+  const volume = isCasting ? cast.volume : localVolume;
+  const isMuted = isCasting ? cast.isMuted : localVolume === 0;
   // Effective state surfaced to the UI — receiver state when casting,
   // local state otherwise.
   const playing = isCasting ? !cast.isPaused : localPlaying;
@@ -159,22 +172,41 @@ export function MiniPlayer({
     };
   }, [verseKey, reciterSlug, apiBase]);
 
-  // After URL is set + we wanted to resume, kick playback off. When
-  // casting, this loads the new src on the receiver instead of the
-  // local <audio> element — keeping the receiver in lockstep with
-  // the verseKey state.
+  // While casting, EVERY change to audioUrl pushes the new src
+  // straight to the receiver — instantly, with autoplay. This is
+  // the "instant reload on reciter / verse / surah change" the user
+  // explicitly called out: previously the receiver kept the old
+  // ayah until it finished, then auto-advance kicked in. Now any
+  // change in the reactive (verseKey, reciterSlug) → audioUrl
+  // propagates to the receiver in the same tick.
+  //
+  // Tracks the last URL we shipped so we don't reload on unrelated
+  // re-renders (which would interrupt receiver playback). The
+  // receiver's loadMedia call carries autoplay=true (see
+  // useCast.loadMedia) so the new ayah starts playing immediately
+  // without a separate play() command.
+  const lastCastSrcRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!audioUrl || !shouldResumeRef.current) return;
-    shouldResumeRef.current = false;
-    if (isCasting) {
-      void cast.loadMedia(audioUrl, {
-        title: `${reciterMeta?.name.en ?? reciterSlug} · ${verseKey}`,
-        artist: reciterMeta?.name.en ?? reciterSlug,
-      });
-      return;
-    }
-    if (!audioRef.current) return;
+    if (!isCasting || !audioUrl) return;
+    if (lastCastSrcRef.current === audioUrl) return;
+    lastCastSrcRef.current = audioUrl;
+    // Pause local audio when casting to keep the user from hearing
+    // both sources during the brief loadMedia round-trip.
+    audioRef.current?.pause();
+    setLocalPlaying(false);
+    void cast.loadMedia(audioUrl, {
+      title: `${reciterMeta?.name.en ?? reciterSlug} · ${verseKey}`,
+      artist: reciterMeta?.name.en ?? reciterSlug,
+    });
+  }, [isCasting, audioUrl, cast, reciterMeta, reciterSlug, verseKey]);
+
+  // Local-audio-only resume path (kicks off local playback when the
+  // user had toggled play before the URL fetch completed).
+  useEffect(() => {
+    if (isCasting) return;
+    if (!audioUrl || !shouldResumeRef.current || !audioRef.current) return;
     const a = audioRef.current;
+    shouldResumeRef.current = false;
     void a.play().then(
       () => {
         setLocalPlaying(true);
@@ -183,28 +215,31 @@ export function MiniPlayer({
         setLocalPlaying(false);
       },
     );
-  }, [audioUrl, isCasting, cast, reciterMeta, reciterSlug, verseKey]);
+  }, [audioUrl, isCasting]);
 
-  // When a cast session becomes active and we already have an audio
-  // URL queued, push it to the receiver immediately. Mirror: when
-  // the cast session ends, resume local playback.
+  // When the cast session ENDS (receiver disconnect, user stopped
+  // casting), keep playback continuous on local — the user expects
+  // the recitation to keep flowing, just from this device now.
   const wasCastingRef = useRef(isCasting);
   useEffect(() => {
     const wasCasting = wasCastingRef.current;
     wasCastingRef.current = isCasting;
-    if (isCasting && !wasCasting && audioUrl) {
-      // Just started casting — pause local audio + load on receiver.
-      audioRef.current?.pause();
-      setLocalPlaying(false);
-      void cast.loadMedia(audioUrl, {
-        title: `${reciterMeta?.name.en ?? reciterSlug} · ${verseKey}`,
-        artist: reciterMeta?.name.en ?? reciterSlug,
-      });
+    if (wasCasting && !isCasting) {
+      // Cast just ended — clear the cast-src memo so re-engagement
+      // works, and resume local audio if we have a URL queued.
+      lastCastSrcRef.current = null;
+      if (audioRef.current && audioUrl) {
+        void audioRef.current.play().then(
+          () => {
+            setLocalPlaying(true);
+          },
+          () => {
+            setLocalPlaying(false);
+          },
+        );
+      }
     }
-    // Note: we don't auto-resume local audio on session end — the
-    // user explicitly asked the cast to stop, presumably to silence
-    // the room. They can press play again locally.
-  }, [isCasting, audioUrl, cast, reciterMeta, reciterSlug, verseKey]);
+  }, [isCasting, audioUrl]);
 
   const advance = useCallback(
     (direction: 1 | -1, autoplay: boolean) => {
@@ -218,6 +253,130 @@ export function MiniPlayer({
     },
     [verseKey, onVerseKeyChange],
   );
+
+  // Persist + restore volume across mounts via localStorage.
+  // Hydrate-only on the client (window check) so SSR doesn't crash.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = window.localStorage.getItem('qalaam-volume');
+      if (raw) {
+        const v = Number.parseFloat(raw);
+        if (Number.isFinite(v) && v >= 0 && v <= 1) setLocalVolume(v);
+      }
+    } catch {
+      /* ignore quota / private mode */
+    }
+  }, []);
+
+  // Push local volume into the <audio> element whenever it changes.
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    a.volume = localVolume;
+  }, [localVolume]);
+
+  function onVolumeChange(level: number): void {
+    const clamped = Math.max(0, Math.min(1, level));
+    if (isCasting) {
+      cast.setVolume(clamped);
+      return;
+    }
+    setLocalVolume(clamped);
+    try {
+      window.localStorage.setItem('qalaam-volume', clamped.toString());
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function toggleMute(): void {
+    if (isCasting) {
+      cast.toggleMute();
+      return;
+    }
+    if (localVolume === 0) {
+      // Restore last non-zero volume if we tracked one — otherwise
+      // unmute to half so the user has an audible reference.
+      const stored = (() => {
+        try {
+          const raw = window.localStorage.getItem('qalaam-volume-prev');
+          const v = raw ? Number.parseFloat(raw) : 0.5;
+          return Number.isFinite(v) && v > 0 ? v : 0.5;
+        } catch {
+          return 0.5;
+        }
+      })();
+      onVolumeChange(stored);
+      return;
+    }
+    try {
+      window.localStorage.setItem('qalaam-volume-prev', localVolume.toString());
+    } catch {
+      /* ignore */
+    }
+    onVolumeChange(0);
+  }
+
+  // ─── Cross-device session sync (ADR-0025 Phase 2) ───────────────
+  // Push local intent to the cloud session whenever the user
+  // changes verseKey or reciter — so any other device the user has
+  // open mirrors the change in real-time. Skips when the user is
+  // anonymous (session.connected === false).
+  const lastPushedRef = useRef<{ vk: string; r: string } | null>(null);
+  useEffect(() => {
+    if (!session.connected) return;
+    const pushed = lastPushedRef.current;
+    if (pushed?.vk === verseKey && pushed.r === reciterSlug) return;
+    lastPushedRef.current = { vk: verseKey, r: reciterSlug };
+    void session.load(verseKey, reciterSlug, isCasting ? 'cast' : 'local');
+  }, [session, verseKey, reciterSlug, isCasting]);
+
+  // Mirror remote state changes — when ANOTHER device drives the
+  // session (changes verseKey, reciter, or pause state), reflect
+  // that here. Echo-suppression: skip when the session's
+  // activeDeviceId is OUR deviceId (we already applied the change
+  // locally before sending the command).
+  useEffect(() => {
+    if (!session.connected || !session.state) return;
+    if (session.state.activeDeviceId === session.deviceId) return;
+    const remote = session.state;
+    // Verse / reciter switch initiated remotely → mirror by
+    // updating the parent (which propagates back through props).
+    if (remote.verseKey !== verseKey) {
+      shouldResumeRef.current = !remote.isPaused;
+      onVerseKeyChange(remote.verseKey);
+    }
+    // Reciter change isn't reactive through this prop set (parent
+    // owns reciterSlug too) — we surface it via the same parent
+    // channel via a custom event the listen surface listens for.
+    if (remote.reciterSlug !== reciterSlug) {
+      window.dispatchEvent(
+        new CustomEvent('qalaam:remote-reciter', { detail: { slug: remote.reciterSlug } }),
+      );
+    }
+    // Pause/play state — apply to whichever transport is active.
+    if (remote.isPaused && playing) {
+      if (isCasting) cast.pause();
+      else audioRef.current?.pause();
+      setLocalPlaying(false);
+    } else if (!remote.isPaused && !playing && audioUrl) {
+      if (isCasting) cast.play();
+      else void audioRef.current?.play();
+      setLocalPlaying(true);
+    }
+  }, [
+    session.connected,
+    session.state,
+    session.deviceId,
+    verseKey,
+    reciterSlug,
+    isCasting,
+    cast,
+    onVerseKeyChange,
+    playing,
+    audioUrl,
+  ]);
 
   // When casting, hook into the receiver's "media ended" signal so
   // we advance to the next ayah and load it on the receiver. Without
@@ -234,8 +393,13 @@ export function MiniPlayer({
 
   function togglePlay(): void {
     if (isCasting) {
-      if (cast.isPaused) cast.play();
-      else cast.pause();
+      if (cast.isPaused) {
+        cast.play();
+        if (session.connected) void session.play(cast.currentTime);
+      } else {
+        cast.pause();
+        if (session.connected) void session.pause(cast.currentTime);
+      }
       return;
     }
     const a = audioRef.current;
@@ -243,6 +407,7 @@ export function MiniPlayer({
     if (playing) {
       a.pause();
       setLocalPlaying(false);
+      if (session.connected) void session.pause(a.currentTime);
       return;
     }
     if (!audioUrl) {
@@ -254,6 +419,7 @@ export function MiniPlayer({
     void a.play().then(
       () => {
         setLocalPlaying(true);
+        if (session.connected) void session.play(a.currentTime);
       },
       () => {
         setLocalPlaying(false);
@@ -265,12 +431,14 @@ export function MiniPlayer({
     const t = Number.parseFloat(e.target.value);
     if (isCasting) {
       cast.seek(t);
+      if (session.connected) void session.seek(t);
       return;
     }
     const a = audioRef.current;
     if (!a) return;
     a.currentTime = t;
     setLocalPosition(t);
+    if (session.connected) void session.seek(t);
   }
 
   return (
@@ -376,6 +544,45 @@ export function MiniPlayer({
               onChange={onSeek}
               className="accent-leaf hidden flex-1 sm:block"
             />
+
+            {/* Volume — desktop only (mobile uses OS-level system
+                volume; bottom-bar real estate is too tight). The
+                control routes to the receiver when casting and to
+                the local <audio> otherwise via onVolumeChange. */}
+            <div className="hidden items-center gap-2 sm:flex">
+              <button
+                type="button"
+                aria-label={isMuted ? 'Unmute' : 'Mute'}
+                onClick={toggleMute}
+                className="text-ink-muted hover:text-ink inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors"
+              >
+                {isMuted || volume === 0 ? (
+                  <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                    <path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3L19 14.5l1.5-1.5L18 11l2.5-2.5L19 7l-2.5 2.5L14 7l-1.5 1.5L15 11l-2.5 2.5L14 15z" />
+                  </svg>
+                ) : volume < 0.5 ? (
+                  <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                    <path d="M3 9v6h4l5 4V5L7 9H3zm11.5 3a4 4 0 0 0-2.5-3.7v7.4A4 4 0 0 0 14.5 12z" />
+                  </svg>
+                ) : (
+                  <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                    <path d="M3 9v6h4l5 4V5L7 9H3zm11.5 3a4 4 0 0 0-2.5-3.7v7.4A4 4 0 0 0 14.5 12zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z" />
+                  </svg>
+                )}
+              </button>
+              <input
+                type="range"
+                aria-label="Volume"
+                min={0}
+                max={1}
+                step={0.01}
+                value={volume}
+                onChange={(e) => {
+                  onVolumeChange(Number.parseFloat(e.target.value));
+                }}
+                className="accent-leaf w-20"
+              />
+            </div>
 
             <SendToPicker
               audioRef={audioRef}
