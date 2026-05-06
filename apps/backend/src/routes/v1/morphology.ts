@@ -163,7 +163,14 @@ export async function morphologyRoutes(fastify: FastifyInstance): Promise<void> 
       },
     },
     async (req, reply) => {
-      const { root } = req.params;
+      // Frontend callers (concordance + grammar pages, MorphologyPane)
+      // historically send hyphenated Buckwalter (`k-t-b`, `r-H-m`) for
+      // readability. The DB stores contiguous Buckwalter (`ktb`, `rHm`).
+      // Strip any non-Buckwalter character so both forms lookup-equal.
+      // Buckwalter alphabet is ASCII-only (Latin letters, apostrophe,
+      // a few caps for emphatics); any other byte is a separator.
+      const rawRoot = req.params.root;
+      const root = rawRoot.replace(/[^A-Za-z']/g, '');
       const db = morphDb();
       if (!db) return reply.code(503).send({ error: 'qalaam.data.not-loaded' });
       void reply.header('cache-control', 'public, max-age=604800');
@@ -196,6 +203,81 @@ export async function morphologyRoutes(fastify: FastifyInstance): Promise<void> 
           form: r.form_arabic.replace(/@/g, ''),
           lemma: r.lemma,
           tag: r.pos_tag,
+        })),
+        source: 'Quranic Arabic Corpus v0.4',
+        license: 'GPL',
+      });
+    },
+  );
+
+  // GET /v1/morphology/roots → catalog every Quranic root with its
+  // occurrence count, the most-frequent surface form (helps the
+  // browser preview the root before tapping in), and a representative
+  // lemma for translation lookup. Powers the /roots editorial page.
+  fastify.get(
+    '/v1/morphology/roots',
+    {
+      schema: {
+        description:
+          'Every Quranic triliteral root with occurrence count + canonical form. ' +
+          'Sourced from Quranic Arabic Corpus v0.4 (GPL). Cached one week.',
+        tags: ['morphology'],
+      },
+    },
+    async (_req, reply) => {
+      const db = morphDb();
+      if (!db) return reply.code(503).send({ error: 'qalaam.data.not-loaded' });
+      void reply.header('cache-control', 'public, max-age=604800');
+
+      // Two-step: count + most-common form per root in one pass. SQLite's
+      // window functions give us the top form without a correlated subquery.
+      const rows = db
+        .prepare<
+          [],
+          {
+            root: string;
+            count: number;
+            top_form: string;
+            top_lemma: string | null;
+          }
+        >(
+          `WITH stems AS (
+           SELECT root, form_arabic, lemma
+           FROM qalaam_v1_qul_morphology
+           WHERE is_stem = 1 AND root IS NOT NULL AND root != ''
+         ),
+         per_root AS (
+           SELECT root, COUNT(*) AS root_count
+           FROM stems
+           GROUP BY root
+         ),
+         per_root_form AS (
+           SELECT
+             root,
+             form_arabic,
+             lemma,
+             COUNT(*) AS form_count,
+             ROW_NUMBER() OVER (PARTITION BY root ORDER BY COUNT(*) DESC, form_arabic) AS rn
+           FROM stems
+           GROUP BY root, form_arabic, lemma
+         )
+         SELECT pr.root AS root,
+                pr.root_count AS count,
+                prf.form_arabic AS top_form,
+                prf.lemma AS top_lemma
+         FROM per_root pr
+         JOIN per_root_form prf ON prf.root = pr.root AND prf.rn = 1
+         ORDER BY pr.root_count DESC, pr.root`,
+        )
+        .all();
+
+      return reply.send({
+        total: rows.length,
+        roots: rows.map((r) => ({
+          root: r.root,
+          count: r.count,
+          topForm: r.top_form.replace(/@/g, ''),
+          lemma: r.top_lemma,
         })),
         source: 'Quranic Arabic Corpus v0.4',
         license: 'GPL',
