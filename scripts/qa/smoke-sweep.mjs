@@ -148,6 +148,12 @@ const CHECKS = [
     expectSelectors: ['main', 'a[href="/signin"]'],
     expectText: ['Family khatm', 'Sign in'],
   },
+  {
+    name: 'pricing — /pricing page',
+    url: '/pricing',
+    expectSelectors: ['main', 'article[aria-label*="tier"]'],
+    expectText: ['Free', 'Premium', 'Pro', "I can't afford it"],
+  },
 ];
 
 const results = [];

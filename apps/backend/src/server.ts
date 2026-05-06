@@ -41,6 +41,7 @@ import { qulSurahInfoRoutes } from './routes/v1/qul-surah-info.js';
 import { qulWbwRoutes } from './routes/v1/qul-wbw.js';
 import { recitationsRoutes } from './routes/v1/recitations.js';
 import { searchRoutes } from './routes/v1/search.js';
+import { supportRoutes } from './routes/v1/support.js';
 import { tajweedRoutes } from './routes/v1/tajweed.js';
 import { topicsRoutes } from './routes/v1/topics.js';
 import { translationsRoutes } from './routes/v1/translations.js';
@@ -132,6 +133,8 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   await app.register(mistakesRoutes, { config });
   await app.register(khatmRoutes);
   await app.register(voiceNotesRoutes);
+  // H2 — billing/support intake (no Stripe yet — that lands in deploy commit).
+  await app.register(supportRoutes);
 
   return app;
 }

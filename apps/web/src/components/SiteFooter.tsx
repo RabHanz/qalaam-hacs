@@ -15,6 +15,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 const SECONDARY = [
+  { href: '/pricing', label: 'Pricing' },
   { href: '/credits', label: 'Credits' },
   { href: '/about', label: 'About' },
   { href: '/topics', label: 'Topics' },
@@ -43,8 +44,8 @@ export function SiteFooter(): ReactNode {
               rel="noopener noreferrer"
             >
               Quranic Universal Library
-            </Link>
-            {' '}by Tarteel AI.
+            </Link>{' '}
+            by Tarteel AI.
           </p>
         </div>
         <nav aria-label="Secondary" className="flex flex-wrap items-center gap-x-4 gap-y-2">

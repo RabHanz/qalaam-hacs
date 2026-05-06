@@ -173,11 +173,11 @@ The phase table above tracks **engineering scaffolding**. This section tracks **
 
 ### Modes
 
-| INTRO promise                | Reality                                          | Done |
-| ---------------------------- | ------------------------------------------------ | :--: |
-| SaaS                         | Backend on Fastify; no signup / billing / Stripe |  〰️  |
-| Self-hosted (Docker Compose) | Compose file in repo; not battle-tested          |  〰️  |
-| Home Assistant native        | Custom_component live on shadowserver            |  ✅  |
+| INTRO promise                | Reality                                                                                                                                                                                                                   | Done |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--: |
+| SaaS                         | ✅ NEW. signup + sessions + bookmarks (#192 H1) live; `/pricing` three-tier UI + "I can't afford it" + "Request {tier}" → `/v1/support` audit table (#193 H2). Stripe checkout still pending — manual activation interim. |  〰️  |
+| Self-hosted (Docker Compose) | Compose file in repo; not battle-tested                                                                                                                                                                                   |  〰️  |
+| Home Assistant native        | Custom_component live on shadowserver                                                                                                                                                                                     |  ✅  |
 
 ---
 

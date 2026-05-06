@@ -254,6 +254,24 @@ export function authDb(): DB {
     CREATE INDEX IF NOT EXISTS idx_voice_notes_family ON family_voice_notes(family_id);
     CREATE INDEX IF NOT EXISTS idx_voice_notes_to     ON family_voice_notes(to_user_id, read_at);
     CREATE INDEX IF NOT EXISTS idx_voice_notes_from   ON family_voice_notes(from_user_id);
+
+    -- H2 — billing/support requests. Kept minimal until Stripe wiring lands.
+    -- Captures "I can't afford it" submissions + "request upgrade" leads so
+    -- support can reach back manually before the payment processor is live.
+    CREATE TABLE IF NOT EXISTS support_requests (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      ts           TEXT NOT NULL DEFAULT (datetime('now')),
+      user_id      TEXT,
+      email        TEXT,
+      kind         TEXT NOT NULL,    -- 'cant-afford' | 'upgrade' | 'feedback'
+      target_tier  TEXT,             -- 'premium' | 'pro' | NULL
+      message      TEXT,
+      handled_at   TEXT,
+      handled_by   TEXT,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_support_kind_ts ON support_requests(kind, ts);
+    CREATE INDEX IF NOT EXISTS idx_support_user    ON support_requests(user_id);
   `);
 
   // Soft migration: backfill is_shadow column on users so parents can
@@ -263,12 +281,12 @@ export function authDb(): DB {
     (r) => r.name,
   );
   if (!cols.includes('is_shadow')) {
-    db.exec("ALTER TABLE users ADD COLUMN is_shadow INTEGER NOT NULL DEFAULT 0");
+    db.exec('ALTER TABLE users ADD COLUMN is_shadow INTEGER NOT NULL DEFAULT 0');
   }
   if (!cols.includes('avatar_color')) {
     // hex without leading # — used by avatar circles to differentiate
     // family members in the picker. Picked from a 6-color palette.
-    db.exec("ALTER TABLE users ADD COLUMN avatar_color TEXT");
+    db.exec('ALTER TABLE users ADD COLUMN avatar_color TEXT');
   }
 
   cached = db;
