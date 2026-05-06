@@ -49,6 +49,15 @@ DEFAULT_USER_ID: Final = "demo-user"
 SERVICE_PLAY_AYAH: Final = "play_ayah"
 SERVICE_PLAY_SURAH: Final = "play_surah"
 SERVICE_START_SESSION: Final = "start_memorization_session"
+# B6 services — adhan-aware DND + per-room sabaq playback.
+# `pause_for_adhan` mutes/pauses every media_player tagged with the
+# Qalaam adhan-DND label (or all media_players if no label is given)
+# until the prayer window closes.
+# `start_room_sabaq` plays the user's current sabqi (today's new
+# memorization portion) on the speakers in a given HA area, so
+# different rooms can do different drill simultaneously.
+SERVICE_PAUSE_FOR_ADHAN: Final = "pause_for_adhan"
+SERVICE_START_ROOM_SABAQ: Final = "start_room_sabaq"
 
 # Media-source root identifier (URI: media-source://qalaam/...)
 MEDIA_SOURCE_NAME: Final = "Qalaam Quran"

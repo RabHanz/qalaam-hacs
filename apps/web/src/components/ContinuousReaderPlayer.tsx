@@ -21,6 +21,8 @@ import { useEffect, useRef, useState } from 'react';
 
 import { resolveApiBase } from '../lib/api-base.js';
 
+import { SendToPicker } from './SendToPicker.js';
+
 import type { ReactNode } from 'react';
 
 interface VerseRef {
@@ -676,10 +678,31 @@ export function ContinuousReaderPlayer({
           URL — passing src="" causes the browser to refetch the page
           and triggers a Next.js empty-string-src warning. */}
       {bundleA?.url ? (
-        <audio ref={audioARef} src={bundleA.url} preload="auto" {...attachAudioHandlers('A')} />
+        <audio
+          ref={audioARef}
+          src={bundleA.url}
+          preload="auto"
+          // x-webkit-airplay: Safari + iOS exposes the native AirPlay
+          // button when this attribute is "allow"; pairs with the
+          // SendToPicker's `webkitShowPlaybackTargetPicker` invocation
+          // for non-Safari users.
+          x-webkit-airplay="allow"
+          // crossOrigin: required for AirPlay/Cast on cross-origin
+          // audio URLs. Reciter audio CDNs (audio.qurancdn.com,
+          // everyayah.com) serve the right CORS headers.
+          crossOrigin="anonymous"
+          {...attachAudioHandlers('A')}
+        />
       ) : null}
       {bundleB?.url ? (
-        <audio ref={audioBRef} src={bundleB.url} preload="auto" {...attachAudioHandlers('B')} />
+        <audio
+          ref={audioBRef}
+          src={bundleB.url}
+          preload="auto"
+          x-webkit-airplay="allow"
+          crossOrigin="anonymous"
+          {...attachAudioHandlers('B')}
+        />
       ) : null}
       <div
         className="border-hairline bg-paper-100/95 fixed inset-x-0 bottom-0 z-30 border-t backdrop-blur-md"
@@ -773,6 +796,21 @@ export function ContinuousReaderPlayer({
           >
             {playbackRate.toString()}×
           </button>
+
+          {/* Send-to picker — AirPlay / Cast / Home Assistant */}
+          <div className="shrink-0">
+            <SendToPicker
+              audioRef={bundleA?.url ? audioARef : audioBRef}
+              currentSrc={bundleA?.url ?? bundleB?.url ?? null}
+              haUrl={
+                typeof window !== 'undefined'
+                  ? ((window as unknown as { __qalaamHaUrl?: string }).__qalaamHaUrl ?? null)
+                  : null
+              }
+              title={`Surah ${currentSurah.toString()} · ${reciterName ?? reciterSlug}`}
+              artist={reciterName ?? reciterSlug}
+            />
+          </div>
 
           {/* Sleep-timer popover */}
           <div className="relative shrink-0">
