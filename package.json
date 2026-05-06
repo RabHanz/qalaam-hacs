@@ -44,7 +44,8 @@
     "prepare": "husky",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "changeset publish"
+    "release": "changeset publish",
+    "qa:smoke": "node scripts/qa/smoke-sweep.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.10",

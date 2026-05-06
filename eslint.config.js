@@ -31,6 +31,9 @@ export default tseslint.config(
       '**/.lintstagedrc.cjs',
       // One-shot ingest scripts run via tsx; not part of any tsconfig project.
       'scripts/data/ingest-qul-*.ts',
+      // QA scripts (smoke-sweep.mjs etc.) are standalone Node ESM scripts
+      // outside the workspace tsconfig graph.
+      'scripts/qa/**',
       // Test files in packages whose tsconfig excludes the tests/ dir —
       // covered by vitest's own typecheck per the existing convention.
       // `**/` prefix so absolute-path invocations (lint-staged) match.
