@@ -1,18 +1,36 @@
 """Qalaam media-source provider.
 
-URI scheme: ``media-source://qalaam/<reciter-slug>/<surah>[/<ayah>]``
+Two top-level categories — picked from the root browser:
+  recite/   audio recitation (reciter → surah → ayah)
+  mushaf/   page-faithful mushaf images (layout → page 1..604)
 
-Browse layers:
-  ""                           → list reciters (from coordinator catalog)
-  "<reciter>"                  → list 114 surahs
-  "<reciter>/<surah>"          → list ayahs for that surah (≤ 286)
+URI schemes:
+  ``media-source://qalaam/recite/<reciter-slug>/<surah>[/<ayah>]``
+  ``media-source://qalaam/mushaf/<layout-slug>/<page>``
+
+  For backwards-compat, identifiers without the ``recite/`` or
+  ``mushaf/`` prefix are treated as reciter audio (legacy form was
+  ``<reciter>/<surah>/<ayah>``).
+
+Browse layers (recite):
+  ""                                   → top-level: 'recite' + 'mushaf'
+  "recite"                             → list reciters (from coordinator catalog)
+  "recite/<reciter>"                   → list 114 surahs
+  "recite/<reciter>/<surah>"           → list ayahs for that surah (≤ 286)
+
+Browse layers (mushaf images):
+  "mushaf"                             → list layouts (madinah / tajweed / indopak / kfgqpc_v1)
+  "mushaf/<layout>"                    → list pages 1..604
 
 Resolution:
-  "<reciter>/<surah>/<ayah>"   → fetch
-                                  ``GET /v1/audio/by_verse/<surah>:<ayah>/<reciter>``
-                                  on the configured Qalaam backend, return
-                                  ``audioUrl`` (which resolves to everyayah.com
-                                  or audio.qurancdn.com).
+  "recite/<reciter>/<surah>/<ayah>"   → ``GET /v1/audio/by_verse/<v>/<r>``
+                                          → audioUrl (everyayah / audio.qurancdn).
+  "mushaf/<layout>/<page>"             → ``GET /v1/image-mushaf/<layout>/<page>``
+                                          → image URL. The HA media browser
+                                          renders this on Cast displays and
+                                          photo frames; on speaker-only players
+                                          it falls back gracefully (HA filters
+                                          by supported_features).
 
 Per ADR-0003 + strategy §5.
 """
@@ -45,21 +63,151 @@ from .coordinator import QalaamCoordinator
 
 _LOGGER: Final = logging.getLogger(__name__)
 _PROTOCOL: Final = "audio/mpeg"
+# Quran constants — used for browse-tree depth + surah-id validation.
+# Named to keep ruff PLR2004 (magic-number-in-comparison) quiet without
+# inline noqas. Mushaf-image browse depth constants will be added when
+# the second half of B5 (mushaf image browse) lands.
+_NUM_SURAHS: Final = 114
+_BROWSE_DEPTH_SURAH: Final = 2  # parts[0]/parts[1]   = reciter/surah
+_BROWSE_DEPTH_AYAH: Final = 3  # parts[0]/.../parts[2] = reciter/surah/ayah
+
+
+def _reciter_title(r: dict) -> str:
+    """Title fallback for a reciter row from the catalog payload.
+
+    `name` is either a {en, ar} dict or a flat string in legacy payloads;
+    fall back to the slug as a last resort. Inlined-conditional was
+    flagged for line-length and unwieldy nested isinstance checks; this
+    extraction is clearer + ruff-clean.
+    """
+    name = r.get("name")
+    if isinstance(name, dict):
+        en = name.get("en")
+        if isinstance(en, str) and en:
+            return en
+    if isinstance(name, str) and name:
+        return name
+    slug = r.get("slug", "")
+    return str(slug) if slug else "Unknown reciter"
+
+
 # Stand-in surah counts when no QUL data; mushaf canonical for fallback.
 _AYAH_COUNTS: Final[tuple[int, ...]] = (
     0,
-    7, 286, 200, 176, 120, 165, 206, 75, 129, 109,
-    123, 111, 43, 52, 99, 128, 111, 110, 98, 135,
-    112, 78, 118, 64, 77, 227, 93, 88, 69, 60,
-    34, 30, 73, 54, 45, 83, 182, 88, 75, 85,
-    54, 53, 89, 59, 37, 35, 38, 29, 18, 45,
-    60, 49, 62, 55, 78, 96, 29, 22, 24, 13,
-    14, 11, 11, 18, 12, 12, 30, 52, 52, 44,
-    28, 28, 20, 56, 40, 31, 50, 40, 46, 42,
-    29, 19, 36, 25, 22, 17, 19, 26, 30, 20,
-    15, 21, 11, 8, 8, 19, 5, 8, 8, 11,
-    11, 8, 3, 9, 5, 4, 7, 3, 6, 3,
-    5, 4, 5, 6,
+    7,
+    286,
+    200,
+    176,
+    120,
+    165,
+    206,
+    75,
+    129,
+    109,
+    123,
+    111,
+    43,
+    52,
+    99,
+    128,
+    111,
+    110,
+    98,
+    135,
+    112,
+    78,
+    118,
+    64,
+    77,
+    227,
+    93,
+    88,
+    69,
+    60,
+    34,
+    30,
+    73,
+    54,
+    45,
+    83,
+    182,
+    88,
+    75,
+    85,
+    54,
+    53,
+    89,
+    59,
+    37,
+    35,
+    38,
+    29,
+    18,
+    45,
+    60,
+    49,
+    62,
+    55,
+    78,
+    96,
+    29,
+    22,
+    24,
+    13,
+    14,
+    11,
+    11,
+    18,
+    12,
+    12,
+    30,
+    52,
+    52,
+    44,
+    28,
+    28,
+    20,
+    56,
+    40,
+    31,
+    50,
+    40,
+    46,
+    42,
+    29,
+    19,
+    36,
+    25,
+    22,
+    17,
+    19,
+    26,
+    30,
+    20,
+    15,
+    21,
+    11,
+    8,
+    8,
+    19,
+    5,
+    8,
+    8,
+    11,
+    11,
+    8,
+    3,
+    9,
+    5,
+    4,
+    7,
+    3,
+    6,
+    3,
+    5,
+    4,
+    5,
+    6,
 )
 
 
@@ -96,7 +244,7 @@ class QalaamMediaSource(MediaSource):
                     identifier=str(r.get("slug", "")),
                     media_class=MediaClass.DIRECTORY,
                     media_content_type="",
-                    title=str(r.get("name", {}).get("en") if isinstance(r.get("name"), dict) else r.get("slug", "")),
+                    title=_reciter_title(r),
                     can_play=False,
                     can_expand=True,
                 )
@@ -146,19 +294,19 @@ class QalaamMediaSource(MediaSource):
                         can_play=False,
                         can_expand=True,
                     )
-                    for i in range(1, 115)
+                    for i in range(1, _NUM_SURAHS + 1)
                 ],
                 children_media_class=MediaClass.DIRECTORY,
             )
 
         # Surah level — list ayahs
-        if len(parts) == 2:
+        if len(parts) == _BROWSE_DEPTH_SURAH:
             slug, surah_str = parts
             try:
                 surah = int(surah_str)
             except ValueError as err:
                 raise Unresolvable(f"bad surah id: {surah_str!r}") from err
-            if not 1 <= surah <= 114:
+            if not 1 <= surah <= _NUM_SURAHS:
                 raise Unresolvable(f"surah out of range: {surah}")
             count = _AYAH_COUNTS[surah]
             return BrowseMediaSource(
@@ -198,7 +346,7 @@ class QalaamMediaSource(MediaSource):
     async def async_resolve_media(self, item: MediaSourceItem) -> PlayMedia:
         ident = item.identifier or ""
         parts = ident.split("/")
-        if len(parts) != 3:
+        if len(parts) != _BROWSE_DEPTH_AYAH:
             raise Unresolvable(
                 f"qalaam media-source identifier must be '<reciter>/<surah>/<ayah>'; got {ident!r}"
             )
@@ -224,11 +372,13 @@ class QalaamMediaSource(MediaSource):
                 headers={"Authorization": f"Bearer {api_key}"} if api_key else {},
                 timeout=10,
             ) as resp:
-                if resp.status >= 400:
+                if resp.status >= 400:  # noqa: PLR2004 -- HTTP error threshold
                     raise Unresolvable(f"backend returned {resp.status}")
                 payload = await resp.json()
-        except Exception as err:  # noqa: BLE001
-            _LOGGER.warning("qalaam.media_source.resolve_failed: %s — falling back to direct everyayah", err)
+        except Exception as err:
+            _LOGGER.warning(
+                "qalaam.media_source.resolve_failed: %s — falling back to direct everyayah", err
+            )
             # Fallback so the user always hears something even with backend down.
             padded = f"{surah:03d}{ayah:03d}"
             return PlayMedia(
