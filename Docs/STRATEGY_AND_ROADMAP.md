@@ -3267,3 +3267,197 @@ Once D3 lands the offline story is real (`add to home screen` on iOS
 gives a near-native experience with bundled Quran + audio), and at
 that point the platform is feature-complete for the Hifdh-first
 audience the strategy was written for.
+
+---
+
+## §30. Margin × Qalaam integration thesis (research → product, post-deploy)
+
+> **Scope guardrail.** This section is a _capability composition_
+> direction, NOT a product merger and NOT a Qalaam-strategy revision.
+> Qalaam's vision (Hifdh-first, family-private, adab-strict,
+> self-host-friendly, generous Free tier per §7 + §17) does not
+> change. Margin's surface is referenced here because:
+> (a) it shares a host + an MCP-first architecture, so integration
+> is unusually cheap, and
+> (b) the user explicitly said the two products "go really well
+> together to skyrocket productivity."
+>
+> Direction here is purely **additive and opt-in**. Qalaam without
+> Margin still serves its full job-to-be-done. The integration is a
+> compounding capability for users who happen to use both — never a
+> dependency, never a re-shaping of either product. The Margin
+> deployment example referenced for §29 deploy is operational only
+> (Dokploy compose pattern + Traefik labels + naming conventions);
+> Qalaam's stack remains SQLite-only, no Postgres / Redis / auth
+> provider / OAuth / PowerSync / agent-runtime, in line with the
+> existing strategy.
+
+This section opens a strategic direction tracked separately from the
+core Qalaam roadmap. Margin (themarginapp.com) is the user's
+productivity / weekly review / deep-work product, also running on the
+same Hetzner host. Both products independently make sense; together
+they can deliver a household-as-system that no other product offers.
+
+### 30.1 Why Margin × Qalaam compose well
+
+Margin's job-to-be-done: "help me run my week with intention — track
+projects, deep-work blocks, calendar, daily review, weekly review."
+Qalaam's job-to-be-done: "help my family and I keep the Quran central
+to daily life — Hifdh, Listen, Family-private accountability."
+
+Both products operate at the **same temporal cadence** (daily / weekly
+rhythm) and the **same human surface** (household device — phone, HA
+display, kitchen tablet). The user has explicitly said: "they will go
+really well together to skyrocket productivity."
+
+The compose surface that opens up:
+
+```
+Morning      Margin: today's projects, deep-work block at 09:30
+             Qalaam: sabaq portion due before the deep-work block
+             Compose: "9:00am — 30 min for Surah Mulk before deep-work block"
+
+Mid-day      Margin: meeting in 15 min
+             Qalaam: Asr in 47 min
+             Compose: "Meeting → Asr break → resume deep-work after"
+
+Evening      Margin: weekly review tomorrow
+             Qalaam: tomorrow is Friday — Surah Kahf nudge
+             Compose: "Friday review + Kahf together at 06:00"
+
+Khatm        Qalaam: family khatm 78% complete
+             Margin: this week's wins log
+             Compose: "Surface khatm progress in the weekly review wins"
+```
+
+### 30.2 The MCP-first edge
+
+Margin already exposes an MCP server. Qalaam already exposes an MCP
+server (`mcp.quran.ai`). Most cross-product integrations get stuck on
+glue code; with both products natively MCP-native, the integration
+layer is thin: each product's AI agent can call the other's MCP tools
+directly, no per-tool adapters needed.
+
+This is a strategic accident — the user built both products with MCP
+in mind, and the integration cost for any new tool is approximately
+zero. It also means **third-party AI clients** (Claude Desktop, Cursor,
+etc.) can naturally compose both surfaces without product-side work.
+
+### 30.3 Concrete integration directions (research)
+
+These are Q3+ tracks (after deploy + D3 + Stripe close-out + voice
+cloning). Each is independently valuable; collectively they create a
+moat no single-product competitor can match.
+
+#### 30.3.1 Shared identity bridge (#214)
+
+Today: separate signin on Margin and Qalaam. After: a single account
+with tier mappings.
+
+- **Option A (lightweight)**: shared session cookie on
+  `*.themarginapp.com` parent domain. Both apps accept the same
+  cookie + verify against a shared session store.
+- **Option B (clean)**: OAuth flow between the two apps. Margin acts
+  as the auth provider; Qalaam consumes via standard OAuth2 codes.
+- **Option C (composable)**: extract auth + sessions into a small
+  identity service that both products consume. Higher engineering
+  cost, future-proofs for additional household products (HA add-ons,
+  mobile apps, etc.).
+
+Tier mapping (cross-product):
+
+| Margin tier | Qalaam tier | Rationale                                 |
+| ----------- | ----------- | ----------------------------------------- |
+| Free        | Free        | Both useful enough to anchor the platform |
+| Pro         | Premium     | Productivity user → Hifdh family features |
+| Team        | Pro         | Halaqah leader / multi-household          |
+
+#### 30.3.2 Cross-MCP tool composition (#216)
+
+Federation pattern:
+
+```
+                       household-mcp (gateway)
+                      /                       \
+            mcp.quran.ai                  mcp.themarginapp.com
+            ───────────                   ──────────────────
+            ayah lookup                   today's projects
+            tafsir search                 deep-work blocks
+            mutashabihat                  weekly review wins
+            morphology                    project status
+            topical search                calendar events
+```
+
+Margin's agent runtime can call `mcp.quran.ai/tafsir-search` for daily
+journaling. Qalaam's agent runtime can call
+`mcp.themarginapp.com/today-projects` to surface a "you have 30 min
+before your next block — perfect for sabqi" nudge.
+
+#### 30.3.3 Cross-app HA panel (#215)
+
+Today: Qalaam's HA panel shows Hifdh state + Listen + prayer-times +
+azkar. Future: same panel surfaces Margin's daily review + next
+deep-work block. The panel becomes the household's single ambient
+interface.
+
+Implementation: extend `integrations/homeassistant/custom_components/qalaam/`
+with a `qalaam-margin-bridge` mode that registers Margin's MCP as an
+additional sensor source.
+
+#### 30.3.4 Family / halaqah continuity (#218)
+
+Margin has accountability features (deep-work check-ins, weekly
+review buddies). Qalaam has family-tier features (per-child plans,
+khatm wall, voice notes, praise stickers). Both model the same
+underlying primitive: a small group of people committed to mutual
+progress.
+
+Composable: a Margin "deep work team" = a Qalaam family. A halaqah
+that uses Qalaam for memorization can use Margin for the broader
+weekly review structure. Voice notes work in both directions.
+
+### 30.4 INTRO.md narrative update (#217)
+
+Once the integration directions are validated by research, the
+strategy narrative gets a new household-as-system section:
+
+> "On Friday morning, your home device tells you: 'Surah Kahf today
+> (Qalaam tradition) — and your weekly review at 6pm (Margin
+> rhythm). 35 min total before Maghrib. Want me to chain them?' You
+> tap once. The system blocks the calendar, dims the lights, plays
+> Surah Kahf at the start, and surfaces this week's wins to journal
+> after."
+
+Worked examples to develop in the research phase:
+
+- Morning commute (Listen + Margin's commute briefing)
+- After Maghrib (Hifdh sabaq + Margin's "tomorrow's intention")
+- Khatm completion celebration (Margin's weekly review wins)
+- Children's hifdh ↔ children's homework tracking
+- Halaqah leader managing both spiritual + organizational rhythm
+
+### 30.5 What this is NOT yet
+
+- **Not a unified product.** Both stay independent. Integration is a
+  capability that compounds the value of each, not a merger.
+- **Not on the deployment path.** Deploy Qalaam first; integration
+  research opens after Stripe + D3 + voice-cloning land.
+- **Not blocked on Margin changes.** Margin's MCP is already shipped,
+  so Qalaam can prototype the integration without coordinated Margin
+  releases.
+
+### 30.6 Tracking IDs
+
+```
+#213  Margin MCP audit + integration map (research deliverable)
+#214  Shared identity bridge — Margin ↔ Qalaam (technical design)
+#215  Cross-app HA panel (engineering)
+#216  Cross-MCP tool composition (engineering — federation gateway)
+#217  Update Docs/INTRO.md + Margin's intro with integrated use cases (writing)
+#218  Family/halaqah continuity model (product design)
+```
+
+These are not on the active task list yet — they get queued via
+TaskCreate when the user explicitly green-lights the integration
+sprint. For now the only deliverable is this strategic write-up so
+the direction is durable across sessions.

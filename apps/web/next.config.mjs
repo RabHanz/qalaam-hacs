@@ -1,6 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Standalone output bundles the Node server + minimal node_modules
+  // into `.next/standalone/` so the production Docker image ships with
+  // `node server.js` and ~80% smaller footprint than copying the full
+  // repo. Required by `infrastructure/docker/Dockerfile.web`.
+  output: 'standalone',
+  // pnpm monorepo: the standalone tracer needs the workspace root so
+  // it can hoist transitive deps from packages/* and node_modules.
+  outputFileTracingRoot: new URL('../..', import.meta.url).pathname,
   // Allow `.js` ESM imports to resolve to `.ts(x)` source files (matches
   // tsconfig moduleResolution: Bundler). Without this Webpack errors on
   // every `import { X } from './foo.js'` whose source is `foo.tsx`.

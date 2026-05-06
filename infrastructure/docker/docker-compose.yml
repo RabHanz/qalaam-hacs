@@ -1,0 +1,148 @@
+# ==============================================================================
+# Qalaam Production Docker Compose
+# ==============================================================================
+# Co-hosts on the same Hetzner box as themarginapp.com / signzart.com — strict
+# isolation: own networks, own volumes, own service prefix. Borrows the
+# Margin operational pattern (Dokploy-driven autoDeploy + Traefik labels +
+# `${DOMAIN}`-modular env) but NOT the product DNA — Qalaam is SQLite-only,
+# no Postgres, no Redis, no auth provider. ADR-0023.
+#
+# Build context is `../..` so Dockerfiles can reach the monorepo root.
+#
+# Two services:
+#   qalaam-backend   Fastify on :4111, internal-only. Owns qalaam-data.
+#   qalaam-web       Next.js standalone on :3000, public via Traefik.
+#                    Mounts qalaam-mushaf-images read-only.
+#
+# Two named volumes:
+#   qalaam-data            qul.sqlite + qalaam.sqlite + voice-notes/
+#   qalaam-mushaf-images   ~63 MB of PNGs (one-time SCP seed; never written by app)
+# ==============================================================================
+
+name: qalaam-production
+
+services:
+  # ----------------------------------------------------------------------------
+  # qalaam-backend — Fastify API (auth, family-tier, MCP, /v1/* surface)
+  # ----------------------------------------------------------------------------
+  qalaam-backend:
+    build:
+      context: ../..
+      dockerfile: apps/backend/Dockerfile
+    image: qalaam-backend:latest
+    container_name: qalaam-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4111
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # SQLite paths — qul.sqlite is read-only Quran data, qalaam.sqlite
+      # holds users / sessions / family-tier writes. Both live on the
+      # qalaam-data named volume mounted at /app/data.
+      QUL_SQLITE_PATH: /app/data/qul.sqlite
+      QALAAM_AUTH_SQLITE_PATH: /app/data/qalaam.sqlite
+      QALAAM_VOICE_NOTES_DIR: /app/data/voice-notes
+      # Public URLs (consumed for absolute-URL building in OG cards,
+      # share dialogs, audit logs).
+      PUBLIC_API_URL: https://${DOMAIN}
+      PUBLIC_APP_URL: https://${DOMAIN}
+      # Quran.Foundation Tier A (optional — enables QF API parity for
+      # routes that fall back when local QUL data is missing).
+      QF_BASE_URL: ${QF_BASE_URL:-https://apis.quran.foundation}
+      QF_OAUTH_URL: ${QF_OAUTH_URL:-https://oauth2.quran.foundation}
+      QF_CLIENT_ID: ${QF_CLIENT_ID:-}
+      QF_CLIENT_SECRET: ${QF_CLIENT_SECRET:-}
+    volumes:
+      - qalaam-data:/app/data
+    networks:
+      - qalaam-network
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://127.0.0.1:4111/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # ----------------------------------------------------------------------------
+  # qalaam-web — Next.js 15 App Router, standalone output
+  # ----------------------------------------------------------------------------
+  qalaam-web:
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+      args:
+        # Public build-time env — Next inlines these into the client
+        # bundle, so they MUST match the deployed domain.
+        NEXT_PUBLIC_APP_URL: https://${DOMAIN}
+        QALAAM_REACT_COMPILER: ${QALAAM_REACT_COMPILER:-}
+    image: qalaam-web:latest
+    container_name: qalaam-web
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      # Server-side fetches (RSC + Next /api proxy rewrite) target the
+      # backend by Docker DNS. Public URL stays clean — only the web
+      # container is reachable from the internet.
+      PUBLIC_API_URL: http://qalaam-backend:4111
+      PUBLIC_APP_URL: https://${DOMAIN}
+    volumes:
+      - qalaam-mushaf-images:/app/apps/web/public/mushaf-images:ro
+    depends_on:
+      qalaam-backend:
+        condition: service_healthy
+    networks:
+      - qalaam-network
+      - dokploy-network
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://127.0.0.1:3000/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      # Primary host: ${DOMAIN}. Single source of truth — change this
+      # one env var to flip the public URL.
+      - "traefik.http.routers.qalaam-web.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.qalaam-web.entrypoints=websecure"
+      - "traefik.http.routers.qalaam-web.tls.certresolver=letsencrypt"
+      - "traefik.http.services.qalaam-web.loadbalancer.server.port=3000"
+      - "traefik.http.services.qalaam-web.loadbalancer.healthcheck.path=/healthz"
+      - "traefik.http.services.qalaam-web.loadbalancer.healthcheck.interval=30s"
+      - "traefik.docker.network=dokploy-network"
+
+# ------------------------------------------------------------------------------
+# Volumes — single mountable substrate (ADR-0023)
+# ------------------------------------------------------------------------------
+volumes:
+  qalaam-data:
+    driver: local
+    name: qalaam-data
+  qalaam-mushaf-images:
+    driver: local
+    name: qalaam-mushaf-images
+
+# ------------------------------------------------------------------------------
+# Networks
+# ------------------------------------------------------------------------------
+networks:
+  qalaam-network:
+    driver: bridge
+  dokploy-network:
+    external: true

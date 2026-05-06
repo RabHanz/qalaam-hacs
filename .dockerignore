@@ -1,0 +1,86 @@
+# ==============================================================================
+# .dockerignore — minimize build context sent to the Docker daemon.
+# ==============================================================================
+# Without this the build context is ~1 GB+ (qul-source raw, mushaf images,
+# .next, node_modules). With it, ~50 MB.
+# ==============================================================================
+
+# Node / build artifacts
+**/node_modules
+**/.next
+**/dist
+**/build
+**/.turbo
+**/.cache
+**/coverage
+**/.nyc_output
+
+# Tooling
+**/.git
+**/.gitignore
+**/.github
+**/.husky
+**/.vscode
+**/.idea
+**/.eslintcache
+**/.prettierrc
+**/.prettierignore
+**/eslint.config.js
+**/eslint.config.cjs
+**/.lintstagedrc.cjs
+**/.lintstagedrc.json
+
+# Local-only
+**/.env
+**/.env.local
+**/.env.*.local
+**/.env.development
+**/.env.test
+**/.envrc
+.DS_Store
+**/Thumbs.db
+
+# Tests + dev-only
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/__tests__
+**/__mocks__
+**/playwright.config.*
+**/playwright-report
+**/test-results
+
+# Docs (the build doesn't need them)
+Docs/
+docs/
+*.md
+!apps/web/**/*.md
+!apps/backend/**/*.md
+!packages/**/*.md
+!README.md
+
+# QUL raw data — these come from a separate seed step into the
+# qalaam-data named volume; don't bake them into the image
+data/qul-source/
+data/qul.sqlite
+data/qul.sqlite-*
+data/qalaam.sqlite
+data/qalaam.sqlite-*
+data/voice-notes/
+
+# Mushaf images — seeded into the qalaam-mushaf-images volume,
+# never into the image bundle
+apps/web/public/mushaf-images/
+
+# Infrastructure files (the image doesn't need its own deploy artifacts)
+infrastructure/
+
+# Scratch
+**/tmp
+**/*.bak
+**/*.swp
+**/*.swo
+*.tar.gz
+*.tar
+*.zip

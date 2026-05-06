@@ -13,9 +13,14 @@ const ConfigSchema = z.object({
   PUBLIC_API_URL: z.string().url().default('http://localhost:4000'),
   PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
 
-  DATABASE_URL: z.string().min(1),
+  // Postgres + Redis are reserved for the Quran.Foundation Tier B
+  // OAuth-token cache (future). Qalaam's primary store is SQLite —
+  // qul.sqlite (read-only Quran data) + qalaam.sqlite (auth + family-
+  // tier writes). Production runs without a Postgres or Redis
+  // dependency; these stay optional.
+  DATABASE_URL: z.string().min(1).optional(),
   DIRECT_DATABASE_URL: z.string().min(1).optional(),
-  REDIS_URL: z.string().url().default('redis://localhost:6379'),
+  REDIS_URL: z.string().url().optional(),
 
   // Local data substrate
   QUL_SQLITE_PATH: z.string().default('data/qul.sqlite'),

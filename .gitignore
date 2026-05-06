@@ -45,10 +45,16 @@ env/
 .env.production
 .env.test
 !.env.example
+.env.secrets
 secrets/
 *.pem
 *.key
 *.crt
+
+# --- Reference / example dirs containing live secrets, never ship in git ---
+Docs/infrastructure-margin-example/
+infrastructure/.env.secrets
+infrastructure/secrets/
 
 # --- IDE / editors ---
 .vscode/*

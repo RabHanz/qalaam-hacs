@@ -1337,3 +1337,73 @@ voice-notes/}`. NODE_ENV=production flips Secure cookie.
 
 Once deployed and live-verified, resume development with #174 D3
 (offline downloads) as the next user-visible improvement.
+
+#### Deployment plan — co-host alongside The Margin (no shared resources)
+
+The full plan lives at `infrastructure/DEPLOY-PLAN.md`. Headline:
+
+- Subdomain `qalaam.themarginapp.com` (modular — single `${DOMAIN}`
+  env in compose, flips to any future URL via one DNS update + one
+  redeploy).
+- Mirror The Margin's Dokploy compose pattern: GitHub-bound
+  `RabHanz/qalaam:main`, autoDeploy on push, compose at
+  `infrastructure/docker/docker-compose.yml`.
+- Two services (`qalaam-backend`, `qalaam-web`) on a private bridge
+  network + the existing `dokploy-network` overlay for Traefik.
+- Two named Docker volumes (`qalaam-data`, `qalaam-mushaf-images`) —
+  one-shot SCP seed for `qul.sqlite` (~150MB) + `mushaf-images/` (~63MB).
+- Zero shared containers, networks, or volumes with margin / signzart
+  / openclaw / mockupry. ~2 GB memory reservation on a host with ~21
+  GB free.
+
+#### Future: Margin × Qalaam integration track (Q3+ research → product)
+
+Tracked separately as a new programme since Margin is its own
+production app on the same host. Margin already has an MCP server
+that makes its data + workflows AI-native; Qalaam already has its
+own MCP at `mcp.quran.ai` for tafsir/morphology/topics. The
+integration thesis: **a single household device (HA/web) that knows
+the user's calendar, projects, finances, and Quranic life all at
+once** — the Hifdh dashboard reminds you about a portion right
+before a Margin-tracked deep-work block; Margin's daily review
+surfaces the day's mutashabihat watchlist; both products share the
+auth + family-tier identity.
+
+Research + design tasks (post-deploy, separate sprint):
+
+1. **#213 — Margin MCP audit + integration map**: walk the live
+   `mcp.themarginapp.com` (or wherever Margin's MCP is exposed),
+   catalogue tools + resources, compare against `mcp.quran.ai`'s
+   surface. Output: tool-by-tool integration matrix (which Margin
+   tools should Qalaam call, which Qalaam tools should Margin call).
+2. **#214 — Shared identity bridge**: design how a single user signs
+   into both apps. Options: shared session cookie on `*.themarginapp.com`,
+   OAuth between the two apps, or shared identity service. Tier-gating
+   awareness on both sides (Premium Qalaam ↔ Pro Margin etc).
+3. **#215 — Cross-app HA panel**: extend the Qalaam HA panel to
+   surface Margin's weekly review + scheduled deep-work blocks
+   alongside the Hifdh dashboard. Single household lock-screen shows
+   "Asr in 47 min · current sabqi: 30:1-15 · next deep-work block:
+   16:00 (Margin)".
+4. **#216 — Cross-MCP tool composition**: let Margin's AI agent call
+   Qalaam tools (find verses by topic for daily journaling), and
+   let Qalaam's agent call Margin tools (mark today's portion as
+   completed in the Margin daily review). Mediated by a shared MCP
+   gateway or direct tool federation.
+5. **#217 — Update Docs/INTRO.md (and Margin's intro) with the
+   integrated use cases**: research-driven section showing the
+   household-as-system, with worked examples (e.g. "morning
+   commute", "after maghrib", "khatm completion celebration").
+6. **#218 — Family/halaqah continuity**: shared family + halaqah
+   model so Margin's accountability features and Qalaam's
+   family-tier features compose (a Margin "deep work team" =
+   Qalaam family, etc).
+
+Margin's own MCP makes integration drastically cheaper than typical
+two-product wiring — both products natively expose AI-readable tool
+surfaces, so the bridge layer can be relatively thin.
+
+Track these as `#213-#218` once H3/H4 land or whenever the user
+gives the green light. They are explicitly NOT on the
+deployment-then-D3 path — they're a separate Margin × Qalaam
+strategic direction.
