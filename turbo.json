@@ -1,24 +1,13 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
-  "globalDependencies": [
-    "**/.env.*local",
-    "tsconfig.base.json",
-    ".prettierrc",
-    "eslint.config.js"
-  ],
+  "globalDependencies": ["**/.env.*local", "tsconfig.base.json", ".prettierrc", "eslint.config.js"],
   "globalEnv": ["NODE_ENV"],
   "tasks": {
     "build": {
-      "dependsOn": ["^build", "codegen"],
+      "dependsOn": ["^build", "^codegen", "codegen"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**", "build/**"],
-      "inputs": [
-        "src/**",
-        "schemas/**",
-        "package.json",
-        "tsconfig.json",
-        "next.config.*"
-      ],
+      "inputs": ["src/**", "schemas/**", "package.json", "tsconfig.json", "next.config.*"],
       "env": ["NODE_ENV"]
     },
     "dev": {
@@ -29,22 +18,15 @@
     "lint": {
       "dependsOn": ["^lint"],
       "outputs": [],
-      "inputs": [
-        "src/**",
-        "*.json",
-        "*.ts",
-        "*.tsx",
-        "*.js",
-        "eslint.config.js"
-      ]
+      "inputs": ["src/**", "*.json", "*.ts", "*.tsx", "*.js", "eslint.config.js"]
     },
     "typecheck": {
-      "dependsOn": ["^build", "codegen"],
+      "dependsOn": ["^build", "^codegen", "codegen"],
       "outputs": [],
       "inputs": ["src/**", "tsconfig.json", "*.d.ts"]
     },
     "test": {
-      "dependsOn": ["^build", "codegen"],
+      "dependsOn": ["^build", "^codegen", "codegen"],
       "outputs": ["coverage/**"],
       "inputs": ["src/**", "tests/**", "vitest.config.*"]
     },
@@ -53,10 +35,7 @@
       "persistent": true
     },
     "codegen": {
-      "outputs": [
-        "packages/types-ts/dist/**",
-        "packages/types-py/qalaam_types/**"
-      ],
+      "outputs": ["packages/types-ts/dist/**", "packages/types-py/qalaam_types/**"],
       "inputs": [
         "packages/schema/schemas/**",
         "packages/schema/codegen.config.json",

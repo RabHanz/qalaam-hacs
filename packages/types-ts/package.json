@@ -17,7 +17,9 @@
     "./device/*": "./dist/device/*.ts",
     "./asr/*": "./dist/asr/*.ts"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "lint": "eslint dist || true",
@@ -25,6 +27,7 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "@qalaam/schema": "workspace:*",
     "typescript": "^5.6.3"
   }
 }

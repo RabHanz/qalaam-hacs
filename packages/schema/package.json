@@ -14,9 +14,13 @@
     },
     "./schemas/*": "./schemas/*"
   },
-  "files": ["dist", "schemas", "README.md"],
+  "files": [
+    "dist",
+    "schemas",
+    "README.md"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "node -e \"console.log('noop — @qalaam/schema is consumed via JSON Schema files + codegen; no compiled JS artifact required')\"",
     "codegen": "tsx ../../tooling/codegen/run.ts",
     "lint": "eslint src tooling tests",
     "typecheck": "tsc --noEmit",
