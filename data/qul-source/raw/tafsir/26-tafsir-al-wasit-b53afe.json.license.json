@@ -6,9 +6,12 @@
   "title": "Tafsir Al Wasit",
   "sha256": "5b316d217132ff355d07e4d2e2e16e598dd689d4b6d750b252c3c073e3faf07a",
   "downloaded_at": "2026-05-05T20:51:36Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir Al Wasit (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Tafsir Al-Sam'ani",
   "sha256": "8e2630aa1f601d42651aec1c7c97209dc862cdc7c5d95d8906d66df2f772d2c7",
   "downloaded_at": "2026-05-05T20:52:15Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir Al-Sam'ani (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

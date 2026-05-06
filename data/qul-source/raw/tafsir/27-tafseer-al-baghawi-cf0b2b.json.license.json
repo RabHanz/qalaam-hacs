@@ -6,9 +6,12 @@
   "title": "Tafseer Al-Baghawi",
   "sha256": "f0f7ffd53d3c93ec84018907451ed353102d24f1db1a98f420af0888354adf10",
   "downloaded_at": "2026-05-05T20:51:28Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafseer Al-Baghawi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

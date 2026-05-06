@@ -6,9 +6,12 @@
   "title": "Malak Faris Abdalsalaam",
   "sha256": "cad3c4e8897f2b4d76d1ba2a96c93c79616818c0d12c06f35e47e77341ac56cf",
   "downloaded_at": "2026-05-05T20:54:12Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Malak Faris Abdalsalaam (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

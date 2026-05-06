@@ -6,9 +6,12 @@
   "title": "Muhammad Saleh Bamoki",
   "sha256": "b4c4b771ed55a88642bbf80834cb220cf00bc7047c9f11f21386e0f9cc430911",
   "downloaded_at": "2026-05-05T20:53:50Z",
-  "license_tag": "unverified",
+  "license_tag": "public-domain",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Muhammad Saleh Bamoki (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Digital Khatt V2 script - Word by word",
   "sha256": "15556c034be61668c8b1c95c75cdd23d24597a832d314921e3d8ae338ddd0499",
   "downloaded_at": "2026-05-05T20:48:17Z",
-  "license_tag": "unverified",
+  "license_tag": "digitalkhatt-anane",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Digital Khatt V2 script - Word by word — DigitalKhatt by Dr. Amin Anane",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

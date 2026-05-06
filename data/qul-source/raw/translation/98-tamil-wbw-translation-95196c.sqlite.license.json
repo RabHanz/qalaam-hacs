@@ -6,9 +6,12 @@
   "title": "Tamil wbw translation",
   "sha256": "16f2b81b972df01962798850e5689153fa5fe3fd719fa535e82f14b25a446d12",
   "downloaded_at": "2026-05-05T20:53:47Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tamil wbw translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

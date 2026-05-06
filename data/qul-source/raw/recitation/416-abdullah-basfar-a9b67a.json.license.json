@@ -6,9 +6,12 @@
   "title": "Abdullah Basfar",
   "sha256": "76bc8f3252ba220b86f1ec96197ff5b896c2ebc1f95d34cf0ee3b77e1959d9f1",
   "downloaded_at": "2026-05-05T20:55:33Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abdullah Basfar (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

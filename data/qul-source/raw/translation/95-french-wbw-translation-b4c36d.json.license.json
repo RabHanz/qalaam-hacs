@@ -6,9 +6,12 @@
   "title": "French wbw translation",
   "sha256": "68faa4a6f17c60a3c54df1a5a26560b0d90d8054b4c579a62c78a87c929ddd89",
   "downloaded_at": "2026-05-05T20:53:46Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "French wbw translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

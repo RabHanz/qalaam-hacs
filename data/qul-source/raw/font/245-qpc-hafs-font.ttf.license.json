@@ -6,9 +6,12 @@
   "title": "QPC Hafs font",
   "sha256": "aa68bffce289b4c0ebac68e90502eb69e42356abcd1603cb2b8e99c2c723f145",
   "downloaded_at": "2026-05-05T20:48:25Z",
-  "license_tag": "unverified",
+  "license_tag": "kfgqpc-terms",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "QPC Hafs font — King Fahd Glorious Quran Printing Complex (KFGQPC)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

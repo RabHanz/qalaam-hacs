@@ -6,9 +6,12 @@
   "title": "Tafsir As-Saadi",
   "sha256": "fad468887353d47b575b8938d7c86ab8b1451368cc1e22ba88b347827f140655",
   "downloaded_at": "2026-05-05T20:51:13Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir As-Saadi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

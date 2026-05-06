@@ -6,9 +6,12 @@
   "title": "Mishari Rashid al-`Afasy",
   "sha256": "59a9a19dbd3a0e0aa3841b035189c629976973e6b41d4196c49678e67a6f92cf",
   "downloaded_at": "2026-05-05T20:55:35Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Mishari Rashid al-`Afasy (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

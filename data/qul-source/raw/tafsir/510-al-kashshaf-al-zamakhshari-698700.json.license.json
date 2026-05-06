@@ -6,9 +6,12 @@
   "title": "Al-Kashshaf Al-Zamakhshari",
   "sha256": "806664baa933b515f60ab1b41ae10b6411afed95cced5be201ba6fbc1b8d6d90",
   "downloaded_at": "2026-05-05T20:52:42Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Al-Kashshaf Al-Zamakhshari (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Noor International Center",
   "sha256": "97ef7225183845e0ee32e94d0414ff3a0d4a200fd41ff87d8c683359fac93a6f",
   "downloaded_at": "2026-05-05T20:53:29Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Noor International Center (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

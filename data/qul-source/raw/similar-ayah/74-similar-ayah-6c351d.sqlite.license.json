@@ -6,9 +6,12 @@
   "title": "Similar Ayah",
   "sha256": "f0d911bdff94e1e95dd63224bdae4c1885c24933bb6bc957caac6d37dbc06cec",
   "downloaded_at": "2026-05-05T20:50:45Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Similar Ayah (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Abdullah Khayat",
   "sha256": "37dfe18b1ffe83c166aa6bfe7114c92bb599787d568697d9612a16b8b5928589",
   "downloaded_at": "2026-05-05T20:55:58Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abdullah Khayat (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

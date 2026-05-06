@@ -6,9 +6,12 @@
   "title": "Dr. Abdullah Muhammad Abu Bakr and Sheikh Nasir Khamis",
   "sha256": "35ee8c1b734325bd188af9b40958ccd6fc13915183ed29a14e1f57789d268197",
   "downloaded_at": "2026-05-05T20:52:45Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Dr. Abdullah Muhammad Abu Bakr and Sheikh Nasir Khamis (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

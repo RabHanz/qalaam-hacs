@@ -6,9 +6,12 @@
   "title": "Portuguese Translation( Samir )",
   "sha256": "c680690c7e2b53817d318562509f7e563058b459ecb08ac71fbfcafc44e3cb1a",
   "downloaded_at": "2026-05-05T20:53:58Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Portuguese Translation( Samir ) (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

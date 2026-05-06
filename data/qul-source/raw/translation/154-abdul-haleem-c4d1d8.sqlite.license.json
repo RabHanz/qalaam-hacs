@@ -6,9 +6,12 @@
   "title": "Abdul Haleem",
   "sha256": "09722d083951700497f387fa8f7e49aecef4c392f12149ee6eff7ef104674b3b",
   "downloaded_at": "2026-05-05T20:54:32Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abdul Haleem (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

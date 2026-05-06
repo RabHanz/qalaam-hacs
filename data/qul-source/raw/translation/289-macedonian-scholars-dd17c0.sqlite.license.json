@@ -6,9 +6,12 @@
   "title": "Macedonian scholars",
   "sha256": "832adba3a6d99261cc078d4bd0c45f7831c9b22f7234c7b1a8eacc5479f5ca0d",
   "downloaded_at": "2026-05-05T20:53:09Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Macedonian scholars (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Tafsir al-Tahrir wa al-Tanwir",
   "sha256": "e096f65da3e7e7b788e15a8d6accfa4aa7bdc060620a92c282ce3195a4a5104a",
   "downloaded_at": "2026-05-05T20:51:24Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir al-Tahrir wa al-Tanwir (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

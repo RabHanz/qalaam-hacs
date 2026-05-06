@@ -6,9 +6,12 @@
   "title": "Ahl Al-Hadith Central Society of Nepal",
   "sha256": "b16bc0d6f30079c8d97e8531c8d3dfdc6d401fa2541be088538149b0376fb62b",
   "downloaded_at": "2026-05-05T20:54:04Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Ahl Al-Hadith Central Society of Nepal (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

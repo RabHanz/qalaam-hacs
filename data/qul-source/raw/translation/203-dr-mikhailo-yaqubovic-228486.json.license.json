@@ -6,9 +6,12 @@
   "title": "Dr. Mikhailo Yaqubovic",
   "sha256": "33b46e4a3cabf3e346f05c9dab88d4324bae08e35127fef803c0ae2f245919fe",
   "downloaded_at": "2026-05-05T20:52:54Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Dr. Mikhailo Yaqubovic (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

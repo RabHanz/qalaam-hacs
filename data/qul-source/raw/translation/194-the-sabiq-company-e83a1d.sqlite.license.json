@@ -6,9 +6,12 @@
   "title": "The Sabiq company",
   "sha256": "d38e7036f778551935541f4a469b762aca7ab98d0ad790699c93d80c766f9549",
   "downloaded_at": "2026-05-05T20:53:06Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "The Sabiq company (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

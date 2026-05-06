@@ -6,9 +6,12 @@
   "title": "Ayah Lemma",
   "sha256": "59c88d4bdf7d174cbae1330ae0357ff31e854f8d4b64db5775b6349ff409397d",
   "downloaded_at": "2026-05-05T20:50:42Z",
-  "license_tag": "unverified",
+  "license_tag": "gpl-derivative",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Quranic Arabic Corpus — Dr. Kais Dukes (et al.)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

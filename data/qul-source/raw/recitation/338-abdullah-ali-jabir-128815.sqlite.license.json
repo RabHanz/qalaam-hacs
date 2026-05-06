@@ -6,9 +6,12 @@
   "title": "Abdullah Ali Jabir",
   "sha256": "6b78b807eff2cfd450402236b19b5ff05caabd37cd7bc2d8cd63fd5cfa3b5fd1",
   "downloaded_at": "2026-05-05T20:55:46Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abdullah Ali Jabir (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

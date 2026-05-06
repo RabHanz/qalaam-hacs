@@ -6,9 +6,12 @@
   "title": "Al Qira'at Al Mawsoo'ah Al Qur'aniyyah",
   "sha256": "7e3ef5dee24b0782b8ed6b1d909a279b5db30f70357d95ca95a465b0b0845361",
   "downloaded_at": "2026-05-05T20:52:27Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Al Qira'at Al Mawsoo'ah Al Qur'aniyyah (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

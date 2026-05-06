@@ -6,9 +6,12 @@
   "title": "Mahmoud Khalil Al-Husary - Muallim",
   "sha256": "613f376bd77ccc3c7f97ef762923f1c2387c96cee32c36754360230646196a55",
   "downloaded_at": "2026-05-05T20:55:45Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Mahmoud Khalil Al-Husary - Muallim (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

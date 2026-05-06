@@ -6,9 +6,12 @@
   "title": "Thai Translatio (King Fahad Quran Complex)",
   "sha256": "2474d9951dcc9aa44d091bc1f0e5c7e58f0e834c6ce224d3ffcedf441a632a54",
   "downloaded_at": "2026-05-05T20:54:16Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Thai Translatio (King Fahad Quran Complex) (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

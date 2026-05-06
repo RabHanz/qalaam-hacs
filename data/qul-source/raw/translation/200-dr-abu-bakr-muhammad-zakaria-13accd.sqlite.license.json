@@ -6,9 +6,12 @@
   "title": "Dr. Abu Bakr Muhammad Zakaria",
   "sha256": "ddd05bf3c6780e8231b39f4fc5e63fbee5d0affd46879678bc9f7fdfd63026e0",
   "downloaded_at": "2026-05-05T20:53:43Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Dr. Abu Bakr Muhammad Zakaria (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

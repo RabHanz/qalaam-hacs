@@ -6,9 +6,12 @@
   "title": "Muhammad Saleh",
   "sha256": "3a4942b596a61ec6f612f17e10de779407f6c568ec97cd9ffb008832c75ce40e",
   "downloaded_at": "2026-05-05T20:53:17Z",
-  "license_tag": "unverified",
+  "license_tag": "public-domain",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Muhammad Saleh (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

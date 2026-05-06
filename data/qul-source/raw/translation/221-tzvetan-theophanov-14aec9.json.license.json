@@ -6,9 +6,12 @@
   "title": "Tzvetan Theophanov",
   "sha256": "dd3fc133aa83b1222c448f60ea3fe30195d3b52eef90b5c9fe4636699763a6bb",
   "downloaded_at": "2026-05-05T20:54:18Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tzvetan Theophanov (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

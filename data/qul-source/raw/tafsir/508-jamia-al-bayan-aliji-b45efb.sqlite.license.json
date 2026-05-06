@@ -6,9 +6,12 @@
   "title": "Jamia Al-Bayan AlIji",
   "sha256": "d07d4ae1553b84ca1ef802cea2cdb71fe52b65ed9d241fe91e2b0f4649210bc6",
   "downloaded_at": "2026-05-05T20:52:33Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Jamia Al-Bayan AlIji (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Muhammad Hamidullah",
   "sha256": "3fbdb08499178a78d717141330614a5e236d7cbba0eabc8326c774c4d6e3d47d",
   "downloaded_at": "2026-05-05T20:54:39Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Muhammad Hamidullah (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

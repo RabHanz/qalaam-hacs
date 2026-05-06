@@ -6,9 +6,12 @@
   "title": "Ruwwad Center",
   "sha256": "6b458e5f52972b32a3458deee1b631f41f83621db95f67293939b0cbc4da8322",
   "downloaded_at": "2026-05-05T20:53:09Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Ruwwad Center (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

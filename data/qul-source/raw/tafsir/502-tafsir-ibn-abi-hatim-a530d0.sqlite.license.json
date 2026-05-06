@@ -6,9 +6,12 @@
   "title": "Tafsir Ibn Abi Hatim",
   "sha256": "51a45cd9c4d19501e4bb00f1d70a108fc17a198fa7606808b9b4eadf27ce8968",
   "downloaded_at": "2026-05-05T20:52:34Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir Ibn Abi Hatim (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

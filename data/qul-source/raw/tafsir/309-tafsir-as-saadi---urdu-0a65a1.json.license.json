@@ -6,9 +6,12 @@
   "title": "Tafsir As-Saadi - Urdu",
   "sha256": "f697f28173c713df973b7d829feeb0a299b4018d5ba139adbf708d6b1a825f13",
   "downloaded_at": "2026-05-05T20:51:17Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir As-Saadi - Urdu (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

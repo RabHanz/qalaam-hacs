@@ -6,9 +6,12 @@
   "title": "Il-Qoran Imqaddes",
   "sha256": "67db4b3c9d823b5686f04e4e039eee066156f7dbc6361fc1064d5a84c0512dc7",
   "downloaded_at": "2026-05-05T20:53:02Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Il-Qoran Imqaddes (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

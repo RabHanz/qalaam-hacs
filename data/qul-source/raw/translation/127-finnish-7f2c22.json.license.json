@@ -6,9 +6,12 @@
   "title": "Finnish",
   "sha256": "b9441e118d78a2dda975ceac5414151229627811808d994389d21c862cecfc67",
   "downloaded_at": "2026-05-05T20:53:49Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Finnish (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

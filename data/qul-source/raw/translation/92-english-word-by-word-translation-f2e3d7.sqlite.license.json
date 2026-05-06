@@ -6,9 +6,12 @@
   "title": "English Word by Word Translation",
   "sha256": "5dea0d7a5b0648180e9f6277bad406153b234bedb0f498b4fb76424686c72bc1",
   "downloaded_at": "2026-05-05T20:53:43Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "English Word by Word Translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

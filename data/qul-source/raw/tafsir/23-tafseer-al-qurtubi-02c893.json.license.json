@@ -6,9 +6,12 @@
   "title": "Tafseer Al Qurtubi",
   "sha256": "b00e704da7e4497dd8dceed431c3d915875ab04535b5667d6b225e71a334cbec",
   "downloaded_at": "2026-05-05T20:51:39Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafseer Al Qurtubi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

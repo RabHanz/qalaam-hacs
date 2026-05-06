@@ -6,9 +6,12 @@
   "title": "Punjabi arif",
   "sha256": "c446e3d27a20e7ff8748eaf20d24711bf5b1ef4242c0cc9978bad3c7542e8bab",
   "downloaded_at": "2026-05-05T20:53:38Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Punjabi arif (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

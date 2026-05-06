@@ -6,9 +6,12 @@
   "title": "Fulani translation",
   "sha256": "992f48a110e8ac8b8b0abfa76d7a87d96a83a27a1624179e46ad788078218a05",
   "downloaded_at": "2026-05-05T20:54:19Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Fulani translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

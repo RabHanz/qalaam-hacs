@@ -6,9 +6,12 @@
   "title": "Malay Translation(Abdul Hameed and Kunhi)",
   "sha256": "9fd3a93306c7be7abf46868112478272aae4b6e5ff61edf51492fac8e5667656",
   "downloaded_at": "2026-05-05T20:53:55Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Malay Translation(Abdul Hameed and Kunhi) (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

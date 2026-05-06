@@ -6,9 +6,12 @@
   "title": "Tafheem-ul-Quran - Abul Ala Maududi",
   "sha256": "7c3a9f441efdefcdd44dbb29fe521f42a836c3255e2b8f6f21c7e9b0de8166cd",
   "downloaded_at": "2026-05-05T20:54:35Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafheem-ul-Quran - Abul Ala Maududi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

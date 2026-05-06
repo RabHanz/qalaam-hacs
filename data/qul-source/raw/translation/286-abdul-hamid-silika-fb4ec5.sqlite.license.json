@@ -6,9 +6,12 @@
   "title": "Abdul Hamid Silika",
   "sha256": "7ec5219971557588079a63b4f7e2a54f079c9fcefbd9ac8786b07917e18215a1",
   "downloaded_at": "2026-05-05T20:52:53Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abdul Hamid Silika (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Muhammad Hamza Battur",
   "sha256": "be7f59dcc93aa868b70ea255980914aae43218f5182e9f67f444238101316cc9",
   "downloaded_at": "2026-05-05T20:53:22Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Muhammad Hamza Battur (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

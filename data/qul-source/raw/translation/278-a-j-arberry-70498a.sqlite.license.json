@@ -6,9 +6,12 @@
   "title": "A. J. Arberry",
   "sha256": "807555c3744fecebd4d805fb27f1dacedded6b5b5e69b9866e25b3031e4c638c",
   "downloaded_at": "2026-05-05T20:52:59Z",
-  "license_tag": "unverified",
+  "license_tag": "public-domain",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "A. J. Arberry (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Muhammad Taqi-ud-Din al-Hilali & Muhammad Muhsin Khan",
   "sha256": "9b7f0cf147759cf0fb713f4b5acf1b875d3fa8e3f454cbdb74f0157fa30559a1",
   "downloaded_at": "2026-05-05T20:54:35Z",
-  "license_tag": "unverified",
+  "license_tag": "public-domain",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Muhammad Taqi-ud-Din al-Hilali & Muhammad Muhsin Khan (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Hasan Efendi Nahi",
   "sha256": "74951a6fb12f0c615ec9bb2182cc322bcebb5c32b2f1dd15335c0e1f8d6f1e53",
   "downloaded_at": "2026-05-05T20:54:33Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Hasan Efendi Nahi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

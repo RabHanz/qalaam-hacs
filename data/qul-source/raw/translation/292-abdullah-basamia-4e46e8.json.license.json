@@ -6,9 +6,12 @@
   "title": "Abdullah Basamia",
   "sha256": "09b9eef0d3a6206c04c9b1b2538437bb01fb8ad83c9a113933b2c059b92fa0e9",
   "downloaded_at": "2026-05-05T20:53:11Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abdullah Basamia (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

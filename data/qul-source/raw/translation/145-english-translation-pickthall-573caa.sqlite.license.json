@@ -6,9 +6,12 @@
   "title": "English Translation (Pickthall)",
   "sha256": "d55f659165d08da7a3e08aea12675b74a8e89a3d77f3af35d31661195b399a22",
   "downloaded_at": "2026-05-05T20:53:51Z",
-  "license_tag": "unverified",
+  "license_tag": "public-domain",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "English Translation (Pickthall) (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

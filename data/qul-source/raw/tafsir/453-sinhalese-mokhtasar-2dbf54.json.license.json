@@ -6,9 +6,12 @@
   "title": "Sinhalese Mokhtasar",
   "sha256": "cd1657dc071ff883975cce761f9d92261d2fad55965fe39d468dc07c4d744a53",
   "downloaded_at": "2026-05-05T20:51:06Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Sinhalese Mokhtasar (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

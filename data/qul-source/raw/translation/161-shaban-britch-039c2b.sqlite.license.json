@@ -6,9 +6,12 @@
   "title": "Shaban Britch",
   "sha256": "5f3b95e07c92fe9efecafbee7e25a48f7122cf68e766fb90cecd25f2cd993c65",
   "downloaded_at": "2026-05-05T20:53:08Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Shaban Britch (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

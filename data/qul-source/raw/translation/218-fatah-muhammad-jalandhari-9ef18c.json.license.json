@@ -6,9 +6,12 @@
   "title": "Fatah Muhammad Jalandhari",
   "sha256": "cbd04a348cb081c8d7ad6a553ab5e2623944df9edd10d156f5413946b592e511",
   "downloaded_at": "2026-05-05T20:54:10Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Fatah Muhammad Jalandhari (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

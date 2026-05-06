@@ -6,9 +6,12 @@
   "title": "Surah Info - Urdu",
   "sha256": "f00438f9bb51ad92df5fdd78e6905d4f0be21676acd72dfa6ee54de45de34a44",
   "downloaded_at": "2026-05-05T20:50:47Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Surah Info - Urdu (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

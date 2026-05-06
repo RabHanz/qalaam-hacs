@@ -6,9 +6,12 @@
   "title": "Sheikh Mujibur Rahman",
   "sha256": "c41c5a1306ceecf18cb17b4cfef07d4f5999d8c16550673ea3faac5e4cea1c2c",
   "downloaded_at": "2026-05-05T20:54:15Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Sheikh Mujibur Rahman (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

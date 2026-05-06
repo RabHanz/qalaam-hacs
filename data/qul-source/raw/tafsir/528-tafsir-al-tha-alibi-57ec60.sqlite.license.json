@@ -6,9 +6,12 @@
   "title": "Tafsir Al-Tha'alibi",
   "sha256": "466fc0cdaf5d6c2ac8899dca3a2978874b20ee3e223ba57345a2359e6a2c1d73",
   "downloaded_at": "2026-05-05T20:52:26Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir Al-Tha'alibi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

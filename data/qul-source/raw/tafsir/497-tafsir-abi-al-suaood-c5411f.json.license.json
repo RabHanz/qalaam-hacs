@@ -6,9 +6,12 @@
   "title": "Tafsir Abi Al-Suaood",
   "sha256": "9a3ba7120e6262d82cad4e70531c9e7cfbcfdda576b8456c92e599399eb84df7",
   "downloaded_at": "2026-05-05T20:52:37Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir Abi Al-Suaood (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

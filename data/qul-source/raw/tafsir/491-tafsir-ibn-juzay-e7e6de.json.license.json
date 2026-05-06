@@ -6,9 +6,12 @@
   "title": "Tafsir Ibn Juzay",
   "sha256": "db33d387601ca32189c43c7369b82af086d127a1f135fb54eb1b77335e9e08b5",
   "downloaded_at": "2026-05-05T20:51:55Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir Ibn Juzay (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

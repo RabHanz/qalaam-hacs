@@ -6,9 +6,12 @@
   "title": "Arabic Sign Language Font",
   "sha256": "00e3b2466653906cd751e7580af9ff7bb210fa5ebac8c8c15572f147d73d4288",
   "downloaded_at": "2026-05-05T20:48:24Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Arabic Sign Language Font (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

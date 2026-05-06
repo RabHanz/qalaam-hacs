@@ -6,9 +6,12 @@
   "title": "Alrab Al-Quran li-Da'as",
   "sha256": "f82ae390419522eca222b298a326284e8f20f97b44917bebe0d74f10c7faf07d",
   "downloaded_at": "2026-05-05T20:51:45Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Alrab Al-Quran li-Da'as (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

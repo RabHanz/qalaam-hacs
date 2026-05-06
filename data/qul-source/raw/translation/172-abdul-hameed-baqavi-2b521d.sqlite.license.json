@@ -6,9 +6,12 @@
   "title": "Abdul Hameed Baqavi",
   "sha256": "fe01a6d69b9cb3e0c74fea26218b59cfc4b4061ed34447fa4227fd4c767472c4",
   "downloaded_at": "2026-05-05T20:53:49Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abdul Hameed Baqavi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

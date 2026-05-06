@@ -6,9 +6,12 @@
   "title": "Othman al-Sharif",
   "sha256": "05bb8f21fcb1b7b9f7e1c4d45cacec55c425efcfbfa65f0f834893971a162696",
   "downloaded_at": "2026-05-05T20:54:15Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Othman al-Sharif (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

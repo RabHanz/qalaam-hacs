@@ -6,9 +6,12 @@
   "title": "Muhammad Asad",
   "sha256": "d5d6bd0b3a9bfc3131d6ac3a1406951d83f33c28b70c9b882c0a030d7a0f0bbc",
   "downloaded_at": "2026-05-05T20:52:58Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Muhammad Asad (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

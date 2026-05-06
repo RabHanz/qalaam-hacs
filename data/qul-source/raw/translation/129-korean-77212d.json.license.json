@@ -6,9 +6,12 @@
   "title": "Korean",
   "sha256": "5aa36cfd8061e63f9b233d7a2bb973f6159263e26410de062966648128fda2bf",
   "downloaded_at": "2026-05-05T20:53:55Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Korean (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

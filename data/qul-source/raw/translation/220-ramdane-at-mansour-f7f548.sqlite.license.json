@@ -6,9 +6,12 @@
   "title": "Ramdane At Mansour",
   "sha256": "03841d8c1d68e9a64311de367c127bdf5c334b0398777a9fccd6dc82c0b7bc46",
   "downloaded_at": "2026-05-05T20:54:15Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Ramdane At Mansour (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

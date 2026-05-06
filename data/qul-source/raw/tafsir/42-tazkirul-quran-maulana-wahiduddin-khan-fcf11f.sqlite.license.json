@@ -6,9 +6,12 @@
   "title": "Tazkirul Quran(Maulana Wahiduddin Khan)",
   "sha256": "a9af84996c40570d0d7d2c429f1e1685ee9cb6cb8d22f4f4ab6666bc1affbb64",
   "downloaded_at": "2026-05-05T20:51:43Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tazkirul Quran(Maulana Wahiduddin Khan) (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

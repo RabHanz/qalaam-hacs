@@ -6,9 +6,12 @@
   "title": "Khmer Abridged Explanation of the Quran",
   "sha256": "c32a79e5098cae15ee1a5578388b21a1808d9eb6d26e64cb5ab9a139f21c24a7",
   "downloaded_at": "2026-05-05T20:51:13Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Khmer Abridged Explanation of the Quran (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

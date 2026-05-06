@@ -6,9 +6,12 @@
   "title": "Bengali Abridged Explanation of the Quran",
   "sha256": "b34ce70562b811a1db4076c8143ea1e3aeb2b7e2352270b4a6315b2bddef3ce1",
   "downloaded_at": "2026-05-05T20:51:06Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Bengali Abridged Explanation of the Quran (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

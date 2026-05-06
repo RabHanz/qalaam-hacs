@@ -6,9 +6,12 @@
   "title": "Bisayan Translation - Rowwad Center",
   "sha256": "748955301890fec9e7feadcdbf9f48b58263eecb2298c733561cc80a7a6c47df",
   "downloaded_at": "2026-05-05T20:53:38Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Bisayan Translation - Rowwad Center (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

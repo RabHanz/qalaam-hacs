@@ -6,9 +6,12 @@
   "title": "Surah Info - Malayalam",
   "sha256": "3888b13775170ad324b8d1b2501bdc34c7388423613fc3d850c275df7772dde0",
   "downloaded_at": "2026-05-05T20:50:17Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Surah Info - Malayalam (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

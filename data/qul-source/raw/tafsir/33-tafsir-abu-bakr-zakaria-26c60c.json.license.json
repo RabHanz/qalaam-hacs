@@ -6,9 +6,12 @@
   "title": "Tafsir Abu Bakr Zakaria",
   "sha256": "b10cf4a0b45b294058f382cf42ef51f761cfbf708780776281a51b7c24e55b3e",
   "downloaded_at": "2026-05-05T20:51:42Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir Abu Bakr Zakaria (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

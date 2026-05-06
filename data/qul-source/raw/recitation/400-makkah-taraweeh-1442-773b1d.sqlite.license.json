@@ -6,9 +6,12 @@
   "title": "Makkah Taraweeh 1442",
   "sha256": "69af8f40d1d50552d015a424e5329d97bb32f345c57f682e45d6001c8ae3194b",
   "downloaded_at": "2026-05-05T20:56:01Z",
-  "license_tag": "unverified",
+  "license_tag": "kfgqpc-terms",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Makkah Taraweeh 1442 (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

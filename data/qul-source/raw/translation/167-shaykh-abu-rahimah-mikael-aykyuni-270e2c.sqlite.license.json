@@ -6,9 +6,12 @@
   "title": "Shaykh Abu Rahimah Mikael Aykyuni",
   "sha256": "9a704ad7468110a86d68b5c31513309b5fd46018dafa1f367faa89c3ef43cfbd",
   "downloaded_at": "2026-05-05T20:54:10Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Shaykh Abu Rahimah Mikael Aykyuni (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

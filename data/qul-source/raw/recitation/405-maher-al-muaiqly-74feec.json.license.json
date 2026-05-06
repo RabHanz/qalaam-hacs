@@ -6,9 +6,12 @@
   "title": "Maher al-Muaiqly",
   "sha256": "0cb87d03dee38def5437edfe3081e1a133398ed6265048cb4c4332a783b7f97c",
   "downloaded_at": "2026-05-05T20:55:59Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Maher al-Muaiqly (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

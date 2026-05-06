@@ -6,9 +6,12 @@
   "title": "Knut Bernström",
   "sha256": "049843b088064b95b9b191d1aebc83e72db0a9beffd8f5b92ef221a5956c7960",
   "downloaded_at": "2026-05-05T20:53:55Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Knut Bernström (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

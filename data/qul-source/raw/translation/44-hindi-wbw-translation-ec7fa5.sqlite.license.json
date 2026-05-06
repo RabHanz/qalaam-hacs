@@ -6,9 +6,12 @@
   "title": "Hindi wbw translation",
   "sha256": "aea7a6d69ae1a2e4e2ae8568204f51c74fdc6874f446e3b00b3813a5e6953440",
   "downloaded_at": "2026-05-05T20:53:45Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Hindi wbw translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

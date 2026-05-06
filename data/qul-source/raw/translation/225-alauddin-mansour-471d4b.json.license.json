@@ -6,9 +6,12 @@
   "title": "Alauddin Mansour",
   "sha256": "ac7536eefa6b53a7630dc809eb219e6482c2661139ced3de01c1398b1b03991a",
   "downloaded_at": "2026-05-05T20:54:36Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Alauddin Mansour (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

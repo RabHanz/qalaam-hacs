@@ -6,9 +6,12 @@
   "title": "Fadel Soliman, Bridges’ translation",
   "sha256": "0c814579e93446cb45d032b83dbdc11ba88ff6eb7e01355cee0496590261e813",
   "downloaded_at": "2026-05-05T20:54:41Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Fadel Soliman, Bridges’ translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

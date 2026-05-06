@@ -6,9 +6,12 @@
   "title": "Al-Bahr Al-Muhit",
   "sha256": "8144e03264b430e4fd21b0724cf94057d0d622e5831012fd7209bf3eb9ebb9fc",
   "downloaded_at": "2026-05-05T20:52:22Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Al-Bahr Al-Muhit (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

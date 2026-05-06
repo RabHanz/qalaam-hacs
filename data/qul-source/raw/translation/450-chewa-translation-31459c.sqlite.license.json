@@ -6,9 +6,12 @@
   "title": "Chewa translation",
   "sha256": "49cf9c3bb1b8823840f061e7a2eb70b15470a5a41b77f46cf5ab89a084a81949",
   "downloaded_at": "2026-05-05T20:53:34Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Chewa translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

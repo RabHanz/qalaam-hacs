@@ -6,9 +6,12 @@
   "title": "Hatem Farid - Taraweeh 1430",
   "sha256": "83cceb487c98d4b6d3ef79c4c726f58d6475ae9911d33d3d6533cbcb81b70ba2",
   "downloaded_at": "2026-05-05T20:55:44Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Hatem Farid - Taraweeh 1430 (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

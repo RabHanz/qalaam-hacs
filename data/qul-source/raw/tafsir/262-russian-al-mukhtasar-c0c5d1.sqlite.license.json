@@ -6,9 +6,12 @@
   "title": "Russian Al-Mukhtasar",
   "sha256": "ce86b0505d99ecb46fab15873c3b87ae3c567c8b8c14c5a1f00a4cd50d5124ff",
   "downloaded_at": "2026-05-05T20:51:06Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Russian Al-Mukhtasar (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

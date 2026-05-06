@@ -6,9 +6,12 @@
   "title": "Bosnian Abridged Explanation of the Quran",
   "sha256": "be9c7aae933763bd6058f62bdac7e5277112596f7f1938a1936aec6f7006f725",
   "downloaded_at": "2026-05-05T20:51:11Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Bosnian Abridged Explanation of the Quran (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

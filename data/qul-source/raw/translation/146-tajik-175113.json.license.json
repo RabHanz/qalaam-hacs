@@ -6,9 +6,12 @@
   "title": "Tajik",
   "sha256": "d93595584cd777a36050f7a51047be5451d9ec171a0359e1a8cd9891cea0bd10",
   "downloaded_at": "2026-05-05T20:53:57Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tajik (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Ali Muhsin Al-Barwani",
   "sha256": "110c5cece7f595ecdf8afc09d695b77991ec9ecf22e99f984b6fba761d9440d0",
   "downloaded_at": "2026-05-05T20:53:57Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Ali Muhsin Al-Barwani (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Tafsir Al Jalalayn - English",
   "sha256": "cfd9a9003a936d025a922ffdb00dbf79fb74c0fadbbffeaac3e770bd3a141a1c",
   "downloaded_at": "2026-05-05T20:51:53Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir Al Jalalayn - English (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Abdul Majid Daryabadi",
   "sha256": "c713a0832977f07b388802c8b05980c8f3865f8de2e527a21ec4de8788959dd5",
   "downloaded_at": "2026-05-05T20:52:55Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abdul Majid Daryabadi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

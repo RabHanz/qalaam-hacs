@@ -6,9 +6,12 @@
   "title": "Italian Al-Mukhtasar in interpreting the Noble Quran",
   "sha256": "254f7c8272f492a71fe78f1dbe9125101af1356f0d3413fc356e73718ba7f0a8",
   "downloaded_at": "2026-05-05T20:51:10Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Italian Al-Mukhtasar in interpreting the Noble Quran (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

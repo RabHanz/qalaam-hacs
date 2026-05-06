@@ -6,9 +6,12 @@
   "title": "Colored English wbw translation",
   "sha256": "612c30a91a9e264de4dde1d21aa1c0af8c9a8639eda84dec5fdb2774fb0e2a28",
   "downloaded_at": "2026-05-05T20:53:06Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Colored English wbw translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

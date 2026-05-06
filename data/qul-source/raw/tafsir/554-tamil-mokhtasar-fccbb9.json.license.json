@@ -6,9 +6,12 @@
   "title": "Tamil Mokhtasar",
   "sha256": "3a5c55505b54cd67c69003e7f9b97d6e8cdfb861dd01961364105268e88fec70",
   "downloaded_at": "2026-05-05T20:52:24Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tamil Mokhtasar (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

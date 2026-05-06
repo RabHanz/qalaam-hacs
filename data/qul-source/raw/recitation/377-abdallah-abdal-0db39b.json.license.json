@@ -6,9 +6,12 @@
   "title": "Abdallah Abdal",
   "sha256": "c5b97e87a42d194d16a4628f9390db929490d73c063b7e12fde939fdf8798014",
   "downloaded_at": "2026-05-05T20:55:43Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abdallah Abdal (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

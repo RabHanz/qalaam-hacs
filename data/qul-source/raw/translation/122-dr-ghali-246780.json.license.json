@@ -6,9 +6,12 @@
   "title": "Dr. Ghali",
   "sha256": "5b4702f7212f9705d95ae224e2a1b3eb93fa7ec9b46195dc88e12b3513c7b2f6",
   "downloaded_at": "2026-05-05T20:53:50Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Dr. Ghali (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

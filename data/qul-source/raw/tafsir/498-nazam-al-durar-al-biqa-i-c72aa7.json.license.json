@@ -6,9 +6,12 @@
   "title": "Nazam Al-Durar Al-Biqa'i",
   "sha256": "f0ad5ad1892258888b1368f8eae847ba5c9fb2374a3069b0515302b16d038775",
   "downloaded_at": "2026-05-05T20:51:20Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Nazam Al-Durar Al-Biqa'i (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

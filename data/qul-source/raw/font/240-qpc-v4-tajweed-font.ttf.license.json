@@ -6,9 +6,12 @@
   "title": "QPC V4 Tajweed Font",
   "sha256": "c698d2ba6b326a0d4a6b00c40581149127cd357092f2cd34f2d216fb8123462a",
   "downloaded_at": "2026-05-05T20:48:26Z",
-  "license_tag": "unverified",
+  "license_tag": "kfgqpc-terms",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "QPC V4 Tajweed Font — King Fahd Glorious Quran Printing Complex (KFGQPC)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

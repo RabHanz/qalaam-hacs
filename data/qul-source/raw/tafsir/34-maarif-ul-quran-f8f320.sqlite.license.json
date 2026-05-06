@@ -6,9 +6,12 @@
   "title": "Maarif-ul-Quran",
   "sha256": "a3bee744e5ed10a80499f54931e034e8d168fb2f7bdff6ec87f5860a503a2f9e",
   "downloaded_at": "2026-05-05T20:51:42Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Maarif-ul-Quran (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

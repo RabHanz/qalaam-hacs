@@ -6,9 +6,12 @@
   "title": "Georgian Translation",
   "sha256": "21e7d0c2acbf6c0ec89b2d2acaa9cae369fd9e4ab67c5e469baca86218e642a5",
   "downloaded_at": "2026-05-05T20:53:40Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Georgian Translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

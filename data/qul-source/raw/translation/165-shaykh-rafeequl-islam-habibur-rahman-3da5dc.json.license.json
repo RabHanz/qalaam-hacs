@@ -6,9 +6,12 @@
   "title": "Shaykh Rafeequl Islam Habibur-Rahman",
   "sha256": "f1deaeb0381290f9d8b6212cb8422aec1db5892e9ff7dad543c6dbe1b1cca6be",
   "downloaded_at": "2026-05-05T20:54:22Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Shaykh Rafeequl Islam Habibur-Rahman (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

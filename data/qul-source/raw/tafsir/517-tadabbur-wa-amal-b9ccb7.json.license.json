@@ -6,9 +6,12 @@
   "title": "Tadabbur wa 'Amal",
   "sha256": "108adefbd0f4d29f4687e3e3a7ceb5412c4a2e049d04bd2f2be4786b93d86839",
   "downloaded_at": "2026-05-05T20:52:37Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tadabbur wa 'Amal (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

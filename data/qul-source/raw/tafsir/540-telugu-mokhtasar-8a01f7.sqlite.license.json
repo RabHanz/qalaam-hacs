@@ -6,9 +6,12 @@
   "title": "Telugu Mokhtasar",
   "sha256": "0edbffb8e99cbce850f770440d5bdc003b96ac19286711068a4aecfede97e160",
   "downloaded_at": "2026-05-05T20:52:07Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Telugu Mokhtasar (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Persian Al-Mukhtasar in interpreting the Noble Quran",
   "sha256": "af0a5c71242b482fa86ae605394c248b265ca7c7e3c1751579225034cd646a85",
   "downloaded_at": "2026-05-05T20:51:14Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Persian Al-Mukhtasar in interpreting the Noble Quran (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

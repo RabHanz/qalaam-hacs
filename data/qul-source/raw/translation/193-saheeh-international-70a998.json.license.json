@@ -6,9 +6,12 @@
   "title": "Saheeh International",
   "sha256": "dcd01d69ece97fd44d33fb0ac32b7fe81d5d637a0e6c170512e2ffcc9271d0fc",
   "downloaded_at": "2026-05-05T20:54:08Z",
-  "license_tag": "unverified",
+  "license_tag": "per-translator",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Saheeh International (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

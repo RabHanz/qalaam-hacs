@@ -6,9 +6,12 @@
   "title": "Mohammad Ismaeel Al-Muqaddim",
   "sha256": "2becbbfa360fbce05a51171a22b89639a1ea4b81420d6e91e8516baa9d8765a9",
   "downloaded_at": "2026-05-05T20:55:42Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Mohammad Ismaeel Al-Muqaddim (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

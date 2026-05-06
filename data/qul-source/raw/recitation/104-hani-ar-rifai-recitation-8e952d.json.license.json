@@ -6,9 +6,12 @@
   "title": "Hani ar-Rifai Recitation",
   "sha256": "71f65d028346124076d097d692ab75d4388a4aa496db96e31eea15952541075d",
   "downloaded_at": "2026-05-05T20:55:36Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Hani ar-Rifai Recitation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

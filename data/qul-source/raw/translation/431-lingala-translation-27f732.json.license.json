@@ -6,9 +6,12 @@
   "title": "Lingala translation",
   "sha256": "d80c0f3cca3a4166ac0b63d3a3fcd7c859fc8fd933b787aec490994df21e06d8",
   "downloaded_at": "2026-05-05T20:54:45Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Lingala translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

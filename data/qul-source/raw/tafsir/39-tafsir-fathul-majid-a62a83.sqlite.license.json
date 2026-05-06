@@ -6,9 +6,12 @@
   "title": "Tafsir Fathul Majid",
   "sha256": "b2569c30ab7b4a53bf8287c6e9c670e366112ea9430920535aede2b40cb0f8d9",
   "downloaded_at": "2026-05-05T20:51:41Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir Fathul Majid (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

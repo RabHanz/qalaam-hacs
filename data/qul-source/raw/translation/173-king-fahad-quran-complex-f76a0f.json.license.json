@@ -6,9 +6,12 @@
   "title": "King Fahad Quran Complex",
   "sha256": "e1b3e989d5aea214036fec0cfd4f534d9e69c4757dec6724dd320147aedaea9b",
   "downloaded_at": "2026-05-05T20:53:05Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "King Fahad Quran Complex (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

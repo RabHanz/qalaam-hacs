@@ -6,9 +6,12 @@
   "title": "Indonesian Islamic affairs ministry",
   "sha256": "cee561e74830fab60bef7aa227c22dbaaf07b41c61ee7ee91f84feed917a22ab",
   "downloaded_at": "2026-05-05T20:53:43Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Indonesian Islamic affairs ministry (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

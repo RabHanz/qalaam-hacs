@@ -6,9 +6,12 @@
   "title": "Muhammad Siddiq al-Minshawi",
   "sha256": "e4b4f2679a30d6fdd0d0897e16c691cae378ffc7933abdc99d5519e459d1b370",
   "downloaded_at": "2026-05-05T20:56:00Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Muhammad Siddiq al-Minshawi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

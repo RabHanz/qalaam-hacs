@@ -6,9 +6,12 @@
   "title": "Vietnamese Al-Mukhtasar in interpreting the Noble Quran",
   "sha256": "e1fe2808396e9d16ace7f2e997b8e10acf4cb638b78d604d7b2e66af0697c4a1",
   "downloaded_at": "2026-05-05T20:51:16Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Vietnamese Al-Mukhtasar in interpreting the Noble Quran (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

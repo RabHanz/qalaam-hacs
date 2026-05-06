@@ -6,9 +6,12 @@
   "title": "Fi Zilal al-Quran",
   "sha256": "397591e6c8881ff843c9f97ad9a83bf375bcb6188943ccebaf5949c8c6e97061",
   "downloaded_at": "2026-05-05T20:51:32Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Fi Zilal al-Quran (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

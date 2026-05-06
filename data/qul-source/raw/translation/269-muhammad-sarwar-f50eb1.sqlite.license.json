@@ -6,9 +6,12 @@
   "title": "Muhammad Sarwar",
   "sha256": "282351502144a10e4e69554d883cc62c6eb9df8b14eac98ab20616cc0e9cb0e5",
   "downloaded_at": "2026-05-05T20:53:21Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Muhammad Sarwar (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

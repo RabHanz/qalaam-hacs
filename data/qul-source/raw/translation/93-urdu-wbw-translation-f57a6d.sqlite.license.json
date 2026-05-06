@@ -6,9 +6,12 @@
   "title": "Urdu wbw translation",
   "sha256": "cb642dc3b518dddd214df3cbe21b4ca0baa40295c92a1a081a8506f2931d3401",
   "downloaded_at": "2026-05-05T20:53:45Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Urdu wbw translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

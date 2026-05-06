@@ -6,9 +6,12 @@
   "title": "Luhya translation",
   "sha256": "5197d02c1fc4d38058038ff21e1c111133c065b969c3c3d0808faaf756fa33e9",
   "downloaded_at": "2026-05-05T20:53:36Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Luhya translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

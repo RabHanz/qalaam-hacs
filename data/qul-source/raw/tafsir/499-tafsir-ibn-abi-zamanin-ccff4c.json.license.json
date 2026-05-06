@@ -6,9 +6,12 @@
   "title": "Tafsir Ibn Abi Zamanin",
   "sha256": "da5ca6b671c58d19b56ae8d3dceb50649ef22c28bad5d99a2907a019b100e17e",
   "downloaded_at": "2026-05-05T20:51:17Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir Ibn Abi Zamanin (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Mostafa Ismaeel",
   "sha256": "8d2be30279abf39b08121139755e6f4f05e06fbb1500e0f971fe6c3983412eaa",
   "downloaded_at": "2026-05-05T20:55:58Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Mostafa Ismaeel (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

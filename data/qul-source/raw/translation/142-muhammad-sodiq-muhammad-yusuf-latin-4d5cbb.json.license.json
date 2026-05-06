@@ -6,9 +6,12 @@
   "title": "Muhammad Sodiq Muhammad Yusuf (Latin)",
   "sha256": "39ea4579d7b67d347a57504b3aaa15e83511a408ddc63c26e5bb4d6d1b2280d5",
   "downloaded_at": "2026-05-05T20:52:45Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Muhammad Sodiq Muhammad Yusuf (Latin) (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Maulana Wahiduddin Khan",
   "sha256": "8f77c12c0e4c0b304ab2734cdc2b50165e30746465ea0c05cca3161e21c121e1",
   "downloaded_at": "2026-05-05T20:53:00Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Maulana Wahiduddin Khan (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

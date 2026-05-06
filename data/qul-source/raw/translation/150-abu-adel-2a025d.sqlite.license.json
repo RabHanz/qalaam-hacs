@@ -6,9 +6,12 @@
   "title": "Abu Adel",
   "sha256": "9f5897aacafd27f4c4232fa94cf57df1ef865348b7f722955e465175ba5de699",
   "downloaded_at": "2026-05-05T20:54:04Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abu Adel (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

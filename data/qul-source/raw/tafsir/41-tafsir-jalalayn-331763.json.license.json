@@ -6,9 +6,12 @@
   "title": "Tafsir Jalalayn",
   "sha256": "6e18260a237a049c5ec386c34687d53d0a2670cf1fef43d620d7bee2c2f357dc",
   "downloaded_at": "2026-05-05T20:51:39Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir Jalalayn (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

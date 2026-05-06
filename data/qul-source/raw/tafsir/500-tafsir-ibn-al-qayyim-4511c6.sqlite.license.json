@@ -6,9 +6,12 @@
   "title": "Tafsir Ibn Al-Qayyim",
   "sha256": "06b2773f4d157e689083bf255c2a9cc24e5a7fa97190e02de702c31e1f80e713",
   "downloaded_at": "2026-05-05T20:52:30Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir Ibn Al-Qayyim (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Abdullah Matroud",
   "sha256": "b39429ff0780243cab7e7f5524ea3b93b45a23e1ee6851e8fd4dcaa7a1104150",
   "downloaded_at": "2026-05-05T20:56:02Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abdullah Matroud (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

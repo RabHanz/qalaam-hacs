@@ -6,9 +6,12 @@
   "title": "Abdullah Yusuf Ali",
   "sha256": "54ea7f8e3e82ee29619592c292e68190864273221960b32b94657ebe1eaa9882",
   "downloaded_at": "2026-05-05T20:53:53Z",
-  "license_tag": "unverified",
+  "license_tag": "public-domain",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abdullah Yusuf Ali (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

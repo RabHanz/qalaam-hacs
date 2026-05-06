@@ -6,9 +6,12 @@
   "title": "Abu Bakr Ibrahim Ali (Bakurube)",
   "sha256": "e9a7b774cf43d6f8906f67602c71425ced1db87b791544f5372210b48717835b",
   "downloaded_at": "2026-05-05T20:52:58Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abu Bakr Ibrahim Ali (Bakurube) (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

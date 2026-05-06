@@ -6,9 +6,12 @@
   "title": "Abul Ala Maududi(Roman Urdu)",
   "sha256": "b2de3b985bf08cf64719bf14926fbec5224276ee343a55b8c1d100d7f637485f",
   "downloaded_at": "2026-05-05T20:52:57Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abul Ala Maududi(Roman Urdu) (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

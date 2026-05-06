@@ -6,9 +6,12 @@
   "title": "Amharic Translation - Zain",
   "sha256": "cccd257c623f1ad3eb46e11af3247e5ef13648821b0af7351f616533bb835207",
   "downloaded_at": "2026-05-05T20:53:34Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Amharic Translation - Zain (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

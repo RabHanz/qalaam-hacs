@@ -6,9 +6,12 @@
   "title": "Albanian",
   "sha256": "74033c117b1717a9b26474c443fa58740ac98d7976412a7f8c9ed08576882926",
   "downloaded_at": "2026-05-05T20:53:59Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Albanian (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

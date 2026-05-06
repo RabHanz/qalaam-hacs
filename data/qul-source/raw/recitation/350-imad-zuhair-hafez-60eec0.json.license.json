@@ -6,9 +6,12 @@
   "title": "Imad Zuhair Hafez",
   "sha256": "f6d4252cb0705649c1acd62d9251d6db3aef6f5136cc78944fbbab9aa50e785c",
   "downloaded_at": "2026-05-05T20:56:00Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Imad Zuhair Hafez (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Turkish Al-Mukhtasar in Interpreting the Noble Quran",
   "sha256": "52c69ff69654e0a88e53ff53dc287f04bc6a48ff72a3e18e443dd64026341fa4",
   "downloaded_at": "2026-05-05T20:51:13Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Turkish Al-Mukhtasar in Interpreting the Noble Quran (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

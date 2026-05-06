@@ -6,9 +6,12 @@
   "title": "Hausa Translation(Abubakar Gumi)",
   "sha256": "b1b768bb4137f69a2b86ae1fc972a897efe23878b90670cc7ba147f0d0d4e44c",
   "downloaded_at": "2026-05-05T20:53:52Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Hausa Translation(Abubakar Gumi) (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

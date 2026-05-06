@@ -6,9 +6,12 @@
   "title": "Khawaja Mirof & Khawaja Mir",
   "sha256": "4d4de4d21e765a409f7738c65566adc80f6ec48da4b6d446b2bd6b4f9bea56bc",
   "downloaded_at": "2026-05-05T20:54:51Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Khawaja Mirof & Khawaja Mir (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

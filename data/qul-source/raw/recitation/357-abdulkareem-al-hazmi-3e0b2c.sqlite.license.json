@@ -6,9 +6,12 @@
   "title": "AbdulKareem Al Hazmi",
   "sha256": "01be4d0c471e3ad590bc927ae0cfbc70d8c7d6a7e693be08078558117cb54030",
   "downloaded_at": "2026-05-05T20:55:43Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "AbdulKareem Al Hazmi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

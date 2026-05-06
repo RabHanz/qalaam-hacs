@@ -6,9 +6,12 @@
   "title": "Korean Translation - Rowwad Translation Center",
   "sha256": "1646b884eb60990aea0d69b1b9ae4be2b9f3d3128ad30ae611c6faba2b426dd7",
   "downloaded_at": "2026-05-05T20:53:30Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Korean Translation - Rowwad Translation Center (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Surah Info - Tamil",
   "sha256": "bd0eeb638cf60e0ac050fbce8cfd6e448e4b5d1a40bbab2a7c91942085af6fb5",
   "downloaded_at": "2026-05-05T20:50:11Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Surah Info - Tamil (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

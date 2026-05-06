@@ -6,9 +6,12 @@
   "title": "Ghali Apapur Apaghuna",
   "sha256": "ffa1cecc93d1a1bc3b4c79a909ed4a7e0ec2eb917dc33fd1f7fa9e103e955bb6",
   "downloaded_at": "2026-05-05T20:53:49Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Ghali Apapur Apaghuna (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

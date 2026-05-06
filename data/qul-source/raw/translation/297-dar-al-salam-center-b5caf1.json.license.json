@@ -6,9 +6,12 @@
   "title": "Dar Al-Salam Center",
   "sha256": "9ca3c7aacb0bd0daa258d4ab6e103a7a01dba434152c443564c1159fa22924d6",
   "downloaded_at": "2026-05-05T20:53:40Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Dar Al-Salam Center (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

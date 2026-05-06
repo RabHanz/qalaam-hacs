@@ -6,9 +6,12 @@
   "title": "Tafsir Ibn Al-Jawzi",
   "sha256": "99a2ef91c76d2cc109acbefc7d2e16f0136d2821ac0cd5a4a598b6c10f151899",
   "downloaded_at": "2026-05-05T20:52:29Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir Ibn Al-Jawzi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

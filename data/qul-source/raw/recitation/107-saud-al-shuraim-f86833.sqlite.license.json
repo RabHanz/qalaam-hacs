@@ -6,9 +6,12 @@
   "title": "Saud Al-Shuraim",
   "sha256": "ff49cce24d6f1c6131db4db511f497eb1db54a9baec5a500cf9883223ffaf48f",
   "downloaded_at": "2026-05-05T20:55:37Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Saud Al-Shuraim (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

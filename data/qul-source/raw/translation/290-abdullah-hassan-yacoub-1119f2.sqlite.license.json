@@ -6,9 +6,12 @@
   "title": "Abdullah Hassan Yacoub",
   "sha256": "948498914d8d60762a386011a378ee9ec2fd434c29f94fe5737e1f074e734e85",
   "downloaded_at": "2026-05-05T20:53:11Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abdullah Hassan Yacoub (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

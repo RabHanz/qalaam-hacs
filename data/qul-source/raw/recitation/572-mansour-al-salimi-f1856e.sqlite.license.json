@@ -6,9 +6,12 @@
   "title": "Mansour al Salimi",
   "sha256": "ae8c2753f1bd3f053f580b0737b47911e6df87899b4b04bfd5062819f1a87fc0",
   "downloaded_at": "2026-05-05T20:55:35Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Mansour al Salimi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

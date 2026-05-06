@@ -6,9 +6,12 @@
   "title": "Greek translation",
   "sha256": "aeb689b4e5c8607e12898a0e10c37b2783becd8343b7cd3cba8a4bd9f768b27e",
   "downloaded_at": "2026-05-05T20:52:46Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Greek translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Islamic and Cultural League",
   "sha256": "170315a6108977f48d74b7472d655f942ab60ce2c2524f2905d0fc38dbd850a9",
   "downloaded_at": "2026-05-05T20:54:24Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Islamic and Cultural League (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

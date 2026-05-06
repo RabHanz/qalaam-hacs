@@ -6,9 +6,12 @@
   "title": "Lithuanian Translation",
   "sha256": "bba63db0a3d7290c494683b8932483e88d8da0c14e9c4bc1d8acb787c5fe5ccf",
   "downloaded_at": "2026-05-05T20:53:18Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Lithuanian Translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

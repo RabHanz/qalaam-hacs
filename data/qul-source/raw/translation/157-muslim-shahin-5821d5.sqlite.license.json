@@ -6,9 +6,12 @@
   "title": "Muslim Shahin",
   "sha256": "47bf78dbaf8e65f18d9c0c694d1544aa655d7d6b2035188bf17d70a7a9430686",
   "downloaded_at": "2026-05-05T20:53:12Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Muslim Shahin (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

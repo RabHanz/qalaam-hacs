@@ -6,9 +6,12 @@
   "title": "Rawai Al-bayan",
   "sha256": "86471ee892aa15030f28040ce8ad6f54d80384c73ec08dbee57b12494a524150",
   "downloaded_at": "2026-05-05T20:54:11Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Rawai Al-bayan (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Tahlil Kalimat al-Qur'an",
   "sha256": "51f8dd12cebb1cda7faf553a27f2d0876f4c9da92a3cff4b0723cc73dded1f88",
   "downloaded_at": "2026-05-05T20:51:58Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tahlil Kalimat al-Qur'an (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

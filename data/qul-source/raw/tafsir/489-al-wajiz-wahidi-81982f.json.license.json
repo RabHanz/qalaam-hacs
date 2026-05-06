@@ -6,9 +6,12 @@
   "title": "Al-Wajiz Wahidi",
   "sha256": "13d53c0f0e9938ab381affa1d82f0dcc5ec992e98212caf607fecd2d5377e400",
   "downloaded_at": "2026-05-05T20:52:22Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Al-Wajiz Wahidi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

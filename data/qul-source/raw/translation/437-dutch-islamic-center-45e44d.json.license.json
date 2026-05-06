@@ -6,9 +6,12 @@
   "title": "Dutch Islamic Center",
   "sha256": "7de8d077f65c2a0be1cbab1f9a263966b072efd786caaec0146697ae44098de5",
   "downloaded_at": "2026-05-05T20:53:31Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Dutch Islamic Center (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Hamza Roberto Piccardo",
   "sha256": "de1198b8a584833290a55947a85b80a44c54937a022c147748e775c8a22cb9d2",
   "downloaded_at": "2026-05-05T20:54:23Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Hamza Roberto Piccardo (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

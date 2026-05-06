@@ -6,9 +6,12 @@
   "title": "Croatian translation - rwwad",
   "sha256": "e1c7479a1a823a35b3da1517da7ad86c7f2ab81c79ddae8084f666ec12ccc1cc",
   "downloaded_at": "2026-05-05T20:53:32Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Croatian translation - rwwad (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Pashto Translation - Rowwad Translation Center",
   "sha256": "3a5f386289101f24ab54a7ebbd0b8181c6c8380266fc91bb8a4444642552fbf8",
   "downloaded_at": "2026-05-05T20:53:31Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Pashto Translation - Rowwad Translation Center (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

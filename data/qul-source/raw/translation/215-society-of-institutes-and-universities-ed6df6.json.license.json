@@ -6,9 +6,12 @@
   "title": "Society of Institutes and Universities",
   "sha256": "d8041f3c38ac7defc10af230ca84c69e0e0859f2bdb430c934d3c707e0add66d",
   "downloaded_at": "2026-05-05T20:54:41Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Society of Institutes and Universities (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

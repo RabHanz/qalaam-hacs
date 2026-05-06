@@ -6,9 +6,12 @@
   "title": "Bengali wbw translation",
   "sha256": "8d0762dd9e9e7b4a11687a17dff2cb1ee45b6aad8effb0bc3e25265dcc8c885a",
   "downloaded_at": "2026-05-05T20:53:44Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Bengali wbw translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Baba Mamady Jani",
   "sha256": "2eef0fdc7d3889382ec55b0f50da096910dc66d963b00cc05c42d6313c3cdb94",
   "downloaded_at": "2026-05-05T20:52:43Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Baba Mamady Jani (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

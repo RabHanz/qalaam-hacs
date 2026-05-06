@@ -6,9 +6,12 @@
   "title": "Filipino Iranionian translation",
   "sha256": "713b90f877ac98bf70e9f0763db262522cae1d16e73c8ef7cca991bfb068de06",
   "downloaded_at": "2026-05-05T20:54:44Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Filipino Iranionian translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

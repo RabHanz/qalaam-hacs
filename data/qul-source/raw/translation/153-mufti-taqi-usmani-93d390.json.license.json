@@ -6,9 +6,12 @@
   "title": "Mufti Taqi Usmani",
   "sha256": "6e6216d2083428d94bceb608cba6514beb4b43c3bf18171866a8dee0983d492f",
   "downloaded_at": "2026-05-05T20:54:01Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Mufti Taqi Usmani (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

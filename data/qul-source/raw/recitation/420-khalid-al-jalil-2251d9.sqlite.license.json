@@ -6,9 +6,12 @@
   "title": "Khalid Al-Jalil",
   "sha256": "a39ceffba240543d917b612306b8759c2a101fcd8373c2f52f6b7404840a6dcd",
   "downloaded_at": "2026-05-05T20:55:45Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Khalid Al-Jalil (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Uthmani",
   "sha256": "28dcdc9e90245f8e00cc2eee42145ca476e8cbbec4b36751de325f527f3993a2",
   "downloaded_at": "2026-05-05T20:48:20Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Uthmani (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

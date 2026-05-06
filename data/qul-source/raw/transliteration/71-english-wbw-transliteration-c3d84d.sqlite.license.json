@@ -6,9 +6,12 @@
   "title": "English wbw transliteration",
   "sha256": "967d2a83e4257da27ed728256320eca65dc62860db5539bd8debf508b033b309",
   "downloaded_at": "2026-05-05T20:50:26Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "English wbw transliteration (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

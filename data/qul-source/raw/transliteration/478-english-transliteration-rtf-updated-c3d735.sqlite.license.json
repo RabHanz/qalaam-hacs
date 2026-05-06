@@ -6,9 +6,12 @@
   "title": "English Transliteration(RTF Updated)",
   "sha256": "1bede3c1285be17913bac99c6dbade977d4d34e31870823a2b0c7e7a2b1c3621",
   "downloaded_at": "2026-05-05T20:50:30Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "English Transliteration(RTF Updated) (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

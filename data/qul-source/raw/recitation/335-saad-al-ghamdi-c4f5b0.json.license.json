@@ -6,9 +6,12 @@
   "title": "Saad al-Ghamdi",
   "sha256": "3a2525d0d8b57f31f9dd178f6da101855df2d4218a103a1e1c939ef919599bc7",
   "downloaded_at": "2026-05-05T20:55:53Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Saad al-Ghamdi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

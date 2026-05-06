@@ -6,9 +6,12 @@
   "title": "Thai Mokhtasar",
   "sha256": "df8e5867197f8b184af833eed20280a38f6ce529bb2de3f23bb1eb795542f385",
   "downloaded_at": "2026-05-05T20:52:02Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Thai Mokhtasar (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

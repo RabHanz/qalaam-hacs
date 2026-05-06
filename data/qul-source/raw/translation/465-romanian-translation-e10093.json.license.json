@@ -6,9 +6,12 @@
   "title": "Romanian translation",
   "sha256": "cbd9244de3defd423f7e7556d6984c9ca8e181bdcc188cd41daa7dddf9ce7753",
   "downloaded_at": "2026-05-05T20:53:16Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Romanian translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

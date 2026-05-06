@@ -6,9 +6,12 @@
   "title": "Al Nashr li Ibn Al Jazari",
   "sha256": "c43e1e423bd33858db9f89f8122a3b0a904f35dfe4cc06df1168d4a0f5b5ddf4",
   "downloaded_at": "2026-05-05T20:57:32Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Al Nashr li Ibn Al Jazari (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

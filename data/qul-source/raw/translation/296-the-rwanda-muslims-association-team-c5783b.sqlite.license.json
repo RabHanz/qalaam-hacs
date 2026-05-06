@@ -6,9 +6,12 @@
   "title": "The Rwanda Muslims Association team",
   "sha256": "ee43d24e3485f4d02292ee8c0091e11ae52d353fb902780f9baf47e244235831",
   "downloaded_at": "2026-05-05T20:53:21Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "The Rwanda Muslims Association team (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Turkish wbw translation",
   "sha256": "8d9009ca382f3e99e8be96d71562da1f12a3b8a8b0193952f9d68e1412696706",
   "downloaded_at": "2026-05-05T20:53:07Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Turkish wbw translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

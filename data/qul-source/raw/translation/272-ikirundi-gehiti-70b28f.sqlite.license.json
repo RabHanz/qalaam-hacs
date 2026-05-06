@@ -6,9 +6,12 @@
   "title": "Ikirundi gehiti",
   "sha256": "b2a4a9a10468d0c5f94bca7c8ca0744ea9232510e388bdebf259ac05b557c776",
   "downloaded_at": "2026-05-05T20:52:48Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Ikirundi gehiti (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

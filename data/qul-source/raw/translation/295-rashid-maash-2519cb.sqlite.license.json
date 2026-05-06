@@ -6,9 +6,12 @@
   "title": "Rashid Maash",
   "sha256": "c8990e1b3354eb55e0adc80022084db4ac404a992e7b9fb9ba411f0c6debc8cc",
   "downloaded_at": "2026-05-05T20:53:20Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Rashid Maash (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

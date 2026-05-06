@@ -6,9 +6,12 @@
   "title": "Montada Islamic Foundation",
   "sha256": "fb56980803b3e1cf4d9e10e43a6ae1be24e1d4447e0b828c1baae6f2efb84baf",
   "downloaded_at": "2026-05-05T20:52:45Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Montada Islamic Foundation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

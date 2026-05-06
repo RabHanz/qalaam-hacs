@@ -6,9 +6,12 @@
   "title": "KFGQPC V4 layout (1441H print)",
   "sha256": "323a562f15298c97b1348b6657e1125ca984a5eaffb8cd50d362c74bfe25b59a",
   "downloaded_at": "2026-05-05T20:48:24Z",
-  "license_tag": "unverified",
+  "license_tag": "kfgqpc-terms",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "KFGQPC V4 layout (1441H print) — King Fahd Glorious Quran Printing Complex (KFGQPC)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

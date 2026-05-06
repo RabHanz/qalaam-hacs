@@ -6,9 +6,12 @@
   "title": "Fares Abbad",
   "sha256": "2fed13c71cc9abe822f43703f6f2cbccaf975a84511ffc6403d3c7e52aff935d",
   "downloaded_at": "2026-05-05T20:55:57Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Fares Abbad (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

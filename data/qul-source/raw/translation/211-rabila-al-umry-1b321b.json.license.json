@@ -6,9 +6,12 @@
   "title": "Rabila Al-Umry",
   "sha256": "1339181e35d2051970a5712768350c3b62f6fea3e3b0f42e13e97174d85a9999",
   "downloaded_at": "2026-05-05T20:53:44Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Rabila Al-Umry (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

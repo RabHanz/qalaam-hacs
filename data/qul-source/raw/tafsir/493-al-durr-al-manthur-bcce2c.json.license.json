@@ -6,9 +6,12 @@
   "title": "Al-Durr Al-Manthur",
   "sha256": "f3b41d7943587e831e851268d7d05f31a4c24dc5ce113e5191a094150e633716",
   "downloaded_at": "2026-05-05T20:52:32Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Al-Durr Al-Manthur (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

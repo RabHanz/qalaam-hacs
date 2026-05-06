@@ -6,9 +6,12 @@
   "title": "I'rab Al Quran li Al Darwish",
   "sha256": "d8434326a89f22990b433aeace886ba40d6bb104b3db9ea9dfcce916a26bf5bc",
   "downloaded_at": "2026-05-05T20:51:23Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "I'rab Al Quran li Al Darwish (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

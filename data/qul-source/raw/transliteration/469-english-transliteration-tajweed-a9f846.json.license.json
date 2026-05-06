@@ -6,9 +6,12 @@
   "title": "English Transliteration(Tajweed)",
   "sha256": "91ac74f573a4469390bfa86e57a2b3f55890a217f80ec4f6bd11bfdedd85e825",
   "downloaded_at": "2026-05-05T20:50:25Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "English Transliteration(Tajweed) (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

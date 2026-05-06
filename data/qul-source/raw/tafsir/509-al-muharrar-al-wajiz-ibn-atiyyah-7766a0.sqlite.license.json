@@ -6,9 +6,12 @@
   "title": "Al-Muharrar Al-Wajiz Ibn Atiyyah",
   "sha256": "bfd5ba2709abaf38517755366fd73bccc8062c7ae85a1b02ddf1e92b6370d130",
   "downloaded_at": "2026-05-05T20:51:48Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Al-Muharrar Al-Wajiz Ibn Atiyyah (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Rebar Kurdish Tafsir",
   "sha256": "09e11c8665094c69ef93f36df69356e825dfdc4895dd247d620760185b0a6996",
   "downloaded_at": "2026-05-05T20:51:45Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Rebar Kurdish Tafsir (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

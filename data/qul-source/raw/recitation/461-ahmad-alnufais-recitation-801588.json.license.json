@@ -6,9 +6,12 @@
   "title": "Ahmad Alnufais Recitation",
   "sha256": "3cfc8025bd788ead640dedc2d9adac93e5b7db4a417904ba579bffa1bea9c586",
   "downloaded_at": "2026-05-05T20:55:29Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Ahmad Alnufais Recitation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

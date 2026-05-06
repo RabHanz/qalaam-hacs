@@ -6,9 +6,12 @@
   "title": "Khalifa Al Tunaiji",
   "sha256": "467a0c2d0a839cfda20cdfb755ef643d842c38bd2d5a224f09d3809adfa2a90b",
   "downloaded_at": "2026-05-05T20:55:37Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Khalifa Al Tunaiji (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

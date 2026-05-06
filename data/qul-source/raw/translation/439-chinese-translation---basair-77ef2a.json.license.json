@@ -6,9 +6,12 @@
   "title": "Chinese Translation - Basair",
   "sha256": "0aa35a8be8e10be86e12b2341e12ce2fced1f55a6640e52a55ec5c26ddc9162b",
   "downloaded_at": "2026-05-05T20:53:35Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Chinese Translation - Basair (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

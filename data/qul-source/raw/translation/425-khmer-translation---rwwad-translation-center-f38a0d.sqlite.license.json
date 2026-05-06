@@ -6,9 +6,12 @@
   "title": "Khmer translation - Rwwad translation center",
   "sha256": "59dbd3b23911303889642aa5c08fc71495a25f6063df52eebfebac5d8bca6c88",
   "downloaded_at": "2026-05-05T20:53:25Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Khmer translation - Rwwad translation center (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

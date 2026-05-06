@@ -6,9 +6,12 @@
   "title": "Mawlawi Muhammad Anwar Badkhashani",
   "sha256": "e1a318a963d7476649b91113d02f0df047bc0e86e5d51b3daf3204c00eb4225c",
   "downloaded_at": "2026-05-05T20:54:42Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Mawlawi Muhammad Anwar Badkhashani (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

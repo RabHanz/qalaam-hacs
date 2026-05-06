@@ -6,9 +6,12 @@
   "title": "Persian wbw translation",
   "sha256": "4098cdd591e80c8039ff4f73a990d127af8314951519a14dbfca7a6dbf96c4a3",
   "downloaded_at": "2026-05-05T20:53:44Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Persian wbw translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

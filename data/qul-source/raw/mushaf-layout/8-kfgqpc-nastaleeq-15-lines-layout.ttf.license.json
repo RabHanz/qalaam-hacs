@@ -6,9 +6,12 @@
   "title": "KFGQPC Nastaleeq 15 lines layout",
   "sha256": "1686695486474b88a24a05cd4578f5295961bc9516885309ec95be574f213c27",
   "downloaded_at": "2026-05-05T20:48:23Z",
-  "license_tag": "unverified",
+  "license_tag": "kfgqpc-terms",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "KFGQPC Nastaleeq 15 lines layout — King Fahd Glorious Quran Printing Complex (KFGQPC)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

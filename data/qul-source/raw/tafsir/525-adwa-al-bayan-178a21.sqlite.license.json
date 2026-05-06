@@ -6,9 +6,12 @@
   "title": "Adwa' Al-Bayan",
   "sha256": "0e601b1feee3fd35c4f227e25786f6e9331373340e04acc7ac5940e14ec7feb2",
   "downloaded_at": "2026-05-05T20:52:26Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Adwa' Al-Bayan (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

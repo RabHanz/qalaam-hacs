@@ -6,9 +6,12 @@
   "title": "Sheikh Isa Garcia",
   "sha256": "6bb6694ab0797a55f35f6b82a726b610aa256ed96b37dc177a47639c45df1ae9",
   "downloaded_at": "2026-05-05T20:52:54Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Sheikh Isa Garcia (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

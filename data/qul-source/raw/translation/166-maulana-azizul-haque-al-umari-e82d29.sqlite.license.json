@@ -6,9 +6,12 @@
   "title": "Maulana Azizul Haque al-Umari",
   "sha256": "4418120a2defd5d4be2d174ba941402f697a6b476c86a797af8575c44e2d286a",
   "downloaded_at": "2026-05-05T20:54:19Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Maulana Azizul Haque al-Umari (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

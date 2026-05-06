@@ -6,9 +6,12 @@
   "title": "Serbian Mokhtasar",
   "sha256": "31f5737650f6878fdf6523be4ea01aafd027ebb6afb52223bfdb646181fc135c",
   "downloaded_at": "2026-05-05T20:52:19Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Serbian Mokhtasar (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

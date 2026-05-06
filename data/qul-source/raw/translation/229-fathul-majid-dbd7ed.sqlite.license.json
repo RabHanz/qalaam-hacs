@@ -6,9 +6,12 @@
   "title": "Fathul Majid",
   "sha256": "f55ed5b621153cc89a9a27a355197306b3c02c7f7ae26ca51911cf5559368e2e",
   "downloaded_at": "2026-05-05T20:54:14Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Fathul Majid (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

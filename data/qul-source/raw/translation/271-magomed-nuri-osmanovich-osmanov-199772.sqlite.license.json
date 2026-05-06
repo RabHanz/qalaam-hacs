@@ -6,9 +6,12 @@
   "title": "Magomed-Nuri Osmanovich Osmanov",
   "sha256": "0143026bdf911046c20e9fcff4e19e0ff677faab66f63426ebc501c3cdb73ed9",
   "downloaded_at": "2026-05-05T20:52:47Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Magomed-Nuri Osmanovich Osmanov (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

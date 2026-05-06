@@ -6,9 +6,12 @@
   "title": "Mahmood Ali Al-Bana",
   "sha256": "64ce2a8a78657b6824a2e8cd0f21e0deda75e52028da6926fc40f7e0471b084b",
   "downloaded_at": "2026-05-05T20:55:42Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Mahmood Ali Al-Bana (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

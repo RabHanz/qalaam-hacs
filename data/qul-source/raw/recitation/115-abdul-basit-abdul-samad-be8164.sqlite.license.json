@@ -6,9 +6,12 @@
   "title": "Abdul Basit Abdul Samad",
   "sha256": "33dde2584d09bd59379353402be8068a85670d7dd50686e912cf038d76473d37",
   "downloaded_at": "2026-05-05T20:55:40Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abdul Basit Abdul Samad (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

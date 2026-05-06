@@ -6,9 +6,12 @@
   "title": "Shaykh al-Hind Mahmud al-Hasan(with Tafsir E Usmani)",
   "sha256": "5cf5f0c082c8fcf91c0a5d169298f275d34431643fdd55b2a30792920c551801",
   "downloaded_at": "2026-05-05T20:54:39Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Shaykh al-Hind Mahmud al-Hasan(with Tafsir E Usmani) (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

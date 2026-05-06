@@ -6,9 +6,12 @@
   "title": "Surah Info - English",
   "sha256": "70914e97c5514fe589f5641489bbb6248bc90e66c330707dbf117b75294f522e",
   "downloaded_at": "2026-05-05T20:50:43Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Surah Info - English (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

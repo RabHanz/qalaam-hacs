@@ -6,9 +6,12 @@
   "title": "Tafsir Ibne Kathir",
   "sha256": "2ad8cbe0c01556d98ec5a9e3a3a553fd71f81709962d37f16a3e0df847c5a397",
   "downloaded_at": "2026-05-05T20:51:08Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir Ibne Kathir (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

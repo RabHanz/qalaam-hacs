@@ -6,9 +6,12 @@
   "title": "Tafsir Muyassar",
   "sha256": "bfe3ee8b5f64cd11213e37f765bb3e8e170897f27e1a591ea4811fcbe76e8bc0",
   "downloaded_at": "2026-05-05T20:51:36Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir Muyassar (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

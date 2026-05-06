@@ -6,9 +6,12 @@
   "title": "Word stem",
   "sha256": "57992661ebd776d2400fb129562ab931a7ea2211a8cd5b757d72e59556924784",
   "downloaded_at": "2026-05-05T20:50:40Z",
-  "license_tag": "unverified",
+  "license_tag": "gpl-derivative",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Quranic Arabic Corpus — Dr. Kais Dukes (et al.)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Professor Shaykh Hasan Al-Fatih Qaribullah",
   "sha256": "043e927b7caf0662650c43bcddb686ed8036ed11e2343764e2ff7e8f3a959dbb",
   "downloaded_at": "2026-05-05T20:52:59Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Professor Shaykh Hasan Al-Fatih Qaribullah (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

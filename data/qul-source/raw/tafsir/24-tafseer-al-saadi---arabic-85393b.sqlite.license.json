@@ -6,9 +6,12 @@
   "title": "Tafseer Al Saadi - Arabic",
   "sha256": "9861b3520c9325137fa69dad14fb9c766f217def3e5d4b4ad4c555b8c54daec7",
   "downloaded_at": "2026-05-05T20:51:28Z",
-  "license_tag": "unverified",
+  "license_tag": "public-domain",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafseer Al Saadi - Arabic (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

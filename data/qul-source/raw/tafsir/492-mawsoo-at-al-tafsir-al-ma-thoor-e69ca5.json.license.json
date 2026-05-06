@@ -6,9 +6,12 @@
   "title": "Mawsoo'at Al-Tafsir Al-Ma'thoor",
   "sha256": "6efa8c8cb4b00e979fd24e9bd78aea2256eb37055efe4dd2d59296b54da2cc55",
   "downloaded_at": "2026-05-05T20:52:01Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Mawsoo'at Al-Tafsir Al-Ma'thoor (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Tawfeeq ibn Sa`id as-Sawa'igh",
   "sha256": "57e620519631ca73d599b5ec8094c49e37558e4458efccaf1c7a5380e3dc6070",
   "downloaded_at": "2026-05-05T20:55:57Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tawfeeq ibn Sa`id as-Sawa'igh (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

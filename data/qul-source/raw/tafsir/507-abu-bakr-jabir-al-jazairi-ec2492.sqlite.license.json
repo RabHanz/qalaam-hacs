@@ -6,9 +6,12 @@
   "title": "Abu Bakr Jabir Al-Jazairi",
   "sha256": "a0521eaaa7ce0a680d494c7a6661f79b74299574100379d3c2bccf204eab848e",
   "downloaded_at": "2026-05-05T20:51:18Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abu Bakr Jabir Al-Jazairi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

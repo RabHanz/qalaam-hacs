@@ -6,9 +6,12 @@
   "title": "Kurdish Mokhtasar",
   "sha256": "a0f154ecc85c76bf9b35a965a1752cad555761799d3dd697faa8c2c717b8aee8",
   "downloaded_at": "2026-05-05T20:52:21Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Kurdish Mokhtasar (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

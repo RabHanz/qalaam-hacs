@@ -6,9 +6,12 @@
   "title": "Abdur-Razaq bin Abtan al-Dulaimi [Mujawwad]",
   "sha256": "531016d9fdfe3092019772d6d97572e2041cf97c01d5618ddd5bc399eb2b7fb9",
   "downloaded_at": "2026-05-05T20:55:50Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abdur-Razaq bin Abtan al-Dulaimi [Mujawwad] (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

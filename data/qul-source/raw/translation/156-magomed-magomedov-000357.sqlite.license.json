@@ -6,9 +6,12 @@
   "title": "Magomed Magomedov",
   "sha256": "f2df59e0f8e2446b8996b6a34fa430b7d067f2dfa34ca8f4389d7237ec6be12a",
   "downloaded_at": "2026-05-05T20:54:42Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Magomed Magomedov (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

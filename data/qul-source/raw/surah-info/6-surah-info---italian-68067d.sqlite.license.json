@@ -6,9 +6,12 @@
   "title": "Surah Info - Italian",
   "sha256": "0c06200f69e5c29729590b7d2bfc55a0be8b03114a1aa490f2d857af4e01ff31",
   "downloaded_at": "2026-05-05T20:50:16Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Surah Info - Italian (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

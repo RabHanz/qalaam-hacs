@@ -6,9 +6,12 @@
   "title": "Mahasin Al-Ta'wil Al-Qasimi",
   "sha256": "33b164c800b933f396a304446749c505b0da515baf4e59dddefbbe81fc09759a",
   "downloaded_at": "2026-05-05T20:52:17Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Mahasin Al-Ta'wil Al-Qasimi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

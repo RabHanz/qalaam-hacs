@@ -6,9 +6,12 @@
   "title": "Kannada Translation",
   "sha256": "9b6812afe166c4910b6553a587306d5007acef11daaba9a3996ad50d20a590d3",
   "downloaded_at": "2026-05-05T20:52:59Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Kannada Translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Muhsin Khan",
   "sha256": "958b778f0b96eb224321182fa610da4014022a1517f4f349e12972f04903a285",
   "downloaded_at": "2026-05-05T20:53:51Z",
-  "license_tag": "unverified",
+  "license_tag": "public-domain",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Muhsin Khan (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

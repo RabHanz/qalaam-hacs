@@ -6,9 +6,12 @@
   "title": "Chinese Abridged Explanation of the Quran",
   "sha256": "02b030b5e5fd66569fdbf889bc56deeb4432e7c9a7884bd6594ce028a5f5a454",
   "downloaded_at": "2026-05-05T20:51:07Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Chinese Abridged Explanation of the Quran (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

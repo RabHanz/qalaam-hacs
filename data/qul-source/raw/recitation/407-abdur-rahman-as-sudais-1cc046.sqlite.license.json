@@ -6,9 +6,12 @@
   "title": "Abdur-Rahman as-Sudais",
   "sha256": "9acd10576417d86ce4beffb3fdf672306d4ba1f87d65e09a3335ee121a9c3f2f",
   "downloaded_at": "2026-05-05T20:56:04Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Abdur-Rahman as-Sudais (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

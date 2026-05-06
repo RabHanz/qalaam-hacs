@@ -6,9 +6,12 @@
   "title": "Uzbek Translation - Rowwad Translation Center",
   "sha256": "1bcdfae91647a95fdb4b7487b87497f8c6bf613de33e22329cbe4f39dc741b9c",
   "downloaded_at": "2026-05-05T20:53:27Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Uzbek Translation - Rowwad Translation Center (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

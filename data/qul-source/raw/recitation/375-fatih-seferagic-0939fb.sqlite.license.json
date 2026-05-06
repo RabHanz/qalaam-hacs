@@ -6,9 +6,12 @@
   "title": "Fatih Seferagic",
   "sha256": "f2515214caaaeea46e242e6434eb184e4e6dc83c2850f24b5d962f6e4a768a10",
   "downloaded_at": "2026-05-05T20:55:49Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Fatih Seferagic (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

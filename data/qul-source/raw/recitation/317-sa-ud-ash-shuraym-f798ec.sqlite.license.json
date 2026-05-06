@@ -6,9 +6,12 @@
   "title": "Sa`ud ash-Shuraym",
   "sha256": "4a0c79e28fde41be052aea640c95f66a7a7292fff6638870addea8d8b02d10ed",
   "downloaded_at": "2026-05-05T20:55:55Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Sa`ud ash-Shuraym (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

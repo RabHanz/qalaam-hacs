@@ -6,9 +6,12 @@
   "title": "Tafheem e Qur'an - Syed Abu Ali Maududi",
   "sha256": "4e66bf7292dd4a71bc0e6ae8f0711a0023063c33f1866cf0af68d9ccc69959d5",
   "downloaded_at": "2026-05-05T20:53:42Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafheem e Qur'an - Syed Abu Ali Maududi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

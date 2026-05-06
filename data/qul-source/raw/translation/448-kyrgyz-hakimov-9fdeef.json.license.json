@@ -6,9 +6,12 @@
   "title": "Kyrgyz hakimov",
   "sha256": "17338a3e91576cd6ae0398bc25a628cf9601cc138d2564432e028f3392d35afb",
   "downloaded_at": "2026-05-05T20:53:29Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Kyrgyz hakimov (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

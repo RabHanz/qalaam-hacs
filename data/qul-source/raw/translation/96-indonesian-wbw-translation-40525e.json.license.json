@@ -6,9 +6,12 @@
   "title": "Indonesian wbw translation",
   "sha256": "5432d9397f5dc8db31fd8e7a6988e863394f6170bc7df02643261d9bfaa28c30",
   "downloaded_at": "2026-05-05T20:53:01Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Indonesian wbw translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

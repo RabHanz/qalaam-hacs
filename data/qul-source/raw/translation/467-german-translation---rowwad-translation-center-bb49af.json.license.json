@@ -6,9 +6,12 @@
   "title": "German Translation - Rowwad Translation Center",
   "sha256": "6877a106735fa3fc65ef53146733202a8c2accb92c88ee95e19a393c6cba8355",
   "downloaded_at": "2026-05-05T20:53:33Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "German Translation - Rowwad Translation Center (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

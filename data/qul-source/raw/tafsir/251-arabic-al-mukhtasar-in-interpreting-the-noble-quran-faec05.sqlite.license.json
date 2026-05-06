@@ -6,9 +6,12 @@
   "title": "Arabic Al-Mukhtasar in interpreting the Noble Quran",
   "sha256": "4942c0f74c836a59899a03159d440df628dc361b1459c516df40dc33d78846a8",
   "downloaded_at": "2026-05-05T20:51:09Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Arabic Al-Mukhtasar in interpreting the Noble Quran (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

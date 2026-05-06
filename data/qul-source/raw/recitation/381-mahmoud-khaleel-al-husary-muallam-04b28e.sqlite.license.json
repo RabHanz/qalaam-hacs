@@ -6,9 +6,12 @@
   "title": "Mahmoud Khaleel Al-Husary (Muallam)",
   "sha256": "3e0c437927e8690ce1e39743b5ca23717c847e6f735ad9247da9a2fd8dee3d7b",
   "downloaded_at": "2026-05-05T20:56:04Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Mahmoud Khaleel Al-Husary (Muallam) (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

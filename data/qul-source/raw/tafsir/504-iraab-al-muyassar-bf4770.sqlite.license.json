@@ -6,9 +6,12 @@
   "title": "Iraab Al-Muyassar",
   "sha256": "27db881913d11b4c5e2263d5b7bd69dec8be182cd40eb89445b6dbbb9885e257",
   "downloaded_at": "2026-05-05T20:51:16Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Iraab Al-Muyassar (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

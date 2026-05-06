@@ -6,9 +6,12 @@
   "title": "Chinese Translation (Simplified) - Ma Jain",
   "sha256": "b7deaaaee67c49f8b264b96f437bc2b353485e7e72b2b091c09052d9b230280c",
   "downloaded_at": "2026-05-05T20:54:34Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Chinese Translation (Simplified) - Ma Jain (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

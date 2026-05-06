@@ -6,9 +6,12 @@
   "title": "Adel Kalbani",
   "sha256": "293285d69f1d7876014e1be8c4c91f05264bbabe9f31b9d864893e3a014c8a77",
   "downloaded_at": "2026-05-05T20:55:49Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Adel Kalbani (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

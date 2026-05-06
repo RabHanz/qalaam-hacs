@@ -6,9 +6,12 @@
   "title": "Muhamed Mehanović",
   "sha256": "0ec40ab4ab6c9cb963781016dfc1b97d80f53e3f6115d71d23d98b616c296531",
   "downloaded_at": "2026-05-05T20:54:16Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Muhamed Mehanović (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

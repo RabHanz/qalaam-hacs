@@ -6,9 +6,12 @@
   "title": "Hamed Choi",
   "sha256": "fd2e07f62824cf3f285b3bb0ce8f16d6d0e60e9a29e9496281d2b4691c9f0aee",
   "downloaded_at": "2026-05-05T20:54:18Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Hamed Choi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Helmi Nasr",
   "sha256": "95ccc8e24d75cce57efbbbb9a610543c323ed3b98bed274e21a761eeb3c95462",
   "downloaded_at": "2026-05-05T20:53:17Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Helmi Nasr (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

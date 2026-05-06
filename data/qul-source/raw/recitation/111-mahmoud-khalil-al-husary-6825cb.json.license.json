@@ -6,9 +6,12 @@
   "title": "Mahmoud Khalil Al-Husary",
   "sha256": "7964360798ead7fbaca90156c29fbff37f7d9358c3c6b7f3e5172c8297edeed0",
   "downloaded_at": "2026-05-05T20:55:39Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Mahmoud Khalil Al-Husary (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Tafsir al-Tabari",
   "sha256": "1169bca4ab50c8e132b9bada580918dcb4bf69c0dfce86a62f667607422fb93d",
   "downloaded_at": "2026-05-05T20:51:46Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir al-Tabari (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

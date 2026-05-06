@@ -6,9 +6,12 @@
   "title": "AbdulWadud Haneef",
   "sha256": "0cf27bc5f592e33aa52f43edc6b41765eba375f7d7714bb1c4b5423090156e0b",
   "downloaded_at": "2026-05-05T20:55:33Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "AbdulWadud Haneef (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Suliman Kanti",
   "sha256": "2131822d85c1140d72496f6988485bfb21e12facc26d050eda824ed7fafdb76a",
   "downloaded_at": "2026-05-05T20:52:40Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Suliman Kanti (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

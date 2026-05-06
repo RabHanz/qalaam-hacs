@@ -6,9 +6,12 @@
   "title": "Tafsir Makhi",
   "sha256": "024c4d168cb5ec22ae71c05c391972c0e3c56115f72f7a53eb0a36cd0dad0499",
   "downloaded_at": "2026-05-05T20:52:04Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir Makhi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Tafsir As-Saadi - Persian",
   "sha256": "2b0551c9a84ad3c99d25156af060a3dfd8d2fb48c486c1010c3a120acbbf7778",
   "downloaded_at": "2026-05-05T20:52:13Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir As-Saadi - Persian (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

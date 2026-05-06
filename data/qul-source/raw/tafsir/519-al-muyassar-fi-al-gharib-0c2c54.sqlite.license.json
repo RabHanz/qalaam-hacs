@@ -6,9 +6,12 @@
   "title": "Al-Muyassar fi Al-Gharib",
   "sha256": "d884ec2beaad1c20d0659a30584ae650e4defa10780a969e7c5236192ba1aac6",
   "downloaded_at": "2026-05-05T20:51:49Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Al-Muyassar fi Al-Gharib (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

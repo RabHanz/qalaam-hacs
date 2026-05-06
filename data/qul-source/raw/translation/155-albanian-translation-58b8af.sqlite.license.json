@@ -6,9 +6,12 @@
   "title": "Albanian Translation",
   "sha256": "9c7d2f579e4399dfaf0f67b22c3965d57c5d3b0d90352d8edb8e1f6c011a9de8",
   "downloaded_at": "2026-05-05T20:54:03Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Albanian Translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Taisirul Quran",
   "sha256": "33d411e8a9380dd324eee8f126a8e8c6ac836fb82282fe204658f7d3ba85c155",
   "downloaded_at": "2026-05-05T20:54:08Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Taisirul Quran (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

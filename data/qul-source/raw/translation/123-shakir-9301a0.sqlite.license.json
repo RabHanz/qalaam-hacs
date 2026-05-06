@@ -6,9 +6,12 @@
   "title": "Shakir",
   "sha256": "e1cb064b363af71cd9eba57adcbc069d65a57ace832f368792d66ae49a611e0f",
   "downloaded_at": "2026-05-05T20:53:52Z",
-  "license_tag": "unverified",
+  "license_tag": "public-domain",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Shakir (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

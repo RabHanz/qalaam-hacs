@@ -6,9 +6,12 @@
   "title": "Czech",
   "sha256": "7b7a8b8a6db55624df014d4af86ad1f9e73d6bb284ddf5b44e97172bdfd00535",
   "downloaded_at": "2026-05-05T20:53:46Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Czech (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

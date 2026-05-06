@@ -6,9 +6,12 @@
   "title": "Turkish Transliteration",
   "sha256": "b9417130d4f8b7d191547b7f5f8937eb0e0cd6e3b867f5f2465f98c1548f1e99",
   "downloaded_at": "2026-05-05T20:50:21Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Turkish Transliteration (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

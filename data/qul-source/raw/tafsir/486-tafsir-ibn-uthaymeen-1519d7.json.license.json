@@ -6,9 +6,12 @@
   "title": "Tafsir Ibn Uthaymeen",
   "sha256": "46b363436b272bbcd47407bf3bde775f5860ce413b2c67a7f4b6c9a46bb64d34",
   "downloaded_at": "2026-05-05T20:52:02Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir Ibn Uthaymeen (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

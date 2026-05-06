@@ -6,9 +6,12 @@
   "title": "Filipino (Tagalog) Al-Mukhtasar in interpreting the Noble Quran",
   "sha256": "e7046c13f9d06dd166e6d0cb9a8b9fb07b17670abcb5f8bd25ecf696650ef77d",
   "downloaded_at": "2026-05-05T20:51:07Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Filipino (Tagalog) Al-Mukhtasar in interpreting the Noble Quran (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

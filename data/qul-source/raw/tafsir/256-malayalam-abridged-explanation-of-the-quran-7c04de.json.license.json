@@ -6,9 +6,12 @@
   "title": "Malayalam Abridged Explanation of the Quran",
   "sha256": "eff242a60ffa6b824bbcfd9bb38725a903222e4a2643b192b595401e1153e5c2",
   "downloaded_at": "2026-05-05T20:51:11Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Malayalam Abridged Explanation of the Quran (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

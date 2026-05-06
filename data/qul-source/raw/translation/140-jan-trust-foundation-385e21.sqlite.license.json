@@ -6,9 +6,12 @@
   "title": "Jan Trust Foundation",
   "sha256": "95270599da824c9f2fbd205c94200939f38e4b1084dc32d82f0aa2d12cf5fdbb",
   "downloaded_at": "2026-05-05T20:53:59Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Jan Trust Foundation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

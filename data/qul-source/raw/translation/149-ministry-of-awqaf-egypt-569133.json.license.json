@@ -6,9 +6,12 @@
   "title": "Ministry of Awqaf, Egypt",
   "sha256": "50a2cac55b04c78fc6caa8207914b35246c18934c1f86615988d03c4ddd49d7a",
   "downloaded_at": "2026-05-05T20:54:04Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Ministry of Awqaf, Egypt (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Indopak Nastaleeq font",
   "sha256": "a6463e24e36651404e9eff52dae26e18e9ef0718eb620636a66a20026a75c563",
   "downloaded_at": "2026-05-05T20:48:25Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Indopak Nastaleeq font (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

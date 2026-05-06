@@ -6,9 +6,12 @@
   "title": "Al Lubab fi Ulum Al Kitab",
   "sha256": "8b462375f4f299aa2edce514fc7d0e72198f7d4b3304f2ca6a68f4010f4ce493",
   "downloaded_at": "2026-05-05T20:51:56Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Al Lubab fi Ulum Al Kitab (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

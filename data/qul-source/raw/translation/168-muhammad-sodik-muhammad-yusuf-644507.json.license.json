@@ -6,9 +6,12 @@
   "title": "Muhammad Sodik Muhammad Yusuf",
   "sha256": "de529390fbefa9e523ac8e2b8046c540856155158f945284b0f5d0b735459454",
   "downloaded_at": "2026-05-05T20:54:55Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Muhammad Sodik Muhammad Yusuf (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

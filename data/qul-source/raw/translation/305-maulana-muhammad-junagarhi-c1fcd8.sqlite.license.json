@@ -6,9 +6,12 @@
   "title": "Maulana Muhammad Junagarhi",
   "sha256": "c78c58e57dfc19148f50d35721e987784d2f67f864b10a8c448b1003ad062770",
   "downloaded_at": "2026-05-05T20:53:35Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Maulana Muhammad Junagarhi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

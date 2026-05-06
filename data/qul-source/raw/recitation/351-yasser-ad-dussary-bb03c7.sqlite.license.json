@@ -6,9 +6,12 @@
   "title": "Yasser ad-Dussary",
   "sha256": "61ea1fe34340a02c0e3ed55fa32cec22fc74c735166131b99e2f41374a8878dc",
   "downloaded_at": "2026-05-05T20:56:02Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Yasser ad-Dussary (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }

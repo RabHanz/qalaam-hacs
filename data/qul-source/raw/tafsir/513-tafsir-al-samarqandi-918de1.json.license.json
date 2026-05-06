@@ -6,9 +6,12 @@
   "title": "Tafsir Al-Samarqandi",
   "sha256": "e9f9691fd23ad25fe4c0774578b3f37d6f922620d47017fc6edad38f7019834b",
   "downloaded_at": "2026-05-05T20:52:33Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tafsir Al-Samarqandi (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

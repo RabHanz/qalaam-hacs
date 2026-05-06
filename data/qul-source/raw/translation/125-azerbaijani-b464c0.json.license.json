@@ -6,9 +6,12 @@
   "title": "Azerbaijani",
   "sha256": "539071d406086323cc84bf244b5ea5017449aa64258641d2071d926d6cf620ad",
   "downloaded_at": "2026-05-05T20:53:52Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Azerbaijani (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

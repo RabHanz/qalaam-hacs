@@ -6,9 +6,12 @@
   "title": "Maranao",
   "sha256": "ed5f4c84fb525cc3d2f151cbc5222273234517da63c4a936b799ac7f8c497822",
   "downloaded_at": "2026-05-05T20:53:57Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Maranao (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

@@ -6,9 +6,12 @@
   "title": "Muhammad Baba Gutubu",
   "sha256": "97f8164809c7ea6913bd9fff1073ca8b56e1458c90b8f573f83fdc093ecd551a",
   "downloaded_at": "2026-05-05T20:53:47Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Muhammad Baba Gutubu (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

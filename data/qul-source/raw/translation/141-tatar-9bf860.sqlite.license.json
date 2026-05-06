@@ -6,9 +6,12 @@
   "title": "Tatar",
   "sha256": "2cc1aee5c2b90bc6fce80f4822f16937ebece506b6b3a98720e5e422b3b24d7b",
   "downloaded_at": "2026-05-05T20:54:01Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Tatar (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

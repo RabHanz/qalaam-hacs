@@ -6,9 +6,12 @@
   "title": "Kurdish Kurmanji Translation",
   "sha256": "af9bfbb80fd688c737f58ba4d54b4d4150756e7afbbf91bee3895d1ca7c072ca",
   "downloaded_at": "2026-05-05T20:54:38Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Kurdish Kurmanji Translation (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

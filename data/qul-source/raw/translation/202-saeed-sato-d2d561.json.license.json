@@ -6,9 +6,12 @@
   "title": "Saeed Sato",
   "sha256": "1880da196a2708db2eab24ea04a64fb90787f271355d61a88d1fd76e8a00d908",
   "downloaded_at": "2026-05-05T20:54:15Z",
-  "license_tag": "unverified",
+  "license_tag": "permissive-with-credit",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Saeed Sato (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:08+00:00",
+  "license_auto_tagged": true
 }

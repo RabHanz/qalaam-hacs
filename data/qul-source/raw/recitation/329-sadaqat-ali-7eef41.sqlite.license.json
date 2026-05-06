@@ -6,9 +6,12 @@
   "title": "Sadaqat `Ali",
   "sha256": "8773c5960c58cea80596a922cdfdce35b1f587cae4e6f6e5af2f67c0ec746bdd",
   "downloaded_at": "2026-05-05T20:55:51Z",
-  "license_tag": "unverified",
+  "license_tag": "per-reciter",
   "license_chip": "",
   "tags": "",
   "attribution_required": true,
-  "notes": ""
+  "notes": "",
+  "attribution_text": "Sadaqat `Ali (via QUL — Tarteel AI)",
+  "license_classified_at": "2026-05-05T21:08:09+00:00",
+  "license_auto_tagged": true
 }
