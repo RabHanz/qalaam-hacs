@@ -63,13 +63,20 @@ from .coordinator import QalaamCoordinator
 
 _LOGGER: Final = logging.getLogger(__name__)
 _PROTOCOL: Final = "audio/mpeg"
+_IMAGE_PROTOCOL: Final = "image/png"
 # Quran constants — used for browse-tree depth + surah-id validation.
 # Named to keep ruff PLR2004 (magic-number-in-comparison) quiet without
-# inline noqas. Mushaf-image browse depth constants will be added when
-# the second half of B5 (mushaf image browse) lands.
+# inline noqas.
 _NUM_SURAHS: Final = 114
+_NUM_PAGES_MADINAH: Final = 604
 _BROWSE_DEPTH_SURAH: Final = 2  # parts[0]/parts[1]   = reciter/surah
 _BROWSE_DEPTH_AYAH: Final = 3  # parts[0]/.../parts[2] = reciter/surah/ayah
+
+# Image-mushaf layouts. Keys are the URL slugs the backend understands;
+# values are the human-readable titles HA shows in the media browser.
+_IMAGE_LAYOUTS: Final = {
+    "madani-16": "Madinah Mushaf · 16 lines (image)",
+}
 
 
 def _reciter_title(r: dict) -> str:
@@ -229,11 +236,126 @@ class QalaamMediaSource(MediaSource):
                 return coord
         return None
 
-    async def async_browse_media(self, item: MediaSourceItem) -> BrowseMediaSource:
+    async def async_browse_media(  # noqa: PLR0911 -- branched browse tree
+        self, item: MediaSourceItem
+    ) -> BrowseMediaSource:
         identifier = item.identifier or ""
         coord = self._first_coordinator()
 
-        # Top level — list reciters
+        # Backwards-compat: identifiers that DON'T start with "recite/" or
+        # "mushaf/" are legacy reciter audio paths (<reciter>/<surah>/<ayah>).
+        # Resolve those through the existing recite branch by prepending.
+        if identifier and not (
+            identifier.startswith("recite/")
+            or identifier.startswith("mushaf/")
+            or identifier in {"recite", "mushaf"}
+        ):
+            identifier = f"recite/{identifier}"
+
+        # Top level — split into recite + mushaf-image categories.
+        if identifier == "":
+            return BrowseMediaSource(
+                domain=DOMAIN,
+                identifier="",
+                media_class=MediaClass.DIRECTORY,
+                media_content_type="",
+                title=MEDIA_SOURCE_NAME,
+                can_play=False,
+                can_expand=True,
+                children=[
+                    BrowseMediaSource(
+                        domain=DOMAIN,
+                        identifier="recite",
+                        media_class=MediaClass.DIRECTORY,
+                        media_content_type="",
+                        title="Recitation",
+                        can_play=False,
+                        can_expand=True,
+                    ),
+                    BrowseMediaSource(
+                        domain=DOMAIN,
+                        identifier="mushaf",
+                        media_class=MediaClass.DIRECTORY,
+                        media_content_type="",
+                        title="Mushaf images",
+                        can_play=False,
+                        can_expand=True,
+                    ),
+                ],
+                children_media_class=MediaClass.DIRECTORY,
+            )
+
+        # ─── Mushaf-image branch ─────────────────────────────────────
+        if identifier == "mushaf":
+            return BrowseMediaSource(
+                domain=DOMAIN,
+                identifier="mushaf",
+                media_class=MediaClass.DIRECTORY,
+                media_content_type="",
+                title="Mushaf images",
+                can_play=False,
+                can_expand=True,
+                children=[
+                    BrowseMediaSource(
+                        domain=DOMAIN,
+                        identifier=f"mushaf/{slug}",
+                        media_class=MediaClass.DIRECTORY,
+                        media_content_type="",
+                        title=title,
+                        can_play=False,
+                        can_expand=True,
+                    )
+                    for slug, title in _IMAGE_LAYOUTS.items()
+                ],
+                children_media_class=MediaClass.DIRECTORY,
+            )
+
+        if identifier.startswith("mushaf/"):
+            mparts = identifier.split("/")
+            # mushaf/<layout> — list pages 1..604
+            if len(mparts) == _BROWSE_DEPTH_SURAH:
+                _, layout = mparts
+                if layout not in _IMAGE_LAYOUTS:
+                    raise Unresolvable(f"unknown mushaf layout: {layout!r}")
+                return BrowseMediaSource(
+                    domain=DOMAIN,
+                    identifier=identifier,
+                    media_class=MediaClass.DIRECTORY,
+                    media_content_type="",
+                    title=_IMAGE_LAYOUTS[layout],
+                    can_play=False,
+                    can_expand=True,
+                    children=[
+                        BrowseMediaSource(
+                            domain=DOMAIN,
+                            identifier=f"mushaf/{layout}/{p}",
+                            media_class=MediaClass.IMAGE,
+                            media_content_type=_IMAGE_PROTOCOL,
+                            title=f"Page {p}",
+                            can_play=True,
+                            can_expand=False,
+                        )
+                        for p in range(1, _NUM_PAGES_MADINAH + 1)
+                    ],
+                    children_media_class=MediaClass.IMAGE,
+                )
+            # mushaf/<layout>/<page> — playable image leaf
+            return BrowseMediaSource(
+                domain=DOMAIN,
+                identifier=identifier,
+                media_class=MediaClass.IMAGE,
+                media_content_type=_IMAGE_PROTOCOL,
+                title=identifier,
+                can_play=True,
+                can_expand=False,
+            )
+
+        # Strip the "recite/" prefix for the existing audio-tree logic;
+        # the old code below treats the identifier as <reciter>/<surah>/<ayah>.
+        if identifier.startswith("recite/"):
+            identifier = identifier[len("recite/") :]
+
+        # "recite" alone — fall through to the reciter list (was '' before).
         if identifier == "":
             reciters = (
                 tuple(coord.data.reciters) if coord and coord.data and coord.data.reciters else ()
@@ -345,6 +467,37 @@ class QalaamMediaSource(MediaSource):
 
     async def async_resolve_media(self, item: MediaSourceItem) -> PlayMedia:
         ident = item.identifier or ""
+
+        # ─── Mushaf-image branch ──────────────────────────────────
+        if ident.startswith("mushaf/"):
+            mparts = ident.split("/")
+            if len(mparts) != _BROWSE_DEPTH_AYAH:
+                raise Unresolvable(
+                    f"mushaf identifier must be 'mushaf/<layout>/<page>'; got {ident!r}"
+                )
+            _, layout, page_str = mparts
+            if layout not in _IMAGE_LAYOUTS:
+                raise Unresolvable(f"unknown mushaf layout: {layout!r}")
+            try:
+                page = int(page_str)
+            except ValueError as err:
+                raise Unresolvable(f"bad page int: {ident!r}") from err
+            if not 1 <= page <= _NUM_PAGES_MADINAH:
+                raise Unresolvable(f"page out of range: {page}")
+            coord = self._first_coordinator()
+            # The image-mushaf imageUrl is web-app-relative ("/mushaf-images/..."),
+            # so we resolve it against PUBLIC_APP_URL (not the backend API URL).
+            # Coordinator stores both — fall back to BASE_URL if app URL absent.
+            base = (
+                coord.entry.data.get(CONF_BASE_URL, DEFAULT_BASE_URL) if coord else DEFAULT_BASE_URL
+            )
+            app_url = (coord.entry.data.get("public_app_url", "") if coord else "") or base
+            url = f"{app_url.rstrip('/')}/mushaf-images/{layout}/{page}.png"
+            return PlayMedia(url=url, mime_type=_IMAGE_PROTOCOL)
+
+        # ─── Recite branch (legacy + recite/-prefixed) ────────────
+        if ident.startswith("recite/"):
+            ident = ident[len("recite/") :]
         parts = ident.split("/")
         if len(parts) != _BROWSE_DEPTH_AYAH:
             raise Unresolvable(
