@@ -124,6 +124,18 @@ const CHECKS = [
     url: '/api/v1/qpc-text/1:1?layout=v4',
     expectText: ['QPCv4Page', '"pageNumber":1'],
   },
+  {
+    name: 'auth — /signin page',
+    url: '/signin',
+    expectSelectors: ['main', 'input[type="email"]', 'input[type="password"]'],
+    expectText: ['Welcome back', 'Sign in'],
+  },
+  {
+    name: 'auth — /signup page',
+    url: '/signup',
+    expectSelectors: ['main', 'input[type="email"]', 'input[type="password"]'],
+    expectText: ['Create your account', 'Create account'],
+  },
 ];
 
 const results = [];

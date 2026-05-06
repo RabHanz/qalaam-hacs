@@ -15,6 +15,8 @@ import { errorHandlerPlugin } from './plugins/error-handler.js';
 import { loggerPlugin } from './plugins/logger.js';
 import { healthRoutes } from './routes/health.js';
 import { mcpServerRoutes } from './routes/mcp-server.js';
+import { authRoutes } from './routes/v1/auth.js';
+import { bookmarksRoutes } from './routes/v1/bookmarks.js';
 import { chaptersRoutes } from './routes/v1/chapters.js';
 import { creditsRoutes } from './routes/v1/credits.js';
 import { curriculumRoutes } from './routes/v1/curriculum.js';
@@ -114,6 +116,10 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   await app.register(qulLayoutsRoutes, { config });
   await app.register(qulRecitationsRoutes, { config });
   await app.register(qpcTextRoutes, { config });
+  // Auth foundation (#192) — opens its own qalaam.sqlite for users +
+  // sessions + bookmarks; doesn't touch the read-only qul.sqlite.
+  await app.register(authRoutes);
+  await app.register(bookmarksRoutes);
 
   return app;
 }

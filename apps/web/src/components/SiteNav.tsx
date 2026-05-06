@@ -9,6 +9,7 @@ import Link from 'next/link';
 
 import { BookGlyph, CrescentGlyph, LanternGlyph, ThreadGlyph } from './Glyph.js';
 import { ThemeToggle } from './ThemeToggle.js';
+import { UserMenu } from './UserMenu.js';
 
 import type { ReactNode } from 'react';
 
@@ -86,6 +87,7 @@ export function SiteNav(): ReactNode {
             </Link>
           </nav>
           <ThemeToggle />
+          <UserMenu />
         </div>
       </div>
     </header>
