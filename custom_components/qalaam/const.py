@@ -28,11 +28,19 @@ PANEL_JS_FILENAME: Final = "qalaam-panel.js"
 # Config-entry data keys
 CONF_API_KEY: Final = "api_key"
 CONF_BASE_URL: Final = "base_url"
+# Standalone Qalaam web app URL — separate from the BACKEND base URL.
+# Panel buttons that say "Open Qalaam →" / "Open tajweed mushaf →"
+# need this so they can open the actual web app instead of pushing
+# state into the HA frontend (the panel is already mounted at the
+# `/qalaam` URL on HA, so window.history.pushState('/qalaam') is a
+# no-op — must open a different origin in a new tab).
+CONF_WEB_URL: Final = "web_url"
 CONF_TARGET_PLAYER: Final = "target_player"
 CONF_DEFAULT_RECITER: Final = "default_reciter_slug"
 CONF_USER_ID: Final = "user_id"
 
 DEFAULT_BASE_URL: Final = "https://api.qalaam.app"
+DEFAULT_WEB_URL: Final = "https://qalaam.app"
 DEFAULT_SCAN_INTERVAL_SECONDS: Final = 300  # 5 minutes — catalog refresh
 DEFAULT_RECITER_SLUG: Final = "mishary-alafasy"
 DEFAULT_USER_ID: Final = "demo-user"

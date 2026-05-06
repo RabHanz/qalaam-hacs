@@ -31,19 +31,26 @@ from .const import (
     CONF_DEFAULT_RECITER,
     CONF_TARGET_PLAYER,
     CONF_USER_ID,
+    CONF_WEB_URL,
     DEFAULT_BASE_URL,
     DEFAULT_RECITER_SLUG,
     DEFAULT_USER_ID,
+    DEFAULT_WEB_URL,
     DOMAIN,
 )
 
 _LOGGER: Final = logging.getLogger(__name__)
+
+# Module-level constant — keeps ruff PLR2004 (magic-number) + N806
+# (function-local UPPER_CASE) both quiet without needing inline noqa.
+_HTTP_OK: Final = 200
 
 
 _USER_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_API_KEY): str,
         vol.Optional(CONF_BASE_URL, default=DEFAULT_BASE_URL): str,
+        vol.Optional(CONF_WEB_URL, default=DEFAULT_WEB_URL): str,
     }
 )
 
@@ -103,8 +110,8 @@ class QalaamConfigFlow(ConfigFlow, domain=DOMAIN):
                 headers={"Authorization": f"Bearer {api_key}"},
                 timeout=5,
             ) as resp:
-                return resp.status == 200
-        except Exception:  # noqa: BLE001
+                return resp.status == _HTTP_OK
+        except Exception:
             return False
 
 
