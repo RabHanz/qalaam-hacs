@@ -694,44 +694,41 @@
       0 0 0.18em color-mix(in srgb, var(--color-leaf-300) 60%, transparent);
   }
 
-  /* TAJWEED mode — same conceptual treatment as the default layouts
-   * (glow along the calligraphic curves, no box) but cranked up
-   * because the COLR font ignores CSS `color` so we have to use
-   * filter: drop-shadow which operates on the rendered pixels.
-   * Result: the COLR glyph itself reads as one solid gold mark
-   * (via the highlight palette swap) and a stacked halo traces its
-   * curves — same vibe as Madinah/IndoPak/Uthmani highlight, just
-   * loud enough to be unmistakable inside a multicolored mushaf.
-   *
-   * The `.mushaf-layout-tajweed` ancestor selector scopes this to
-   * /mushaf surfaces; the `[data-tajweed="v4"]` attribute reaches
-   * AyahCard's V4 anchors on /read continuous (where there's no
-   * `.mushaf-layout-tajweed` ancestor). */
+  /* TAJWEED palette default — applied via CSS class so the renderer
+   * resolves the @font-palette-values lookup ONCE per class instead
+   * of once per element. The user's frequent Chrome STATUS_BREAKPOINT
+   * crashes traced to this: /read?layout=tajweed renders ~3,700 V4
+   * PUA anchors and we were carrying inline
+   * `style={{fontPalette: '--qalaam-tajweed'}}` on every one.
+   * Chromium's COLR+@font-palette-values pipeline appears to leak
+   * memory under that many per-element resolutions. Class form is
+   * roughly 3,700× cheaper. */
+  .mushaf-layout-tajweed .mushaf-word,
+  a.mushaf-word[data-tajweed='v4'] {
+    font-palette: --qalaam-tajweed;
+  }
+
+  /* TAJWEED highlight — glow along the calligraphic curves (no box)
+   * via filter: drop-shadow on the rasterized pixels of the COLR
+   * glyph. Two halo layers (was four — the stacked filter chain at
+   * 60fps was the second leg of the renderer crash; Chromium
+   * allocates a compositor layer per drop-shadow and the looping
+   * animation kept reallocating). Two layers preserve the visual
+   * presence with much lighter compositor cost. */
   .mushaf-layout-tajweed .recite-highlight,
   .mushaf-layout-tajweed a.recite-highlight,
   a.recite-highlight[data-tajweed='v4'] {
-    /* Override the default mode's background-color !important from
-     * the rule above so the box doesn't ghost through. */
     background-color: transparent !important;
-    /* All-gold palette so the COLR glyph reads as a single solid
-     * mark — gives the drop-shadow halo a clean silhouette to trace. */
     font-palette: --qalaam-tajweed-highlight;
-    /* Stacked halo — drop-shadow operates on the actual painted
-     * pixels of the COLR glyph, so each shadow traces the calligraphic
-     * curves (not a rectangular box). Three layers compound into a
-     * dense gold luminance around every stroke. */
-    filter: drop-shadow(0 0 0.06em color-mix(in srgb, var(--color-leaf-500) 100%, transparent))
-      drop-shadow(0 0 0.22em color-mix(in srgb, var(--color-leaf-300) 95%, transparent))
-      drop-shadow(0 0 0.55em color-mix(in srgb, var(--color-leaf-500) 80%, transparent))
-      drop-shadow(0 0 1em color-mix(in srgb, var(--color-leaf-300) 60%, transparent));
+    filter: drop-shadow(0 0 0.16em color-mix(in srgb, var(--color-leaf-500) 90%, transparent))
+      drop-shadow(0 0 0.55em color-mix(in srgb, var(--color-leaf-300) 75%, transparent));
     transform: scale(1.05);
     transform-origin: center;
     animation: qalaam-recite-glow 1.4s ease-in-out infinite;
-    will-change: filter, transform;
-    /* Lift above sibling lines so the halo doesn't clip. */
+    /* No will-change on filter — it forces a permanent compositor
+     * layer that was leaking memory in Chromium's COLR pipeline. */
     position: relative;
     z-index: 1;
-    transition: filter 140ms ease-out;
   }
   /* Inner spans inherit the palette from the anchor — no need for
    * any color overrides here. We DO need to clear the default-mode
@@ -745,25 +742,19 @@
   @keyframes qalaam-recite-glow {
     0%,
     100% {
-      filter: drop-shadow(0 0 0.06em color-mix(in srgb, var(--color-leaf-500) 100%, transparent))
-        drop-shadow(0 0 0.22em color-mix(in srgb, var(--color-leaf-300) 95%, transparent))
-        drop-shadow(0 0 0.55em color-mix(in srgb, var(--color-leaf-500) 80%, transparent))
-        drop-shadow(0 0 1em color-mix(in srgb, var(--color-leaf-300) 60%, transparent));
+      filter: drop-shadow(0 0 0.16em color-mix(in srgb, var(--color-leaf-500) 90%, transparent))
+        drop-shadow(0 0 0.55em color-mix(in srgb, var(--color-leaf-300) 75%, transparent));
     }
     50% {
-      filter: drop-shadow(0 0 0.08em color-mix(in srgb, var(--color-leaf-500) 100%, transparent))
-        drop-shadow(0 0 0.32em color-mix(in srgb, var(--color-leaf-300) 100%, transparent))
-        drop-shadow(0 0 0.75em color-mix(in srgb, var(--color-leaf-500) 100%, transparent))
-        drop-shadow(0 0 1.4em color-mix(in srgb, var(--color-leaf-300) 90%, transparent));
+      filter: drop-shadow(0 0 0.22em var(--color-leaf-500))
+        drop-shadow(0 0 0.85em color-mix(in srgb, var(--color-leaf-300) 95%, transparent));
     }
   }
   :root[data-theme='dark'] .mushaf-layout-tajweed .recite-highlight,
   :root[data-theme='dark'] .mushaf-layout-tajweed a.recite-highlight,
   :root[data-theme='dark'] a.recite-highlight[data-tajweed='v4'] {
-    filter: drop-shadow(0 0 0.06em color-mix(in srgb, var(--color-leaf-300) 100%, transparent))
-      drop-shadow(0 0 0.26em color-mix(in srgb, var(--color-leaf-500) 100%, transparent))
-      drop-shadow(0 0 0.65em color-mix(in srgb, var(--color-leaf-300) 90%, transparent))
-      drop-shadow(0 0 1.2em color-mix(in srgb, var(--color-leaf-500) 70%, transparent));
+    filter: drop-shadow(0 0 0.18em color-mix(in srgb, var(--color-leaf-300) 90%, transparent))
+      drop-shadow(0 0 0.65em color-mix(in srgb, var(--color-leaf-500) 70%, transparent));
   }
   @media (prefers-reduced-motion: reduce) {
     .recite-highlight,

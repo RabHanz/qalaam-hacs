@@ -629,13 +629,12 @@ export function AyahCard({
                     .join(' ')}
                   style={{
                     fontFamily: `"${fontFamily}"`,
-                    // Qalaam's refined warm-earth palette overrides the
-                    // KFGQPC default CPAL colors so the rendering is
-                    // visibly distinct from Quran.com / verses.quran.foundation.
-                    fontPalette: '--qalaam-tajweed',
-                    // The COLR/CPAL color font carries its own coloring;
-                    // color: inherit is just a fallback for the brief
-                    // frame before the page font lands.
+                    // The Qalaam warm-earth `font-palette` is now
+                    // applied via `a.mushaf-word[data-tajweed='v4']`
+                    // in globals.css — moving it out of the inline
+                    // style was the perf fix for the Chrome
+                    // STATUS_BREAKPOINT renderer crashes (see CSS
+                    // comment near `--qalaam-tajweed` rule).
                     color: 'inherit',
                   }}
                 >

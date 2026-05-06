@@ -602,20 +602,19 @@ function renderLineText(
     }
 
     // V4 PUA path — single glyph in the page-specific COLR font.
-    // `font-palette: --qalaam-tajweed` swaps the KFGQPC default CPAL
-    // palette out for our refined warm-earth one (declared in
-    // qpc-v4-fonts.css) — distinguishes the rendering from
-    // Quran.com / verses.quran.foundation while keeping the COLR
-    // pipeline intact.
+    // The `font-palette: --qalaam-tajweed` swap (warm-earth override
+    // of the KFGQPC default CPAL) is applied via the
+    // `.mushaf-layout-tajweed .mushaf-word` selector in globals.css,
+    // NOT inline here — Chromium's COLR+@font-palette-values pipeline
+    // was leaking memory under per-element style.fontPalette
+    // resolution at the 3.7K-anchor scale of /read?layout=tajweed,
+    // surfacing as STATUS_BREAKPOINT renderer crashes. Class form is
+    // ~3,700× cheaper.
     if (v4Word && v4Verse?.fontFamily) {
       wordChildren.push(
         <span
           key={`${w.wordId.toString()}-v4`}
-          style={{
-            fontFamily: `"${v4Verse.fontFamily}"`,
-            fontPalette: '--qalaam-tajweed',
-            color: 'inherit',
-          }}
+          style={{ fontFamily: `"${v4Verse.fontFamily}"`, color: 'inherit' }}
         >
           {v4Word.text}
         </span>,
