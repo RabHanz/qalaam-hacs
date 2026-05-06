@@ -34,11 +34,17 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
 
 # ---- build --------------------------------------------------------------------
 FROM deps AS build
-# Public env vars must be present at build time — Next inlines them into the
-# client bundle. Use args so docker-compose can supply them per-environment.
+# Build-time env: Next inlines NEXT_PUBLIC_* into the client bundle AND
+# bakes `next.config.mjs`'s rewrites manifest at build time. So
+# PUBLIC_API_URL — the rewrite target for /api/* → backend — must be
+# present at BUILD time, not just runtime. Setting it at runtime alone
+# leaves the manifest pointing at the localhost dev fallback and the
+# /api proxy will ECONNREFUSED in production.
 ARG NEXT_PUBLIC_APP_URL
+ARG PUBLIC_API_URL
 ARG QALAAM_REACT_COMPILER
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL \
+    PUBLIC_API_URL=$PUBLIC_API_URL \
     QALAAM_REACT_COMPILER=$QALAAM_REACT_COMPILER \
     NEXT_TELEMETRY_DISABLED=1 \
     QALAAM_SKIP_PYTHON_CODEGEN=1

@@ -81,6 +81,12 @@ services:
         # Public build-time env — Next inlines these into the client
         # bundle, so they MUST match the deployed domain.
         NEXT_PUBLIC_APP_URL: https://${DOMAIN}
+        # Next.js bakes `next.config.mjs` rewrites at build time. The
+        # /api/* → backend proxy target reads PUBLIC_API_URL there, so
+        # we MUST pass it as a build arg, not just a runtime env. With
+        # only the runtime env, the manifest captures the localhost dev
+        # fallback and /api proxy hits ECONNREFUSED.
+        PUBLIC_API_URL: http://qalaam-backend:4111
         QALAAM_REACT_COMPILER: ${QALAAM_REACT_COMPILER:-}
     image: qalaam-web:latest
     container_name: qalaam-web
