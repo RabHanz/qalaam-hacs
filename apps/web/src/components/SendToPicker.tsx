@@ -294,7 +294,14 @@ export function SendToPicker({ audioRef, currentSrc, haUrl, title, artist }: Pro
   }
 
   async function handleCast(): Promise<void> {
-    if (!currentSrc) return;
+    if (!currentSrc) {
+      // User opened the picker before the audio URL resolved — give
+      // a clear status message instead of silently doing nothing.
+      // This is friendlier than disabling the button outright (which
+      // looked broken / "all greyed out").
+      setCastStatus('Press play first — recitation needs to start before casting');
+      return;
+    }
     setCastStatus('connecting…');
     const w = window as ChromeCastWindow;
 
@@ -494,7 +501,7 @@ export function SendToPicker({ audioRef, currentSrc, haUrl, title, artist }: Pro
               <button
                 type="button"
                 role="menuitem"
-                disabled={!castCapable || !currentSrc}
+                disabled={!castCapable}
                 onClick={() => {
                   void handleCast();
                 }}
