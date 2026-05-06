@@ -250,17 +250,26 @@ export function usePlaybackSession(opts: UsePlaybackSessionOptions): UsePlayback
 
   const isActiveDevice = state?.activeDeviceId === deviceId;
 
-  return {
-    connected,
-    deviceId,
-    state,
-    devices,
-    isActiveDevice,
-    load,
-    play,
-    pause,
-    seek,
-    transfer,
-    sync,
-  };
+  // Memoise the returned object so identity stays stable when nothing
+  // observable changed. Without this, every parent render produces a
+  // new `session` reference and any consumer-side useEffect with
+  // `session` in deps fires on every render — which manifested as
+  // mass page hang in MiniPlayer (a loop between session pushes and
+  // their own broadcast echoes).
+  return useMemo(
+    () => ({
+      connected,
+      deviceId,
+      state,
+      devices,
+      isActiveDevice,
+      load,
+      play,
+      pause,
+      seek,
+      transfer,
+      sync,
+    }),
+    [connected, deviceId, state, devices, isActiveDevice, load, play, pause, seek, transfer, sync],
+  );
 }

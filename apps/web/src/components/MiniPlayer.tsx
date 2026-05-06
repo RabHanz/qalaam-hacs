@@ -74,6 +74,10 @@ export function MiniPlayer({
   const [localPlaying, setLocalPlaying] = useState(false);
   const [localDuration, setLocalDuration] = useState(0);
   const [localPosition, setLocalPosition] = useState(0);
+  // Scrub-in-progress — set during drag, cleared on commit. Pins
+  // `position` to the drag value so receiver 1Hz updates don't snap
+  // the slider back during a seek.
+  const scrubRef = useRef<{ value: number } | null>(null);
   // Volume is persisted per-user via localStorage; default to 1.0
   // (full) on first mount. Hydrated in the dedicated effect below.
   const [localVolume, setLocalVolume] = useState(1);
@@ -82,10 +86,13 @@ export function MiniPlayer({
   const volume = isCasting ? cast.volume : localVolume;
   const isMuted = isCasting ? cast.isMuted : localVolume === 0;
   // Effective state surfaced to the UI — receiver state when casting,
-  // local state otherwise.
+  // local state otherwise. While the user is mid-drag, `scrubRef`
+  // pins the displayed position to their drag value so 1Hz receiver
+  // CURRENT_TIME_CHANGED echoes don't snap the slider back.
   const playing = isCasting ? !cast.isPaused : localPlaying;
   const duration = isCasting ? cast.duration : localDuration;
-  const position = isCasting ? cast.currentTime : localPosition;
+  const rawPosition = isCasting ? cast.currentTime : localPosition;
+  const position = scrubRef.current?.value ?? rawPosition;
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const shouldResumeRef = useRef(false);
@@ -93,6 +100,23 @@ export function MiniPlayer({
   const reciterMeta = reciters.find((r) => r.slug === reciterSlug);
   const segmentsRef = useRef<{ wordIndex: number; startMs: number; endMs: number }[]>([]);
   const lastHlRef = useRef<{ verseKey: string; wordIndex: number } | null>(null);
+
+  // ─── refs for stable-dep effects ─────────────────────────────────
+  // The hooks (useCast, usePlaybackSession) return a memoised object
+  // but the cross-cutting effects below STILL avoid putting them in
+  // deps so the effect only fires on real signals. Refs let those
+  // effects call the latest method without depending on the object
+  // identity (the original page-hang root cause).
+  const castRef = useRef(cast);
+  castRef.current = cast;
+  const reciterMetaRef = useRef(reciterMeta);
+  reciterMetaRef.current = reciterMeta;
+  // Local-state refs for the cross-device mirror effect.
+  const playingRef = useRef(false);
+  const verseKeyRef = useRef(verseKey);
+  verseKeyRef.current = verseKey;
+  const reciterSlugRef = useRef(reciterSlug);
+  reciterSlugRef.current = reciterSlug;
 
   // Broadcast highlight while playing — any listener (AyahCard, etc.)
   // can subscribe to qalaam:highlight and paint the matching word.
@@ -172,33 +196,26 @@ export function MiniPlayer({
     };
   }, [verseKey, reciterSlug, apiBase]);
 
-  // While casting, EVERY change to audioUrl pushes the new src
-  // straight to the receiver — instantly, with autoplay. This is
-  // the "instant reload on reciter / verse / surah change" the user
-  // explicitly called out: previously the receiver kept the old
-  // ayah until it finished, then auto-advance kicked in. Now any
-  // change in the reactive (verseKey, reciterSlug) → audioUrl
-  // propagates to the receiver in the same tick.
-  //
-  // Tracks the last URL we shipped so we don't reload on unrelated
-  // re-renders (which would interrupt receiver playback). The
-  // receiver's loadMedia call carries autoplay=true (see
-  // useCast.loadMedia) so the new ayah starts playing immediately
-  // without a separate play() command.
+  // While casting, every change to audioUrl pushes the new src to
+  // the receiver immediately (autoplay=true on the LoadRequest, see
+  // useCast.loadMedia). The lastCastSrcRef memo prevents redundant
+  // reloads on unrelated re-renders. Stable deps only — the cast
+  // method comes through a ref so we don't fire on cast-object
+  // identity churn.
   const lastCastSrcRef = useRef<string | null>(null);
   useEffect(() => {
     if (!isCasting || !audioUrl) return;
     if (lastCastSrcRef.current === audioUrl) return;
     lastCastSrcRef.current = audioUrl;
-    // Pause local audio when casting to keep the user from hearing
-    // both sources during the brief loadMedia round-trip.
+    // Pause local audio when casting so the user doesn't hear both
+    // sources during the brief loadMedia round-trip.
     audioRef.current?.pause();
     setLocalPlaying(false);
-    void cast.loadMedia(audioUrl, {
-      title: `${reciterMeta?.name.en ?? reciterSlug} · ${verseKey}`,
-      artist: reciterMeta?.name.en ?? reciterSlug,
-    });
-  }, [isCasting, audioUrl, cast, reciterMeta, reciterSlug, verseKey]);
+    const meta = reciterMetaRef.current;
+    const title = meta ? `${meta.name.en} · ${verseKey}` : `${reciterSlug} · ${verseKey}`;
+    const artist = meta ? meta.name.en : reciterSlug;
+    void castRef.current.loadMedia(audioUrl, { title, artist });
+  }, [isCasting, audioUrl, reciterSlug, verseKey]);
 
   // Local-audio-only resume path (kicks off local playback when the
   // user had toggled play before the URL fetch completed).
@@ -318,65 +335,90 @@ export function MiniPlayer({
     onVolumeChange(0);
   }
 
-  // ─── Cross-device session sync (ADR-0025 Phase 2) ───────────────
-  // Push local intent to the cloud session whenever the user
-  // changes verseKey or reciter — so any other device the user has
-  // open mirrors the change in real-time. Skips when the user is
-  // anonymous (session.connected === false).
-  const lastPushedRef = useRef<{ vk: string; r: string } | null>(null);
+  // ─── Cross-device session sync — Spotify-Connect-style ──────────
+  //
+  // Design (matches Spotify / Apple Music / Tidal):
+  //   - Exactly ONE device is the "active" device at a time.
+  //   - The active device PLAYS audio. All other devices SHOW what's
+  //     playing (verseKey, position, isPaused) but never emit audio.
+  //   - Any local user action (play / pause / seek / verse change)
+  //     CLAIMS the active device — the action propagates to backend,
+  //     other tabs/devices then go silent + show "Currently playing
+  //     on <this device>".
+  //   - Echo-suppression: when SSE pushes a state whose
+  //     activeDeviceId matches OUR deviceId, it's an echo of our own
+  //     command — skip.
+  //
+  // Refs declared once near the top of the component (see early-block
+  // above). Just keep them in sync with the latest reactive values.
+  playingRef.current = playing;
+  const sessionStateRef = useRef(session.state);
+  sessionStateRef.current = session.state;
+  const isCastingRef = useRef(isCasting);
+  isCastingRef.current = isCasting;
+
+  // Track who's playing — drives the "Playing on <device>"
+  // indicator below the player. someoneElseIsActive is the trigger
+  // for the indicator + for the mirror effect's silence behaviour.
+  const remoteActiveDeviceId = session.state?.activeDeviceId ?? null;
+  const someoneElseIsActive =
+    session.connected && remoteActiveDeviceId !== null && remoteActiveDeviceId !== session.deviceId;
+  const activeDeviceName = (() => {
+    if (!someoneElseIsActive) return null;
+    const dev = session.devices.find((d) => d.deviceId === remoteActiveDeviceId);
+    return dev?.name ?? 'another device';
+  })();
+
+  // Push local verse/reciter changes to the session as a `load`
+  // command. Stable primitive deps so this only fires on actual
+  // verse/reciter/casting transitions, not every parent render.
+  const lastPushedRef = useRef<{ vk: string; r: string; t: string } | null>(null);
   useEffect(() => {
     if (!session.connected) return;
+    const target = isCasting ? 'cast' : 'local';
     const pushed = lastPushedRef.current;
-    if (pushed?.vk === verseKey && pushed.r === reciterSlug) return;
-    lastPushedRef.current = { vk: verseKey, r: reciterSlug };
-    void session.load(verseKey, reciterSlug, isCasting ? 'cast' : 'local');
-  }, [session, verseKey, reciterSlug, isCasting]);
+    if (pushed?.vk === verseKey && pushed.r === reciterSlug && pushed.t === target) return;
+    lastPushedRef.current = { vk: verseKey, r: reciterSlug, t: target };
+    void session.load(verseKey, reciterSlug, target);
+    // session.load is stable (useCallback in the hook).
+  }, [session.connected, session.load, verseKey, reciterSlug, isCasting]);
 
-  // Mirror remote state changes — when ANOTHER device drives the
-  // session (changes verseKey, reciter, or pause state), reflect
-  // that here. Echo-suppression: skip when the session's
-  // activeDeviceId is OUR deviceId (we already applied the change
-  // locally before sending the command).
+  // Mirror remote state. Effect fires only when state.updatedAt
+  // actually moves (single primitive dep) — keeps render cost
+  // bounded. Body reads everything else from refs so it never
+  // forces extra runs.
+  const stateUpdatedAt = session.state?.updatedAt ?? 0;
   useEffect(() => {
-    if (!session.connected || !session.state) return;
-    if (session.state.activeDeviceId === session.deviceId) return;
-    const remote = session.state;
-    // Verse / reciter switch initiated remotely → mirror by
-    // updating the parent (which propagates back through props).
-    if (remote.verseKey !== verseKey) {
-      shouldResumeRef.current = !remote.isPaused;
+    const remote = sessionStateRef.current;
+    if (!remote) return;
+    // Echo from our own command — already applied locally.
+    if (remote.activeDeviceId === session.deviceId) return;
+    // Verse / reciter switch initiated remotely → mirror UI only.
+    // We do NOT auto-play; the user must explicitly take over by
+    // hitting play. Spotify works the same way — when you switch
+    // playback to a different device, the previously-active device
+    // pauses; it does not start playing on its own.
+    if (remote.verseKey !== verseKeyRef.current) {
       onVerseKeyChange(remote.verseKey);
     }
-    // Reciter change isn't reactive through this prop set (parent
-    // owns reciterSlug too) — we surface it via the same parent
-    // channel via a custom event the listen surface listens for.
-    if (remote.reciterSlug !== reciterSlug) {
+    if (remote.reciterSlug !== reciterSlugRef.current) {
       window.dispatchEvent(
         new CustomEvent('qalaam:remote-reciter', { detail: { slug: remote.reciterSlug } }),
       );
     }
-    // Pause/play state — apply to whichever transport is active.
-    if (remote.isPaused && playing) {
-      if (isCasting) cast.pause();
+    // We are NOT the active device — be silent. Pause whichever
+    // transport is currently playing locally + don't auto-play
+    // anything based on remote state.
+    if (playingRef.current) {
+      if (isCastingRef.current) castRef.current.pause();
       else audioRef.current?.pause();
       setLocalPlaying(false);
-    } else if (!remote.isPaused && !playing && audioUrl) {
-      if (isCasting) cast.play();
-      else void audioRef.current?.play();
-      setLocalPlaying(true);
     }
-  }, [
-    session.connected,
-    session.state,
-    session.deviceId,
-    verseKey,
-    reciterSlug,
-    isCasting,
-    cast,
-    onVerseKeyChange,
-    playing,
-    audioUrl,
-  ]);
+    // Note: we deliberately don't sync currentTime back to the
+    // <audio> element on non-active devices — that just resets the
+    // scrub position visually. The displayed `position` reads from
+    // remote state directly via the UI (see `position` derivation).
+  }, [stateUpdatedAt, session.deviceId, onVerseKeyChange]);
 
   // When casting, hook into the receiver's "media ended" signal so
   // we advance to the next ayah and load it on the receiver. Without
@@ -427,17 +469,29 @@ export function MiniPlayer({
     );
   }
 
-  function onSeek(e: React.ChangeEvent<HTMLInputElement>): void {
+  // Seek is split across THREE handlers so the slider stays
+  // responsive while the user drags + commits cleanly on release.
+  // Without scrub-tracking, the receiver's CURRENT_TIME_CHANGED
+  // events (1Hz from cast) snap the slider back during the drag.
+  function onSeekInput(e: React.ChangeEvent<HTMLInputElement>): void {
+    // Live drag — update only the visual scrub state, NOT the
+    // transport. Display reads scrubRef when present.
     const t = Number.parseFloat(e.target.value);
+    scrubRef.current = { value: t };
+    setLocalPosition(t);
+  }
+  function onSeekCommit(e: React.SyntheticEvent<HTMLInputElement>): void {
+    const t = Number.parseFloat((e.target as HTMLInputElement).value);
+    scrubRef.current = null;
     if (isCasting) {
       cast.seek(t);
-      if (session.connected) void session.seek(t);
-      return;
+    } else {
+      const a = audioRef.current;
+      if (a) {
+        a.currentTime = t;
+        setLocalPosition(t);
+      }
     }
-    const a = audioRef.current;
-    if (!a) return;
-    a.currentTime = t;
-    setLocalPosition(t);
     if (session.connected) void session.seek(t);
   }
 
@@ -468,6 +522,25 @@ export function MiniPlayer({
         role="region"
         aria-label="Audio player"
       >
+        {someoneElseIsActive ? (
+          <div
+            className="bg-leaf-500/8 border-leaf-500/20 text-leaf-700 mx-auto flex max-w-5xl items-center justify-between gap-3 border-b px-3 py-1.5 text-[11px] sm:px-6"
+            role="status"
+            aria-live="polite"
+          >
+            <span className="truncate">
+              <span className="opacity-70">Playing on</span>{' '}
+              <strong className="font-medium">{activeDeviceName}</strong>
+            </span>
+            <button
+              type="button"
+              onClick={togglePlay}
+              className="border-leaf-500/30 hover:bg-leaf-500/15 shrink-0 rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors"
+            >
+              Take over
+            </button>
+          </div>
+        ) : null}
         <div className="mx-auto max-w-5xl px-3 py-2 sm:px-6 sm:py-3">
           <div className="flex items-center gap-2 sm:gap-4">
             <button
@@ -541,7 +614,10 @@ export function MiniPlayer({
               max={Number.isFinite(duration) && duration > 0 ? duration : 1}
               step={0.1}
               value={position}
-              onChange={onSeek}
+              onChange={onSeekInput}
+              onMouseUp={onSeekCommit}
+              onTouchEnd={onSeekCommit}
+              onKeyUp={onSeekCommit}
               className="accent-leaf hidden flex-1 sm:block"
             />
 
@@ -600,7 +676,10 @@ export function MiniPlayer({
             max={Number.isFinite(duration) && duration > 0 ? duration : 1}
             step={0.1}
             value={position}
-            onChange={onSeek}
+            onChange={onSeekInput}
+            onMouseUp={onSeekCommit}
+            onTouchEnd={onSeekCommit}
+            onKeyUp={onSeekCommit}
             className="accent-leaf mt-2 block w-full sm:hidden"
           />
         </div>

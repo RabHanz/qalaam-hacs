@@ -195,11 +195,25 @@ function detectAirPlay(): boolean {
 
 function detectCastCapable(): boolean {
   if (typeof window === 'undefined') return false;
-  // Cast SDK only loads on Chromium + a couple of forks. UA sniff is
-  // imperfect but the SDK itself is the source of truth — feature-detect
-  // chrome.cast after it loads.
+  // Cast capability is a UNION of two transport mechanisms:
+  //   1. The Google Cast Sender SDK — Chromium-only, talks Cast
+  //      protocol to Chromecast / Google TV / Cast-built-in TVs.
+  //   2. The HTMLMediaElement.remote.prompt() Web API (W3C Remote
+  //      Playback) — works on Safari (incl. iOS) and surfaces the
+  //      AirPlay sheet there. We expose the "Cast" button on iOS
+  //      so the UX is consistent with Android / desktop; on iOS,
+  //      the button just routes to the OS picker (which is
+  //      AirPlay), giving the user the same one-tap "send to a
+  //      speaker" affordance that other music apps offer.
   const w = window as ChromeCastWindow;
-  return Boolean(w.chrome) && /Chrome|Edg/.test(navigator.userAgent);
+  if (w.chrome && /Chrome|Edg/.test(navigator.userAgent)) return true;
+  // RemotePlayback — feature-detected on the live <audio> element
+  // by the caller. A capability check here returns true if the
+  // browser's <audio>.remote API exists at all.
+  const probe = document.createElement('audio') as HTMLAudioElement & {
+    remote?: { prompt(): Promise<void> };
+  };
+  return typeof probe.remote === 'object' && typeof probe.remote.prompt === 'function';
 }
 
 export function SendToPicker({ audioRef, currentSrc, haUrl, title, artist }: Props): ReactNode {

@@ -1418,9 +1418,10 @@ rediscover them under pressure:
 - **#226 K8.** Voice notes → R2 (L16) — trigger: qalaam-data volume hits 5 GB.
 - **#227 K9.** Host-rebuild runbook (L17) — trigger: first incident.
 - **#228 K10.** Static-asset version + CDN split (L20) — trigger: image rebuild on font version-bump > 30 s.
-- **#229 K11.** Cross-device playback session (ADR-0025 Phase 2) — **SHIPPED 2026-05-06.** SSE-based, per-user isolated, EventSource + REST commands. Dormant for anonymous users; cloud-mirrors verse/reciter/play/pause/seek across all signed-in user's devices.
-- **#230 K12.** HA integration as peer device (ADR-0025 Phase 3) — trigger: Phase 2 has visible adoption.
-- **#231 K13.** Local Connect agent — LAN-only mode (ADR-0025 Phase 4) — trigger: Pro-tier launch.
+- **#229 K11.** Cross-device playback session (ADR-0025 Phase 2) — **SHIPPED 2026-05-06.** Spotify-Connect-style: exactly one device "active" at a time, others mirror state + show "Playing on X · Take over". Echo-suppression via `activeDeviceId`. SSE pubsub keyed per `user_id`. Hooks (`useCast` + `usePlaybackSession`) memoised so consumer effects with stable primitive deps don't render-loop (the page-hang root cause was hook objects being new references per render).
+- **#230 K12.** HA peer device (ADR-0025 Phase 3) — **SHIPPED 2026-05-06.** Python `PlaybackBridge` subscribes to SSE + invokes `media_player.*` services on `CONF_TARGET_PLAYER`. Auth via API-key (#213). Best-effort: silently dormant when key invalid.
+- **#231 K13.** Local Connect agent — LAN-only mode (ADR-0025 Phase 4) — trigger: Pro-tier launch. Multi-day desktop daemon (Tauri/Electron + mDNS); explicitly deferred per "ship complete or defer".
+- **#213 J1.** Premium API-key auth gate — **SHIPPED 2026-05-06.** `api_keys` table, `findUserByApiKey`, `Authorization: Bearer qk_<key>` header recognised by the gate alongside cookies. 3 endpoints (`POST /v1/auth/api-keys` mints, GET lists, DELETE revokes). Plaintext shown ONCE.
 
 **Anti-pattern guard:** None of the L_n upgrades ship until its
 trigger fires. Per CLAUDE.md §6 (Build for the foundation, not the

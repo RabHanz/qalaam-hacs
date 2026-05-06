@@ -37,7 +37,7 @@
  *   7. Session ends (user disconnects, or cast UI close) →
  *      `isConnected = false`, control returns to local audio.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const CAST_SDK_URL = 'https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1';
 const DEFAULT_RECEIVER_APP_ID = 'CC1AD845';
@@ -455,23 +455,49 @@ export function useCast(): UseCastResult {
     };
   }, []);
 
-  return {
-    isConnected,
-    isPaused,
-    currentTime,
-    duration,
-    isMediaLoaded,
-    isAvailable,
-    volume,
-    isMuted,
-    requestSession,
-    loadMedia,
-    play,
-    pause,
-    seek,
-    setVolume,
-    toggleMute,
-    endSession,
-    onMediaEnded,
-  };
+  // Memoise the returned object — stable identity means consumers
+  // can put `cast` in useEffect deps without firing the effect on
+  // every parent render. Without this, a single `cast` reference
+  // change caused a runaway re-render loop in MiniPlayer (the cause
+  // of the user-reported "page hangs because of Cast" symptom).
+  return useMemo(
+    () => ({
+      isConnected,
+      isPaused,
+      currentTime,
+      duration,
+      isMediaLoaded,
+      isAvailable,
+      volume,
+      isMuted,
+      requestSession,
+      loadMedia,
+      play,
+      pause,
+      seek,
+      setVolume,
+      toggleMute,
+      endSession,
+      onMediaEnded,
+    }),
+    [
+      isConnected,
+      isPaused,
+      currentTime,
+      duration,
+      isMediaLoaded,
+      isAvailable,
+      volume,
+      isMuted,
+      requestSession,
+      loadMedia,
+      play,
+      pause,
+      seek,
+      setVolume,
+      toggleMute,
+      endSession,
+      onMediaEnded,
+    ],
+  );
 }

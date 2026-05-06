@@ -113,7 +113,20 @@ Trigger for Phase 2:
 - First household with two active devices (a parent's phone + a kid's iPad) — surfaces the "I want to start on my phone, finish in the kitchen" use case naturally.
 - OR first paying customer (so we can justify the WebSocket infra cost).
 
-## Phase 3 — HA integration as a peer device (DEFERRED — trigger: Phase 2 lands)
+## Phase 3 — HA integration as a peer device (SHIPPED 2026-05-06)
+
+`integrations/homeassistant/custom_components/qalaam/playback_bridge.py`:
+asyncio task pair (heartbeat + SSE listener with exponential-backoff
+reconnect). Honours `state` events from `/v1/playback/subscribe` by
+calling `media_player.play_media` / `media_pause` / `media_play` /
+`media_seek` on `CONF_TARGET_PLAYER`. Echo-suppressed via
+`activeDeviceId === ha:<entry_id>`. Routes only when `target='ha'`
+or `target='ha:<entity>'`. Auth via API-key (#213). Best-effort:
+silently stops if key invalid/revoked.
+
+The original design notes below remain accurate.
+
+### Original design (pre-implementation)
 
 The HA integration becomes a **first-class device** in the session model:
 
