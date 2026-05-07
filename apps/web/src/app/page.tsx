@@ -247,7 +247,7 @@ export default async function HomePage(): Promise<ReactNode> {
       </section>
 
       {/* TABLE OF CONTENTS — surahs list, not card grid */}
-      <section className="border-hairline border-b">
+      <section id="index" className="border-hairline scroll-mt-24 border-b">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-20">
           <div className="mb-8 grid items-baseline gap-6 sm:mb-12 md:grid-cols-12">
             <div className="md:col-span-4">
@@ -327,7 +327,7 @@ export default async function HomePage(): Promise<ReactNode> {
 
 function SurahIndex({ surahs }: { surahs: readonly Surah[] }): ReactNode {
   return (
-    <section className="border-hairline border-b">
+    <section id="index" className="border-hairline scroll-mt-24 border-b">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-20">
         <div className="mb-8 grid items-baseline gap-6 sm:mb-12 md:grid-cols-12">
           <div className="md:col-span-4">

@@ -1,24 +1,26 @@
-import Link from 'next/link';
-
-import { EmptyState } from '../components/EmptyState.js';
+import { EditorialErrorPage } from '../components/EditorialErrorPage.js';
 
 import type { ReactNode } from 'react';
 
+export const metadata = {
+  title: 'Page not found · Qalaam',
+};
+
+/**
+ * 404 — the page the user reached doesn't exist. Composed as an
+ * editorial artifact: a verse on guidance from Sūrat al-Fātiḥa, an
+ * italic translation, and one calm CTA back home. Mirrors the rest
+ * of Qalaam's typographic register so even an error feels considered.
+ */
 export default function NotFound(): ReactNode {
   return (
-    <div className="mx-auto max-w-2xl p-12">
-      <EmptyState
-        title="Page not found"
-        hint="The link you followed may be broken or this page is yet to be built."
-        action={
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-teal-500)] px-5 py-2 text-white hover:bg-[var(--color-teal-700)]"
-          >
-            Return home
-          </Link>
-        }
-      />
-    </div>
+    <EditorialErrorPage
+      tag="404"
+      arabicTag="ضَلَال"
+      arabic="ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ"
+      translation="Guide us to the straight path."
+      reference="Sūrat al-Fātiḥa · 1:6"
+      body="The page you were looking for isn’t here. Open the index, or pick up where you left off."
+    />
   );
 }
