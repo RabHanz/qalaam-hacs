@@ -25,6 +25,7 @@ import { pickVerseOfDay } from '../../lib/verse-of-day.js';
 
 import { ContinueCard } from './ContinueCard.js';
 import { NextPrayerCard } from './NextPrayerCard.js';
+import { OrientationCard } from './OrientationCard.js';
 import { ReviewCard } from './ReviewCard.js';
 import { TodayGreeting } from './TodayGreeting.js';
 import { VerseOfDayCard } from './VerseOfDayCard.js';
@@ -123,6 +124,7 @@ export async function TodaySurface({ displayName, apiBase, surahs }: Props): Pro
 
           <aside className="reveal reveal-3 space-y-4 sm:space-y-5 lg:col-span-5">
             <NextPrayerCard />
+            <OrientationCard />
             <ContinueCard surahs={surahs} />
             <ReviewCard />
           </aside>

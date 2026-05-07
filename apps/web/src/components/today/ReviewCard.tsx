@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { resolveApiBase } from '../../lib/api-base.js';
+import { shouldShowOrientation } from '../../lib/orientation-state.js';
 
 import type { ReactNode } from 'react';
 
@@ -37,6 +38,13 @@ export function ReviewCard(): ReactNode {
   const apiBase = resolveApiBase();
   const [state, setState] = useState<HifdhState | null>(null);
   const [error, setError] = useState(false);
+  // Suppress while OrientationCard is visible — otherwise a brand-
+  // new account sees a "begin a Hifdh plan" nudge AND inviting-demo
+  // sabqi data side-by-side, which feels contradictory.
+  const [hideForNewUser, setHideForNewUser] = useState(true);
+  useEffect(() => {
+    setHideForNewUser(shouldShowOrientation());
+  }, []);
 
   useEffect(() => {
     const lifecycle = { cancelled: false };
@@ -58,6 +66,7 @@ export function ReviewCard(): ReactNode {
     };
   }, [apiBase]);
 
+  if (hideForNewUser) return null;
   if (error) return null;
   if (!state) {
     // Skeleton in the same footprint so the rail doesn't shift on hydrate.
