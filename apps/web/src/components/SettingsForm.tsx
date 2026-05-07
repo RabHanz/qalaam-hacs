@@ -23,6 +23,7 @@ import { updateProfile } from '../lib/auth-api.js';
 import { useUser } from '../lib/use-user.js';
 
 import { ApiKeysSection } from './ApiKeysSection.js';
+import { StorageSection } from './StorageSection.js';
 
 import type { ReactNode } from 'react';
 
@@ -240,6 +241,9 @@ export function SettingsForm(): ReactNode {
 
       {/* Programmatic-access keys (Premium / Pro) */}
       <ApiKeysSection tier={user.tier} />
+
+      {/* Offline storage (D3 Phase 2) — visible to every tier */}
+      <StorageSection />
 
       {/* Tier card */}
       <section className="bg-surface border-hairline rounded-2xl border p-6">

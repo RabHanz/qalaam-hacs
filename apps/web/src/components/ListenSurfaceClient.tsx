@@ -15,6 +15,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { readPlaybackSnapshot, writeReciter, writeVerseKey } from '../lib/playback-store.js';
 
 import { MiniPlayer } from './MiniPlayer.js';
+import { SaveSurahOffline } from './SaveSurahOffline.js';
 
 import type { ReactNode } from 'react';
 
@@ -270,9 +271,16 @@ export function ListenSurfaceClient({ reciters, surahs }: Props): ReactNode {
             })}
           </ul>
         )}
-        <p className="smallcaps text-ink-muted mt-3 text-[10px] tracking-widest sm:text-[11px]">
-          {arabicNumeral(filteredSurahs.length)} surahs · auto-advance enabled
-        </p>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <p className="smallcaps text-ink-muted text-[10px] tracking-widest sm:text-[11px]">
+            {arabicNumeral(filteredSurahs.length)} surahs · auto-advance enabled
+          </p>
+          {(() => {
+            const activeSurah = Number.parseInt(activeVerseKey.split(':')[0] ?? '0', 10);
+            if (!Number.isFinite(activeSurah) || activeSurah < 1 || activeSurah > 114) return null;
+            return <SaveSurahOffline surah={activeSurah} reciterSlug={activeReciter} />;
+          })()}
+        </div>
       </section>
 
       <MiniPlayer
