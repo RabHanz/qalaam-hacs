@@ -23,6 +23,7 @@ import {
   writeVerseKey,
 } from '../lib/playback-store.js';
 import { useCast } from '../lib/use-cast.js';
+import { useOnline } from '../lib/use-online.js';
 import { usePlaybackSession } from '../lib/use-playback-session.js';
 import { useUser } from '../lib/use-user.js';
 
@@ -68,6 +69,7 @@ export function MiniPlayer({
   const apiBase = resolveApiBase();
   const { user } = useUser();
   const haUrl = user?.haUrl ?? null;
+  const online = useOnline();
   const cast = useCast();
   // Cross-device session sync (ADR-0025 Phase 2). Dormant for
   // anonymous users — they get the same single-tab experience as
@@ -650,6 +652,16 @@ export function MiniPlayer({
             >
               Take over
             </button>
+          </div>
+        ) : null}
+        {!online ? (
+          <div
+            className="border-hairline text-ink-muted mx-auto flex max-w-5xl items-center gap-2 border-b px-3 py-1.5 text-[11px] sm:px-6"
+            role="status"
+            aria-live="polite"
+          >
+            <span aria-hidden className="bg-ink-muted/50 inline-block h-1.5 w-1.5 rounded-full" />
+            <span>Offline · cached recitations are still available</span>
           </div>
         ) : null}
         <div className="mx-auto max-w-5xl px-3 py-2 sm:px-6 sm:py-3">

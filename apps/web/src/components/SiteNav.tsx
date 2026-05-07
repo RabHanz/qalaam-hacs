@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { parseVerseKey, readPlaybackSnapshot } from '../lib/playback-store.js';
 
 import { BookGlyph, CrescentGlyph, LanternGlyph, ThreadGlyph } from './Glyph.js';
+import { InstallHint } from './InstallHint.js';
 import { ThemeToggle } from './ThemeToggle.js';
 import { UserMenu } from './UserMenu.js';
 
@@ -116,6 +117,7 @@ export function SiteNav(): ReactNode {
               <span className="smallcaps hidden font-medium sm:inline">Search</span>
             </Link>
           </nav>
+          <InstallHint />
           <ThemeToggle />
           <UserMenu />
         </div>

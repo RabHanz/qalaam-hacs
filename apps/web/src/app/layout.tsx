@@ -11,6 +11,7 @@
 import '../styles/globals.css';
 
 import { NowPlayingPill } from '../components/NowPlayingPill.js';
+import { ServiceWorkerLifecycle } from '../components/ServiceWorkerLifecycle.js';
 import { SiteFooter } from '../components/SiteFooter.js';
 import { DEFAULT_LOCALE, dirOf } from '../lib/i18n.js';
 
@@ -137,6 +138,7 @@ export default function RootLayout({ children }: { readonly children: ReactNode 
           {children}
         </main>
         <NowPlayingPill />
+        <ServiceWorkerLifecycle />
         <SiteFooter />
       </body>
     </html>
