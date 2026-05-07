@@ -13,7 +13,11 @@ import Link from 'next/link';
 
 import { EmptyState } from '../../../../components/EmptyState.js';
 import { HairlineDivider, LanternGlyph, RosetteGlyph } from '../../../../components/Glyph.js';
+import { LetterLessonBody } from '../../../../components/learn/LetterLessonBody.js';
+import { MakhrajLessonBody } from '../../../../components/learn/MakhrajLessonBody.js';
+import { VowelLessonBody } from '../../../../components/learn/VowelLessonBody.js';
 import { SiteNav } from '../../../../components/SiteNav.js';
+import { getLetter, getMakhrajZoneFromSlug, getVowel } from '../../../../lib/letter-data.js';
 
 import type { ReactNode } from 'react';
 
@@ -97,39 +101,69 @@ export default async function LearnLessonPage({ params }: PageProps): Promise<Re
       <article className="mx-auto grid max-w-6xl grid-cols-12 gap-10 px-6 py-12">
         <main className="reveal col-span-12 md:col-span-8">
           <div className="paper-card-raised p-10 md:p-14">
-            {isMakhraj && zone !== undefined ? (
-              <div className="flex justify-center">
-                <MakhrajDiagram highlight={zone} />
-              </div>
-            ) : (
-              <>
-                <div className="mb-4 flex items-start gap-3">
-                  <LanternGlyph size={18} className="text-leaf mt-1 shrink-0" />
-                  <p className="smallcaps text-leaf text-xs">Lesson body</p>
-                </div>
-                <p className="font-display text-ink max-w-prose text-xl leading-relaxed">
-                  This lesson's body — Markdown narrative with embedded recitation prompts and
-                  mushaf snippets — arrives in v0.5.
-                </p>
-                <HairlineDivider />
-                <p className="text-ink-muted max-w-prose text-sm leading-relaxed">
-                  In the meantime, the <span className="text-leaf">prerequisite chain</span> on the
-                  right shows where this lesson sits in the path. When you're ready to recite a
-                  passage that uses this rule, head to{' '}
-                  <Link
-                    href={
-                      lesson.verseRange
-                        ? `/recite/${lesson.verseRange.startVerseKey}`
-                        : '/recite/2:255'
-                    }
-                    className="text-leaf underline-offset-4 hover:underline"
-                  >
-                    /recite
-                  </Link>{' '}
-                  for verse-pause practice with live feedback.
-                </p>
-              </>
-            )}
+            {(() => {
+              // Resolve a structurally-factual body for the lesson when
+              // we have one. Order matters: the makhraj-zone lesson
+              // pages combine the diagram with the letter-list body.
+              const letter = getLetter(lesson.slug);
+              if (letter) {
+                return <LetterLessonBody letter={letter} />;
+              }
+              const vowel = getVowel(lesson.slug);
+              if (vowel) {
+                return <VowelLessonBody vowel={vowel} />;
+              }
+              const makhrajEntry = getMakhrajZoneFromSlug(lesson.slug);
+              if (isMakhraj && makhrajEntry && zone !== undefined && zone !== 'all') {
+                return (
+                  <div className="space-y-8">
+                    <div className="flex justify-center">
+                      <MakhrajDiagram highlight={zone} />
+                    </div>
+                    <MakhrajLessonBody entry={makhrajEntry} />
+                  </div>
+                );
+              }
+              if (isMakhraj && zone !== undefined) {
+                return (
+                  <div className="flex justify-center">
+                    <MakhrajDiagram highlight={zone} />
+                  </div>
+                );
+              }
+              // Fallback for the lessons we haven't authored yet —
+              // sifat (letter qualities), tajweed rules, recitation
+              // and mastery drills.
+              return (
+                <>
+                  <div className="mb-4 flex items-start gap-3">
+                    <LanternGlyph size={18} className="text-leaf mt-1 shrink-0" />
+                    <p className="smallcaps text-leaf text-xs">Lesson body</p>
+                  </div>
+                  <p className="font-display text-ink max-w-prose text-xl leading-relaxed">
+                    This lesson's body — Markdown narrative with embedded recitation prompts and
+                    mushaf snippets — arrives in a content pass.
+                  </p>
+                  <HairlineDivider />
+                  <p className="text-ink-muted max-w-prose text-sm leading-relaxed">
+                    In the meantime, the <span className="text-leaf">prerequisite chain</span> on
+                    the right shows where this lesson sits in the path. When you're ready to recite
+                    a passage that uses this rule, head to{' '}
+                    <Link
+                      href={
+                        lesson.verseRange
+                          ? `/recite/${lesson.verseRange.startVerseKey}`
+                          : '/recite/2:255'
+                      }
+                      className="text-leaf underline-offset-4 hover:underline"
+                    >
+                      /recite
+                    </Link>{' '}
+                    for verse-pause practice with live feedback.
+                  </p>
+                </>
+              );
+            })()}
           </div>
         </main>
 
