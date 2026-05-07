@@ -13,7 +13,7 @@
  *   - Family-private framing visible on every tier card.
  */
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { submitSupport, type SupportKind, type TargetTier } from '../lib/support-api.js';
 import { useUser } from '../lib/use-user.js';
@@ -96,6 +96,56 @@ export function PricingTiers(): ReactNode {
   const { user } = useUser();
   const [showAffordForm, setShowAffordForm] = useState(false);
   const [showUpgradeForm, setShowUpgradeForm] = useState<TargetTier | null>(null);
+  // Whether server-side Stripe is configured. When true, upgrade
+  // CTAs go straight to Stripe Checkout; when false, fall back to
+  // the manual support-request form that's lived here since launch.
+  const [billingConfigured, setBillingConfigured] = useState(false);
+  const [checkoutBusy, setCheckoutBusy] = useState<TargetTier | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  useEffect(() => {
+    void fetch('/api/v1/billing/status', { credentials: 'include' })
+      .then(async (res) => {
+        if (!res.ok) return;
+        const body = (await res.json()) as { configured?: boolean };
+        setBillingConfigured(Boolean(body.configured));
+      })
+      .catch(() => {
+        /* silent — fall back to support form */
+      });
+  }, []);
+
+  async function startCheckout(tier: TargetTier): Promise<void> {
+    if (checkoutBusy) return;
+    setCheckoutBusy(tier);
+    setCheckoutError(null);
+    try {
+      const res = await fetch('/api/v1/billing/checkout-session', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ tier }),
+      });
+      if (!res.ok) {
+        if (res.status === 401) {
+          window.location.href = '/signin?after=/pricing';
+          return;
+        }
+        const detail = (await res.json().catch(() => ({}))) as { message?: string };
+        setCheckoutError(detail.message ?? 'Could not start checkout. Please try again.');
+        return;
+      }
+      const body = (await res.json()) as { url?: string };
+      if (body.url) {
+        window.location.href = body.url;
+        return;
+      }
+      setCheckoutError('Could not start checkout. Please try again.');
+    } catch {
+      setCheckoutError('Could not reach the billing service.');
+    } finally {
+      setCheckoutBusy(null);
+    }
+  }
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-10 px-5 pb-20 pt-10 sm:px-8 sm:pt-14">
@@ -133,11 +183,26 @@ export function PricingTiers(): ReactNode {
             tier={t}
             currentTier={user?.tier ?? null}
             onUpgrade={() => {
-              if (t.id === 'premium' || t.id === 'pro') setShowUpgradeForm(t.id);
+              if (t.id !== 'premium' && t.id !== 'pro') return;
+              if (billingConfigured) {
+                void startCheckout(t.id);
+              } else {
+                setShowUpgradeForm(t.id);
+              }
             }}
+            checkoutBusy={checkoutBusy === t.id}
           />
         ))}
       </section>
+
+      {checkoutError ? (
+        <p
+          role="alert"
+          className="mx-auto max-w-md rounded-lg border border-red-300/40 bg-red-50/60 px-3 py-2 text-center text-sm text-red-800"
+        >
+          {checkoutError}
+        </p>
+      ) : null}
 
       <section className="border-hairline bg-surface rounded-2xl border p-6 sm:p-8">
         <header className="mb-3">
@@ -216,10 +281,12 @@ function TierCard({
   tier,
   currentTier,
   onUpgrade,
+  checkoutBusy = false,
 }: {
   tier: Tier;
   currentTier: string | null;
   onUpgrade: () => void;
+  checkoutBusy?: boolean;
 }): ReactNode {
   const isCurrent = currentTier === tier.id;
   return (
@@ -277,13 +344,14 @@ function TierCard({
         <button
           type="button"
           onClick={onUpgrade}
-          className={`inline-flex justify-center rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
+          disabled={checkoutBusy}
+          className={`inline-flex justify-center rounded-lg px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-60 ${
             tier.highlight
               ? 'bg-ink hover:bg-ink-strong text-paper'
               : 'border-hairline hover:border-leaf hover:text-leaf bg-surface border'
           }`}
         >
-          Request {tier.name}
+          {checkoutBusy ? 'Opening checkout…' : `Choose ${tier.name}`}
         </button>
       )}
       <p className="text-ink-muted mt-1 text-[10px] uppercase tracking-widest">

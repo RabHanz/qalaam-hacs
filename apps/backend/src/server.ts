@@ -19,6 +19,7 @@ import { mcpServerRoutes } from './routes/mcp-server.js';
 import { adminRoutes } from './routes/v1/admin.js';
 import { apiKeysRoutes } from './routes/v1/api-keys.js';
 import { authRoutes } from './routes/v1/auth.js';
+import { billingRoutes } from './routes/v1/billing.js';
 import { bookmarksRoutes } from './routes/v1/bookmarks.js';
 import { chaptersRoutes } from './routes/v1/chapters.js';
 import { creditsRoutes } from './routes/v1/credits.js';
@@ -65,6 +66,20 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   await app.register(loggerPlugin, { config });
   await app.register(errorHandlerPlugin);
   await app.register(sensible);
+  // Custom JSON parser that ALSO attaches the raw body string on
+  // req.rawBody, so the Stripe webhook handler can verify the
+  // signature against the exact bytes Stripe signed. Negligible
+  // overhead for non-webhook routes (one extra string ref).
+  app.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
+    try {
+      const text = body as string;
+      const json: unknown = text.length > 0 ? JSON.parse(text) : {};
+      (req as unknown as { rawBody: string }).rawBody = text;
+      done(null, json);
+    } catch (err) {
+      done(err as Error, undefined);
+    }
+  });
   await app.register(helmet, {
     contentSecurityPolicy: false, // owned by `apps/web`
     crossOriginEmbedderPolicy: false,
@@ -138,6 +153,7 @@ export async function build(config: Config = loadConfig()): Promise<FastifyInsta
   await app.register(authRoutes);
   await app.register(apiKeysRoutes);
   await app.register(adminRoutes);
+  await app.register(billingRoutes);
   await app.register(bookmarksRoutes);
   // Family-tier (E1/E2/E5/E6) — also on qalaam.sqlite. Mistakes route
   // also reads from qul.sqlite for verse→page lookups.

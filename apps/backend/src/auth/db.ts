@@ -363,6 +363,28 @@ export function authDb(): DB {
     // address private and lets us tier-gate the integration cleanly.
     db.exec('ALTER TABLE users ADD COLUMN ha_url TEXT');
   }
+  // J5 Stripe — billing fields. Soft-migration so existing users
+  // keep working without a backfill. NULL when the user has never
+  // started a checkout flow; populated by the webhook handler on
+  // checkout.session.completed and customer.subscription.updated.
+  if (!cols.includes('stripe_customer_id')) {
+    db.exec('ALTER TABLE users ADD COLUMN stripe_customer_id TEXT');
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS idx_users_stripe_customer ON users(stripe_customer_id) WHERE stripe_customer_id IS NOT NULL',
+    );
+  }
+  if (!cols.includes('stripe_subscription_id')) {
+    db.exec('ALTER TABLE users ADD COLUMN stripe_subscription_id TEXT');
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS idx_users_stripe_subscription ON users(stripe_subscription_id) WHERE stripe_subscription_id IS NOT NULL',
+    );
+  }
+  if (!cols.includes('billing_status')) {
+    // 'active' | 'past_due' | 'canceled' | 'incomplete' | etc — mirrors
+    // Stripe's subscription.status enum so we can render a small status
+    // pill in /settings without re-deriving from event history.
+    db.exec('ALTER TABLE users ADD COLUMN billing_status TEXT');
+  }
 
   cached = db;
   return db;
