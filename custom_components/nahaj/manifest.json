@@ -1,0 +1,16 @@
+{
+  "domain": "nahaj",
+  "name": "Nahaj Quran",
+  "version": "0.4.2",
+  "documentation": "https://nahaj.app/docs/ha",
+  "issue_tracker": "https://github.com/RabHanz/nahaj-hacs/issues",
+  "codeowners": ["@RabHanz"],
+  "config_flow": true,
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "dependencies": ["http", "media_source", "frontend"],
+  "after_dependencies": ["frontend"],
+  "requirements": ["aiohttp>=3.10"],
+  "loggers": ["custom_components.nahaj"],
+  "quality_scale": "silver"
+}

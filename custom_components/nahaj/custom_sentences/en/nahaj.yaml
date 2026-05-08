@@ -1,0 +1,77 @@
+# Nahaj Voice sentences — English.
+# Per HA Voice Chapter 11: declare two pipelines per satellite (Arabic + English).
+# Arabic sentences live in custom_sentences/ar/nahaj.yaml.
+language: en
+intents:
+  NahajPlaySurah:
+    data:
+      - sentences:
+          - "play surah {surah}"
+          - "recite surah {surah}"
+          - "play {surah}"
+        slots:
+          surah: "{surah}"
+
+  NahajPlayAyah:
+    data:
+      - sentences:
+          - "play ayah {surah} {ayah}"
+          - "play verse {surah} {ayah}"
+          - "play {surah}:{ayah}"
+        slots:
+          surah: "{surah}"
+          ayah: "{ayah}"
+
+  NahajStartHifdh:
+    data:
+      - sentences:
+          - "start my hifdh session"
+          - "start hifdh"
+          - "begin memorization"
+          - "test me"
+
+  # B3 — MCP-routed Quranic-knowledge intents.
+  NahajExplainAyah:
+    data:
+      - sentences:
+          - "what does {surah}:{ayah} mean"
+          - "explain ayah {surah} {ayah}"
+          - "explain verse {surah} {ayah}"
+          - "tell me about {surah}:{ayah}"
+          - "tafsir of {surah} {ayah}"
+        slots:
+          surah: "{surah}"
+          ayah: "{ayah}"
+
+  NahajFindVerse:
+    data:
+      - sentences:
+          - "find a verse about {query}"
+          - "find verses about {query}"
+          - "search the quran for {query}"
+          - "what does the quran say about {query}"
+        slots:
+          query: "{query}"
+
+  NahajWordRoot:
+    data:
+      - sentences:
+          - "what is the root of {word}"
+          - "what's the root of {word}"
+          - "morphology of {word}"
+          - "look up {word}"
+        slots:
+          word: "{word}"
+
+lists:
+  surah:
+    wildcard: true
+  ayah:
+    range:
+      from: 1
+      to: 286
+  # B3 wildcards — free-form text slots routed to MCP tools.
+  query:
+    wildcard: true
+  word:
+    wildcard: true

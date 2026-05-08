@@ -1,0 +1,34 @@
+# Nahaj Voice sentences — Arabic.
+# Pair with custom_sentences/en/nahaj.yaml for the dual-pipeline household setup
+# (HA Voice Chapter 11, Oct 2025).
+language: ar
+intents:
+  NahajPlaySurah:
+    data:
+      - sentences:
+          - "شغل سورة {surah}"
+          - "ابدأ سورة {surah}"
+        slots:
+          surah: "{surah}"
+
+  NahajPlayAyah:
+    data:
+      - sentences:
+          - "شغل آية {surah} {ayah}"
+        slots:
+          surah: "{surah}"
+          ayah: "{ayah}"
+
+  NahajStartHifdh:
+    data:
+      - sentences:
+          - "ابدأ جلسة الحفظ"
+          - "اختبرني"
+
+lists:
+  surah:
+    wildcard: true
+  ayah:
+    range:
+      from: 1
+      to: 286

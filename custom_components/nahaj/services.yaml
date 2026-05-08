@@ -1,0 +1,144 @@
+play_ayah:
+  name: Play Ayah
+  description: Play a specific ayah on the target media player.
+  fields:
+    surah:
+      name: Surah
+      description: Surah number (1..114)
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 114
+          mode: box
+    ayah:
+      name: Ayah
+      description: Ayah number within the surah
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 286
+          mode: box
+    reciter_slug:
+      name: Reciter
+      description: Reciter slug (defaults to user's preferred reciter)
+      required: false
+      selector:
+        text:
+    target:
+      name: Target media player
+      description: Which speaker to play on
+      required: true
+      selector:
+        entity:
+          domain: media_player
+
+play_surah:
+  name: Play Surah
+  description: Play an entire surah on the target media player.
+  fields:
+    surah:
+      name: Surah
+      description: Surah number (1..114)
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 114
+          mode: box
+    reciter_slug:
+      name: Reciter
+      description: Reciter slug (defaults to user's preferred)
+      required: false
+      selector:
+        text:
+    target:
+      name: Target media player
+      required: true
+      selector:
+        entity:
+          domain: media_player
+
+start_memorization_session:
+  name: Start Hifdh memorization session
+  description: |
+    Begin today's Hifdh session for the linked Nahaj user. Fires the
+    `nahaj_hifdh_session_started` event on the bus — automations can hook into
+    it (dim lights, mute TV, send "sabaq starts now" announcement to the kid's
+    room speaker, etc.).
+  fields:
+    user:
+      name: User
+      description: Nahaj user identifier (defaults to primary)
+      required: false
+      selector:
+        text:
+
+pause_for_adhan:
+  name: Pause for adhan
+  description: |
+    Pause every Nahaj-routed media_player (and any explicitly listed extra
+    entities) for the duration of the prayer window. Designed to be triggered
+    from an automation tied to `sensor.nahaj_next_prayer`. Fires the
+    `nahaj_adhan_pause_started` event so other automations can chain
+    (announce "Maghrib starts now" to the kids' room, dim lights, etc.).
+  fields:
+    entities:
+      name: Extra entities
+      description: |
+        Additional media_player entities to pause beyond the auto-detected
+        Nahaj ones. Useful when the user has tagged non-Nahaj speakers
+        (e.g. kitchen Sonos) for adhan-DND too.
+      required: false
+      selector:
+        entity:
+          domain: media_player
+          multiple: true
+    duration_minutes:
+      name: Duration (minutes)
+      description: How long the prayer window lasts. Default 20.
+      required: false
+      default: 20
+      selector:
+        number:
+          min: 1
+          max: 120
+          mode: box
+          unit_of_measurement: min
+
+start_room_sabaq:
+  name: Start room sabaq
+  description: |
+    Play the active user's current sabqi (today's new memorization portion)
+    on every media_player in a given Home Assistant area. Different rooms
+    can run different drill simultaneously — perfect for a family where
+    parent does manzil review in the family room while a child does sabaq
+    in their bedroom. Fires the `nahaj_room_sabaq_started` event.
+  fields:
+    area:
+      name: Area / Room
+      description: |
+        HA area to play in. Either the area's display name (e.g.
+        "Family room") or its area_id. Every media_player attached to that
+        area — directly or via its device — receives the playback command.
+      required: true
+      selector:
+        area:
+    portion_start:
+      name: Portion start verse
+      description: |
+        Override the auto-detected sabqi (format `<surah>:<ayah>`).
+        Defaults to today's portion from the user's hifdh state.
+      required: false
+      selector:
+        text:
+    reciter_slug:
+      name: Reciter
+      description: |
+        Override the user's preferred reciter. Per Nahaj's hifdh adab
+        a single-reciter rule is enforced for portions, so use this only
+        for parent-led comparison drill.
+      required: false
+      selector:
+        text:

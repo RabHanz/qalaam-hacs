@@ -1,0 +1,131 @@
+# Nahaj Friday Surah Kahf nudge
+#
+# Per INTRO.md: "Friday Surah Kahf nudge (Thursday Maghrib through
+# Friday Maghrib, gentle, opt-in)."
+#
+# Sunnah: reading Surah al-Kahf on Friday is recommended. The window
+# in Islamic time is Thursday Maghrib → Friday Maghrib (the Islamic
+# day starts at Maghrib).
+#
+# This blueprint:
+#   • Watches Nahaj's `binary_sensor.nahaj_friday_kahf_window` (ON
+#     during the Sunnah window)
+#   • Plays Surah al-Kahf at a configured time, OR
+#   • Sends a gentle notification to a chosen device, OR
+#   • Both
+# Skips entirely if Surah al-Kahf was already played for the user
+# during the active window (`binary_sensor.nahaj_kahf_completed_today`).
+#
+# Adab posture: opt-in. Kept gentle. No auto-play in the master
+# bedroom or kids' rooms — the default speaker is the family room.
+# Never repeats during the same window. Stops if the user pauses.
+
+blueprint:
+  name: Nahaj · Friday Surah Kahf nudge
+  description: >
+    Gentle Sunnah reminder for Surah al-Kahf during the Thursday
+    Maghrib → Friday Maghrib window. Configurable: notify only,
+    auto-play, or both. Skips if already played within the window.
+  domain: automation
+  source_url: https://github.com/RabHanz/nahaj-hacs/blob/main/blueprints/automation/nahaj/friday-kahf-nudge.yaml
+  homeassistant:
+    min_version: 2024.10.0
+  input:
+    kahf_window_sensor:
+      name: Kahf-window binary sensor
+      description: >
+        Nahaj's `binary_sensor.nahaj_friday_kahf_window`. ON during
+        the Sunnah window; OFF otherwise.
+      selector:
+        entity:
+          domain: binary_sensor
+          integration: nahaj
+    nudge_time:
+      name: Nudge time (24h)
+      description: >
+        When to fire the nudge during the active window. The default is
+        Friday morning so the listener has all day to complete it.
+      default: "09:00:00"
+      selector:
+        time: {}
+    mode_choice:
+      name: Action mode
+      description: notify-only · auto-play · both
+      default: notify
+      selector:
+        select:
+          options:
+            - notify
+            - auto_play
+            - both
+    notify_target:
+      name: Notify target (optional)
+      description: e.g. `notify.mobile_app_user_phone` (HA's notify entry).
+      default: ""
+      selector:
+        entity:
+          domain: notify
+    speaker:
+      name: Speaker for auto-play (optional)
+      description: Where Surah al-Kahf plays if auto_play / both is selected.
+      default: ""
+      selector:
+        entity:
+          domain: media_player
+    skip_if_in_prayer:
+      name: Skip if in prayer window
+      description: Don't fire during an active prayer window.
+      default: true
+      selector:
+        boolean: {}
+    in_prayer_sensor:
+      name: In-prayer-window sensor (optional)
+      default: ""
+      selector:
+        entity:
+          domain: binary_sensor
+          integration: nahaj
+
+trigger:
+  - platform: time
+    at: !input nudge_time
+
+condition:
+  - condition: state
+    entity_id: !input kahf_window_sensor
+    state: "on"
+  - condition: template
+    value_template: >-
+      {% set s = '!input in_prayer_sensor' %}
+      {% set skip = !input skip_if_in_prayer %}
+      {% if s != '' and skip %}
+      {{ not is_state(s, 'on') }}
+      {% else %}true{% endif %}
+
+action:
+  - choose:
+      - conditions:
+          - "{{ mode_choice_input() in ['notify', 'both'] }}"
+          - "{{ '!input notify_target' != '' }}"
+        sequence:
+          - service: !input notify_target
+            data:
+              title: Nahaj · Friday Sunnah
+              message: >
+                A gentle reminder — Surah al-Kahf is the surah of Fridays.
+                Whenever you have a quiet 30 minutes today, in shā Allāh.
+              data:
+                tag: nahaj-friday-kahf
+                ttl: 0
+                priority: low
+                channel: nahaj-friday-kahf
+      - conditions:
+          - "{{ mode_choice_input() in ['auto_play', 'both'] }}"
+          - "{{ '!input speaker' != '' }}"
+        sequence:
+          - service: nahaj.play_surah
+            data:
+              surah: 18
+              target: !input speaker
+
+mode: single
