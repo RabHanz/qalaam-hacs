@@ -1,0 +1,41 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "is_reciting": { "default": "mdi:headphones" },
+      "in_session": { "default": "mdi:timer-outline" },
+      "in_prayer_window": { "default": "mdi:mosque" },
+      "ramadan": { "default": "mdi:moon-waning-crescent" },
+      "last_ten_nights": { "default": "mdi:weather-night" },
+      "friday_kahf_window": { "default": "mdi:book-open-page-variant" }
+    },
+    "sensor": {
+      "current_verse": { "default": "mdi:book-open-variant" },
+      "streak_days": { "default": "mdi:fire" },
+      "today_session_count": { "default": "mdi:format-list-numbered" },
+      "grace_days_remaining": { "default": "mdi:calendar-heart" },
+      "current_sabqi": { "default": "mdi:bookmark-multiple-outline" },
+      "next_prayer": { "default": "mdi:mosque" },
+      "topic_of_day": { "default": "mdi:tag-text-outline" },
+      "word_of_day": { "default": "mdi:alphabet-arabic" },
+      "hijri_date": { "default": "mdi:calendar-month-outline" },
+      "mutashabihat_count": { "default": "mdi:link-variant" },
+      "active_reciter": { "default": "mdi:account-music" },
+      "ramadan_phase": { "default": "mdi:moon-waning-crescent" },
+      "family_khatm_juz_completed": { "default": "mdi:bookshelf" }
+    },
+    "select": {
+      "reciter": { "default": "mdi:account-music" },
+      "mushaf": { "default": "mdi:book-open-page-variant" }
+    },
+    "button": {
+      "test_me": { "default": "mdi:microphone-question" },
+      "mark_memorized": { "default": "mdi:check-decagram" }
+    },
+    "todo": {
+      "hifdh_plan": { "default": "mdi:format-list-checks" }
+    },
+    "calendar": {
+      "review_schedule": { "default": "mdi:calendar-clock" }
+    }
+  }
+}

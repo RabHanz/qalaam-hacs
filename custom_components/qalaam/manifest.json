@@ -1,9 +1,9 @@
 {
   "domain": "qalaam",
   "name": "Qalaam Quran",
-  "version": "0.1.0",
-  "documentation": "https://qalaam.themarginapp.com/about",
-  "issue_tracker": "https://qalaam.themarginapp.com/support",
+  "version": "0.4.2",
+  "documentation": "https://qalaam.themarginapp.com/docs/ha",
+  "issue_tracker": "https://github.com/RabHanz/qalaam-hacs/issues",
   "codeowners": ["@RabHanz"],
   "config_flow": true,
   "integration_type": "hub",

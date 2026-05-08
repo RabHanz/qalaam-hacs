@@ -222,6 +222,19 @@ async def async_get_media_source(hass: HomeAssistant) -> MediaSource:
     return QalaamMediaSource(hass)
 
 
+async def _head_ok(session: object, url: str) -> bool:
+    """HEAD probe an audio URL — used by resolve_media to fail fast
+    when the upstream CDN returns 404 instead of forwarding a broken
+    URL to the speaker. Returns False only on confirmed 4xx/5xx; any
+    network error is treated as "probably ok" because aiohttp blips
+    shouldn't penalise an URL that may actually work."""
+    try:
+        async with session.head(url, timeout=4, allow_redirects=True) as r:
+            return r.status < 400  # noqa: PLR2004 -- HTTP error threshold
+    except Exception:
+        return True
+
+
 class QalaamMediaSource(MediaSource):
     name = MEDIA_SOURCE_NAME
 
@@ -541,4 +554,19 @@ class QalaamMediaSource(MediaSource):
         audio_url = payload.get("audioUrl")
         if not isinstance(audio_url, str):
             raise Unresolvable("backend returned no audioUrl")
+        # Validate the resolved URL with a HEAD before handing it to
+        # the speaker. Without this, a broken upstream (everyayah outage,
+        # CDN 403 on a specific reciter, stale audioUrl in the cache)
+        # would surface as the speaker silently failing — no error in
+        # HA, just no sound. HEAD is cheap; we only fall back on real
+        # 4xx/5xx, not on network blips (those raise).
+        if not await _head_ok(session, audio_url):
+            _LOGGER.warning(
+                "qalaam.media_source.audio_url_404: %s — falling back to everyayah", audio_url
+            )
+            padded = f"{surah:03d}{ayah:03d}"
+            return PlayMedia(
+                url=f"https://everyayah.com/data/Alafasy_128kbps/{padded}.mp3",
+                mime_type=_PROTOCOL,
+            )
         return PlayMedia(url=audio_url, mime_type=_PROTOCOL)

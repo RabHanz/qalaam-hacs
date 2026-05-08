@@ -1,0 +1,153 @@
+# Qalaam Wake routine — Fajr alarm with gradual recitation
+#
+# Per INTRO.md: "Auto-Quran on alarm (Fajr 30 min before with gradual
+# volume)... Your Fajr alarm wakes you up by gradually playing the
+# last portion you reviewed before sleeping. The lights warm gradually
+# with it."
+#
+# Triggered N minutes before Fajr (uses Qalaam's next-prayer sensor).
+# The bedroom speaker plays the same portion the user reviewed before
+# sleep, fading in from silent → speakable volume over N minutes. The
+# bedside light warms up alongside it, fading to a soft sunrise
+# kelvin range.
+#
+# Adab posture: this is not an alarm to startle. It's a slow re-entry
+# into the Quran's rhythm. The user wakes ALREADY listening to the
+# Quran — the first sound of the day is recitation. Per INTRO §"Why
+# now": "ambient repetition is one of the oldest, most evidence-
+# backed memorization techniques in the world."
+
+blueprint:
+  name: Qalaam · Wake routine — gradual Fajr recitation
+  description: >
+    Fade in the user's last-reviewed Hifdh portion + warm sunrise
+    light starting N minutes before Fajr. The first sound of the
+    day is the Quran. Skips automatically if the family member's
+    "do not wake" toggle is on (e.g. travel days).
+  domain: automation
+  source_url: https://github.com/RabHanz/qalaam-hacs/blob/main/blueprints/automation/qalaam/wake-routine.yaml
+  homeassistant:
+    min_version: 2024.10.0
+  input:
+    next_prayer_sensor:
+      name: Next-prayer sensor
+      description: >
+        Qalaam's `sensor.qalaam_next_prayer` — exposes ISO timestamp.
+        We watch for it to land on Fajr.
+      selector:
+        entity:
+          domain: sensor
+          integration: qalaam
+    bedroom_speaker:
+      name: Bedroom speaker
+      description: Where the recitation plays.
+      selector:
+        entity:
+          domain: media_player
+    bedside_light:
+      name: Bedside light (optional)
+      description: Warms up to a soft sunrise color over the wake duration.
+      default: ""
+      selector:
+        entity:
+          domain: light
+    do_not_wake_toggle:
+      name: "Do-not-wake input_boolean (optional)"
+      description: When ON, the routine skips. Useful for travel / sick days.
+      default: ""
+      selector:
+        entity:
+          domain: input_boolean
+    minutes_before_fajr:
+      name: Minutes before Fajr to start
+      description: How long before Fajr the gradual recitation begins.
+      default: 30
+      selector:
+        number:
+          min: 5
+          max: 90
+          mode: slider
+          unit_of_measurement: min
+    final_volume:
+      name: Final speaker volume
+      description: Volume the speaker reaches by Fajr time.
+      default: 0.35
+      selector:
+        number:
+          min: 0
+          max: 1
+          step: 0.01
+          mode: slider
+    final_color_kelvin:
+      name: Final light color (Kelvin)
+      description: Sunrise hue — usually 2500–3000K.
+      default: 2700
+      selector:
+        number:
+          min: 2000
+          max: 6500
+          mode: slider
+          unit_of_measurement: K
+
+trigger:
+  - platform: template
+    value_template: >
+      {% set t = states(states.sensor[0].entity_id) %}
+      {% if t and t not in ['unavailable', 'unknown'] %}
+      {% set fire = (as_datetime(t) - timedelta(minutes=states.input_number[0].state | int(30))).timestamp() %}
+      {{ now().timestamp() | int == fire | int }}
+      {% else %}false{% endif %}
+
+condition:
+  # Skip if the "do not wake" toggle is on, OR if next-prayer isn't Fajr.
+  - condition: template
+    value_template: >-
+      {% set toggle = '!input do_not_wake_toggle' %}
+      {% if toggle != '' %}
+      {{ not is_state(toggle, 'on') }}
+      {% else %}true{% endif %}
+  - condition: template
+    value_template: >-
+      {{ (state_attr('!input next_prayer_sensor', 'name') or '') | lower in ['fajr', 'subh'] }}
+
+action:
+  - parallel:
+      # Speaker fades in over `minutes_before_fajr`.
+      - service: media_player.volume_set
+        target:
+          entity_id: !input bedroom_speaker
+        data:
+          volume_level: 0
+      - service: qalaam.play_current_sabqi
+        data:
+          target: !input bedroom_speaker
+      - repeat:
+          count: 12
+          sequence:
+            - service: media_player.volume_set
+              target:
+                entity_id: !input bedroom_speaker
+              data:
+                volume_level: >-
+                  {{ (repeat.index / 12) * (final_volume_input() | float(0.35)) }}
+            - delay:
+                seconds: "{{ ((minutes_before_fajr_input() | int(30)) * 60 / 12) | int }}"
+      # Bedside light: warm sunrise.
+      - if:
+          - "{{ '!input bedside_light' != '' }}"
+        then:
+          - service: light.turn_on
+            target:
+              entity_id: !input bedside_light
+            data:
+              brightness_pct: 4
+              kelvin: 2400
+          - service: light.turn_on
+            target:
+              entity_id: !input bedside_light
+            data:
+              brightness_pct: 80
+              kelvin: !input final_color_kelvin
+              transition: "{{ (minutes_before_fajr_input() | int(30)) * 60 }}"
+
+mode: restart

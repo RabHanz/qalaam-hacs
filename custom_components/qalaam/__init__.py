@@ -20,6 +20,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import entity_registry as er
 
 from .const import (
     CONF_API_KEY,
@@ -47,6 +48,13 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Qalaam from a config entry."""
+    # Pre-platform: rename any colliding generic entity_ids
+    # (`sensor.qalaam`, `binary_sensor.qalaam_2`, …) left over from the
+    # 0.1.x line where new sensors lacked translation keys and HA
+    # auto-suffixed the device-name slug. We unique_id-match each
+    # registry row to its canonical key and rename in place. Idempotent.
+    _migrate_legacy_entity_ids(hass, entry)
+
     coordinator = QalaamCoordinator(hass, entry)
     try:
         await coordinator.async_config_entry_first_refresh()
@@ -118,3 +126,47 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload on options change."""
     await hass.config_entries.async_reload(entry.entry_id)
+
+
+def _migrate_legacy_entity_ids(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Rename generic ``sensor.qalaam`` / ``binary_sensor.qalaam_<N>`` to
+    canonical keyed slugs (``sensor.qalaam_ramadan_phase`` etc.).
+
+    Our ``unique_id`` format is ``<entry_id>-<platform>-<key>`` for
+    sensor + binary_sensor (see sensor.py + binary_sensor.py). We can
+    decode the canonical slug from the unique_id without touching the
+    coordinator data. Anything that already has a key-shaped suffix
+    (``…_in_prayer_window``) is left alone.
+    """
+    registry = er.async_get(hass)
+    prefix_sensor = f"{entry.entry_id}-sensor-"
+    prefix_binary = f"{entry.entry_id}-binary_sensor-"
+    for ent in list(registry.entities.values()):
+        if ent.config_entry_id != entry.entry_id:
+            continue
+        if ent.unique_id.startswith(prefix_sensor):
+            key = ent.unique_id[len(prefix_sensor) :]
+            domain = "sensor"
+        elif ent.unique_id.startswith(prefix_binary):
+            key = ent.unique_id[len(prefix_binary) :]
+            domain = "binary_sensor"
+        else:
+            continue
+        target = f"{domain}.qalaam_{key}"
+        if ent.entity_id == target:
+            continue
+        # Avoid clobbering an existing entity at `target` (would happen
+        # if both old and new IDs coexist mid-migration). Pick a unique
+        # variant; HA suffixes on collision automatically.
+        if (
+            registry.async_get(target) is not None
+            and registry.async_get(target).unique_id != ent.unique_id
+        ):
+            _LOGGER.debug(
+                "Skipping rename %s -> %s (target occupied by another entity)",
+                ent.entity_id,
+                target,
+            )
+            continue
+        _LOGGER.info("Renaming %s -> %s", ent.entity_id, target)
+        registry.async_update_entity(ent.entity_id, new_entity_id=target)

@@ -1,0 +1,161 @@
+# Qalaam Adhan-aware DND — quiet the home for prayer
+#
+# Per INTRO.md: "Adhan-aware everything — no Qalaam action ever fires
+# inside a prayer window. The lights dim and the TV pauses when adhan
+# is about to begin. The whole house gets quiet for a moment."
+#
+# When `binary_sensor.qalaam_in_prayer_window` flips ON:
+#   • TVs / media players are paused (state captured for restore)
+#   • Lights are dimmed to a warm "salah scene" (configurable)
+#   • Optionally, mute background music speakers
+#
+# When the prayer window closes, the previous scene restores. We use
+# scene.create + scene.turn_on so HA captures + restores per-light
+# state correctly across multiple bulbs without us having to track it.
+#
+# Adab posture (per INTRO + CLAUDE.md): "constitutional" — never a
+# notification or popup. The home itself becomes quieter; that's the
+# whole point.
+
+blueprint:
+  name: Qalaam · Adhan-aware DND
+  description: >
+    Pause TVs, dim lights to a warm salah scene, and optionally mute
+    speakers when a prayer window is active. Restores the previous
+    scene afterwards. Wires Qalaam's prayer-window sensor into the
+    rhythm of the room.
+  domain: automation
+  source_url: https://github.com/RabHanz/qalaam-hacs/blob/main/blueprints/automation/qalaam/adhan-aware-dnd.yaml
+  homeassistant:
+    min_version: 2024.10.0
+  input:
+    prayer_window_sensor:
+      name: In-prayer-window binary sensor
+      description: >
+        Qalaam's `binary_sensor.qalaam_in_prayer_window`. ON during
+        the active prayer window for the user's calculation method.
+      selector:
+        entity:
+          domain: binary_sensor
+          integration: qalaam
+    media_players_to_pause:
+      name: Media players to pause
+      description: TVs and other media players that should pause for the prayer window.
+      default: []
+      selector:
+        entity:
+          domain: media_player
+          multiple: true
+    lights_to_dim:
+      name: Lights to dim
+      description: Lights that fade to the salah scene during the prayer window.
+      default: []
+      selector:
+        entity:
+          domain: light
+          multiple: true
+    salah_brightness_pct:
+      name: Salah-scene brightness (%)
+      description: How dim the lights should be during the prayer window.
+      default: 25
+      selector:
+        number:
+          min: 0
+          max: 100
+          mode: slider
+          unit_of_measurement: "%"
+    salah_color_temp_kelvin:
+      name: Salah-scene color temperature (Kelvin)
+      description: Warm = lower (2200K = candle); cool = higher.
+      default: 2400
+      selector:
+        number:
+          min: 2000
+          max: 6500
+          mode: slider
+          unit_of_measurement: "K"
+    speakers_to_mute:
+      name: Speakers to mute (optional)
+      description: Background-music speakers to mute for the prayer window.
+      default: []
+      selector:
+        entity:
+          domain: media_player
+          multiple: true
+    transition_seconds:
+      name: Light-fade seconds
+      description: How smoothly to transition into / out of the salah scene.
+      default: 4
+      selector:
+        number:
+          min: 0
+          max: 30
+          mode: slider
+          unit_of_measurement: s
+
+trigger:
+  - platform: state
+    entity_id: !input prayer_window_sensor
+    to: "on"
+    id: enter
+  - platform: state
+    entity_id: !input prayer_window_sensor
+    to: "off"
+    id: exit
+
+action:
+  - variables:
+      lights: !input lights_to_dim
+      players: !input media_players_to_pause
+      speakers: !input speakers_to_mute
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: enter
+        sequence:
+          # Snapshot current state so the exit branch can restore.
+          - service: scene.create
+            data:
+              scene_id: qalaam_pre_salah_snapshot
+              snapshot_entities: >-
+                {{ lights + players + speakers }}
+          - parallel:
+              # Pause TVs.
+              - if:
+                  - "{{ players | length > 0 }}"
+                then:
+                  - service: media_player.media_pause
+                    target:
+                      entity_id: !input media_players_to_pause
+              # Mute speakers (volume → 0 — restored from snapshot).
+              - if:
+                  - "{{ speakers | length > 0 }}"
+                then:
+                  - service: media_player.volume_set
+                    target:
+                      entity_id: !input speakers_to_mute
+                    data:
+                      volume_level: 0
+              # Dim lights to salah scene.
+              - if:
+                  - "{{ lights | length > 0 }}"
+                then:
+                  - service: light.turn_on
+                    target:
+                      entity_id: !input lights_to_dim
+                    data:
+                      brightness_pct: !input salah_brightness_pct
+                      kelvin: !input salah_color_temp_kelvin
+                      transition: !input transition_seconds
+      - conditions:
+          - condition: trigger
+            id: exit
+        sequence:
+          # Restore — relies on the scene.create snapshot from `enter`.
+          - service: scene.turn_on
+            target:
+              entity_id: scene.qalaam_pre_salah_snapshot
+            data:
+              transition: !input transition_seconds
+
+mode: restart

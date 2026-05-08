@@ -16,6 +16,7 @@ PLATFORMS: Final[list[str]] = [
     "binary_sensor",
     "select",
     "button",
+    "number",
     "todo",
     "calendar",
 ]
@@ -39,8 +40,13 @@ CONF_TARGET_PLAYER: Final = "target_player"
 CONF_DEFAULT_RECITER: Final = "default_reciter_slug"
 CONF_USER_ID: Final = "user_id"
 
-DEFAULT_BASE_URL: Final = "https://api.qalaam.app"
-DEFAULT_WEB_URL: Final = "https://qalaam.app"
+# Production deployment lives at qalaam.themarginapp.com; the
+# `/api/*` path proxies to the Fastify backend on the same Docker
+# network. The `api.qalaam.app` subdomain is reserved but no DNS
+# yet — once it lands, flip these defaults; existing installs
+# continue to work via the reconfigure flow.
+DEFAULT_BASE_URL: Final = "https://qalaam.themarginapp.com/api"
+DEFAULT_WEB_URL: Final = "https://qalaam.themarginapp.com"
 DEFAULT_SCAN_INTERVAL_SECONDS: Final = 300  # 5 minutes — catalog refresh
 DEFAULT_RECITER_SLUG: Final = "mishary-alafasy"
 DEFAULT_USER_ID: Final = "demo-user"

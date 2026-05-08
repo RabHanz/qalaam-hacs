@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Connect Qalaam",
-        "description": "Enter the API key from your Qalaam account ({docs_url}).",
+        "description": "Enter the API key from your Qalaam account ({docs_url}). The integration uses this key to fetch the Quran catalog and your Hifdh state.",
         "data": {
           "api_key": "API key",
           "base_url": "Base URL"
@@ -11,9 +11,18 @@
       },
       "reauth_confirm": {
         "title": "Re-authenticate Qalaam",
-        "description": "Your API key was rejected. Paste a new one.",
+        "description": "Your API key was rejected. Generate a new one and paste it below.",
         "data": {
           "api_key": "API key"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Qalaam",
+        "description": "Edit the credentials and host without removing the integration. Use this when rotating the API key, moving between SaaS and self-hosted, or switching to a custom domain. The new credentials are validated before saving.",
+        "data": {
+          "api_key": "API key",
+          "base_url": "Base URL",
+          "web_url": "Web URL"
         }
       }
     },
@@ -28,11 +37,15 @@
     "step": {
       "init": {
         "title": "Qalaam options",
-        "description": "Pick the speaker Qalaam should route playback to, and your default reciter.",
+        "description": "Runtime tunables for the integration. Credentials live in 'Reconfigure'; this dialog is for routing + announcements.",
         "data": {
-          "target_player": "Target media player",
+          "target_player": "Default media player",
           "default_reciter_slug": "Default reciter slug",
-          "user_id": "Qalaam user id"
+          "user_id": "Qalaam user id",
+          "family_room": "Family-room area id",
+          "child_areas": "Child-room area ids (comma-separated)",
+          "announce_volume": "Family-announcement volume (0–1)",
+          "announce_language": "Announcement language (e.g. en, ar, ur)"
         }
       }
     }
@@ -45,45 +58,75 @@
     },
     "sensor": {
       "current_verse": {
-        "name": "Current verse"
+        "name": "Verse playing"
       },
       "streak_days": {
-        "name": "Streak"
+        "name": "Hifdh streak"
       },
       "next_prayer": {
-        "name": "Next prayer"
+        "name": "Next prayer time"
+      },
+      "next_prayer_name": {
+        "name": "Next prayer name"
       },
       "today_session_count": {
-        "name": "Portions due today"
+        "name": "Hifdh portions due today"
       },
       "grace_days_remaining": {
-        "name": "Grace days remaining"
+        "name": "Hifdh grace days"
       },
       "current_sabqi": {
-        "name": "Current sabqi"
+        "name": "Current sabqi range"
       },
       "topic_of_day": {
-        "name": "Topic of the day"
+        "name": "Quran topic of the day"
       },
       "word_of_day": {
-        "name": "Word of the day"
+        "name": "Arabic word of the day"
       },
       "hijri_date": {
         "name": "Hijri date"
       },
       "mutashabihat_count": {
-        "name": "Mutashabihat watchlist"
+        "name": "Mutashabihat pairs in portion"
       },
       "active_reciter": {
         "name": "Active reciter"
+      },
+      "ramadan_phase": {
+        "name": "Ramadan day phase"
+      },
+      "family_khatm_juz_completed": {
+        "name": "Family khatm juz completed"
+      },
+      "last_rated_at": {
+        "name": "Hifdh last rated at"
+      },
+      "next_review_due": {
+        "name": "Hifdh next review due"
+      },
+      "weakest_page": {
+        "name": "Hifdh weakest page"
       }
     },
     "binary_sensor": {
       "is_reciting": {
-        "name": "Reciting"
+        "name": "Quran is playing"
       },
       "in_session": {
         "name": "Hifdh session active"
+      },
+      "in_prayer_window": {
+        "name": "Prayer window active"
+      },
+      "ramadan": {
+        "name": "Ramadan month"
+      },
+      "last_ten_nights": {
+        "name": "Last ten nights of Ramadan"
+      },
+      "friday_kahf_window": {
+        "name": "Friday Kahf Sunnah window"
       }
     },
     "select": {
@@ -94,12 +137,23 @@
         "name": "Mushaf"
       }
     },
+    "number": {
+      "daily_pages_quota": {
+        "name": "Hifdh daily pages quota"
+      }
+    },
     "button": {
       "test_me": {
         "name": "Test me"
       },
       "mark_memorized": {
         "name": "Mark memorized"
+      },
+      "record_mistake_here": {
+        "name": "Record mistake on current verse"
+      },
+      "replay_last_portion": {
+        "name": "Replay last portion"
       }
     },
     "todo": {
@@ -110,6 +164,58 @@
     "calendar": {
       "review_schedule": {
         "name": "Hifdh review schedule"
+      }
+    }
+  },
+  "services": {
+    "play_ayah": {
+      "name": "Play ayah",
+      "description": "Play a single ayah on the chosen target speaker.",
+      "fields": {
+        "surah": {
+          "name": "Surah",
+          "description": "Surah number 1..114"
+        },
+        "ayah": {
+          "name": "Ayah",
+          "description": "Ayah number"
+        },
+        "reciter_slug": {
+          "name": "Reciter",
+          "description": "Reciter slug (default: configured reciter)"
+        },
+        "target": {
+          "name": "Target media player",
+          "description": "Which speaker"
+        }
+      }
+    },
+    "play_surah": {
+      "name": "Play surah",
+      "description": "Play a full surah.",
+      "fields": {
+        "surah": {
+          "name": "Surah",
+          "description": "Surah number 1..114"
+        },
+        "reciter_slug": {
+          "name": "Reciter",
+          "description": "Reciter slug"
+        },
+        "target": {
+          "name": "Target media player",
+          "description": "Which speaker"
+        }
+      }
+    },
+    "start_memorization_session": {
+      "name": "Start memorization session",
+      "description": "Fire qalaam_hifdh_session_started for automations.",
+      "fields": {
+        "user": {
+          "name": "User",
+          "description": "Qalaam user id"
+        }
       }
     }
   }

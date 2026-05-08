@@ -196,3 +196,53 @@ class QalaamMediaPlayer(QalaamEntity, MediaPlayerEntity):
             {"entity_id": self._target_entity_id, "volume_level": volume},
             blocking=True,
         )
+
+    async def async_media_next_track(self) -> None:
+        if not self._target_entity_id:
+            return
+        await self.hass.services.async_call(
+            "media_player",
+            "media_next_track",
+            {"entity_id": self._target_entity_id},
+            blocking=True,
+        )
+
+    async def async_media_previous_track(self) -> None:
+        if not self._target_entity_id:
+            return
+        await self.hass.services.async_call(
+            "media_player",
+            "media_previous_track",
+            {"entity_id": self._target_entity_id},
+            blocking=True,
+        )
+
+    async def async_volume_up(self) -> None:
+        if not self._target_entity_id:
+            return
+        await self.hass.services.async_call(
+            "media_player",
+            "volume_up",
+            {"entity_id": self._target_entity_id},
+            blocking=True,
+        )
+
+    async def async_volume_down(self) -> None:
+        if not self._target_entity_id:
+            return
+        await self.hass.services.async_call(
+            "media_player",
+            "volume_down",
+            {"entity_id": self._target_entity_id},
+            blocking=True,
+        )
+
+    async def async_mute_volume(self, mute: bool) -> None:
+        if not self._target_entity_id:
+            return
+        await self.hass.services.async_call(
+            "media_player",
+            "volume_mute",
+            {"entity_id": self._target_entity_id, "is_volume_muted": mute},
+            blocking=True,
+        )

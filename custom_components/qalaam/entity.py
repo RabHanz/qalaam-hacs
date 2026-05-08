@@ -12,7 +12,9 @@ from .coordinator import QalaamCoordinator
 class QalaamEntity(CoordinatorEntity[QalaamCoordinator]):
     """Base class. Per HA dev guide: shared device_info + attribution."""
 
-    _attr_attribution = "Powered by Qalaam (qalaam.app) + Quran.Foundation, QUL, EveryAyah"
+    _attr_attribution = (
+        "Powered by Qalaam (qalaam.themarginapp.com) + Quran.Foundation, QUL, EveryAyah"
+    )
     _attr_has_entity_name = True
 
     def __init__(self, coordinator: QalaamCoordinator) -> None:
@@ -22,6 +24,6 @@ class QalaamEntity(CoordinatorEntity[QalaamCoordinator]):
             manufacturer="Qalaam",
             model="Qalaam Service",
             name="Qalaam",
-            configuration_url="https://qalaam.app",
+            configuration_url="https://qalaam.themarginapp.com",
             entry_type=None,
         )

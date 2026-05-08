@@ -78,7 +78,7 @@ class QalaamConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=_USER_SCHEMA,
             errors=errors,
-            description_placeholders={"docs_url": "https://qalaam.app/docs/ha"},
+            description_placeholders={"docs_url": "https://qalaam.themarginapp.com/docs/ha"},
         )
 
     async def async_step_reauth(self, _entry_data: dict[str, Any]) -> ConfigFlowResult:
@@ -95,6 +95,59 @@ class QalaamConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="reauth_confirm",
             data_schema=vol.Schema({vol.Required(CONF_API_KEY): str}),
+        )
+
+    async def async_step_reconfigure(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Full re-setup walk-through.
+
+        Modern HA pattern (2024.10+): users hit "..." → "Reconfigure" on the
+        integration card and re-enter every credential. This is what they
+        want when they:
+          • rotate the Qalaam API key
+          • move the backend to a different host (self-hosted ↔ SaaS)
+          • change the public web origin (custom domain rollout)
+
+        Validates the new credentials before saving so we don't strand them.
+        """
+        errors: dict[str, str] = {}
+        entry = self._get_reconfigure_entry()
+        existing = entry.data
+
+        if user_input is not None:
+            valid = await self._verify_credentials(
+                user_input[CONF_API_KEY],
+                user_input.get(CONF_BASE_URL, DEFAULT_BASE_URL),
+            )
+            if valid:
+                return self.async_update_reload_and_abort(
+                    entry,
+                    data={**existing, **user_input},
+                )
+            errors["base"] = "auth"
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_API_KEY,
+                        default=existing.get(CONF_API_KEY, ""),
+                    ): str,
+                    vol.Optional(
+                        CONF_BASE_URL,
+                        default=existing.get(CONF_BASE_URL, DEFAULT_BASE_URL),
+                    ): str,
+                    vol.Optional(
+                        CONF_WEB_URL,
+                        default=existing.get(CONF_WEB_URL, DEFAULT_WEB_URL),
+                    ): str,
+                }
+            ),
+            errors=errors,
+            description_placeholders={"docs_url": "https://qalaam.themarginapp.com/docs/ha"},
         )
 
     @staticmethod
@@ -116,7 +169,22 @@ class QalaamConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class QalaamOptionsFlow(OptionsFlow):
-    """Options: target_player + default_reciter + user_id."""
+    """Runtime options the user can tune without removing the entry.
+
+    The data fields the user picked at setup-time (api_key, base_url,
+    web_url) are NOT here — those are credentials. To change them the
+    user uses "Reconfigure" (`async_step_reconfigure` on the config
+    flow), which re-validates against the backend before saving.
+
+    What's here are runtime preferences:
+      • target_player    — which media_player Qalaam routes audio to
+      • default_reciter  — slug used when no per-call reciter override
+      • user_id          — Qalaam account to surface in sensors
+      • family_room      — area_id used by per-room sabaq blueprint
+      • child_areas      — comma-separated areas for door-LED automations
+      • announce_volume  — TTS volume for khatm-milestone announcements
+      • announce_language — language code for any TTS Qalaam triggers
+    """
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if user_input is not None:
@@ -137,6 +205,22 @@ class QalaamOptionsFlow(OptionsFlow):
                 vol.Optional(
                     CONF_USER_ID,
                     default=current.get(CONF_USER_ID, DEFAULT_USER_ID),
+                ): TextSelector(TextSelectorConfig()),
+                vol.Optional(
+                    "family_room",
+                    default=current.get("family_room", ""),
+                ): TextSelector(TextSelectorConfig()),
+                vol.Optional(
+                    "child_areas",
+                    default=current.get("child_areas", ""),
+                ): TextSelector(TextSelectorConfig()),
+                vol.Optional(
+                    "announce_volume",
+                    default=current.get("announce_volume", 0.45),
+                ): vol.All(vol.Coerce(float), vol.Range(min=0.0, max=1.0)),
+                vol.Optional(
+                    "announce_language",
+                    default=current.get("announce_language", "en"),
                 ): TextSelector(TextSelectorConfig()),
             }
         )

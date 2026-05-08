@@ -1,0 +1,149 @@
+# Qalaam Door-LED — wird/sabaq status indicator
+#
+# Per INTRO.md: "Door-LED indicators. A green LED on the bedroom door
+# means today's wird is done; amber means there's still a portion left;
+# red means nothing yet. Kids respond to ambient light far better than
+# to push notifications."
+#
+# Maps the family member's `binary_sensor.qalaam_<name>_wird_done`
+# (managed by the Qalaam integration; ON when today's full portion is
+# finished) and `sensor.qalaam_<name>_today_session_count` to a
+# coloured LED — usually a smart bulb or LED strip on the bedroom door.
+#
+# Tones (default):
+#   green   = wird complete today (rgb 76 175 80)
+#   amber   = partial — at least one session done, more remaining (255 165 0)
+#   red     = nothing done yet today (220 80 80)
+#   off     = adhan window — quiet ambience override
+#
+# Adab posture: a calm physical reminder, not a guilt nudge. The amber
+# state is encouragement, not judgment. The red state is gentle, not
+# alarming. During prayer windows the LED extinguishes entirely so the
+# room can be undistracting at salah time.
+
+blueprint:
+  name: Qalaam · Door LED — wird status
+  description: >
+    A coloured LED on the bedroom door reflects the family member's
+    Hifdh wird state: green = done, amber = partial, red = none yet.
+    The LED extinguishes during the active prayer window so the room
+    is calm at salah time.
+  domain: automation
+  source_url: https://github.com/RabHanz/qalaam-hacs/blob/main/blueprints/automation/qalaam/door-led-wird-status.yaml
+  homeassistant:
+    min_version: 2024.10.0
+  input:
+    door_light:
+      name: Door LED light
+      description: >
+        The smart bulb / LED strip on the bedroom door. Must support
+        rgb_color + brightness_pct, otherwise simplify the actions.
+      selector:
+        entity:
+          domain: light
+    wird_done_sensor:
+      name: Wird-done binary sensor
+      description: >
+        Per-family-member binary sensor (e.g. `binary_sensor.qalaam_aisha_wird_done`).
+        ON when today's full daily portion is complete.
+      selector:
+        entity:
+          domain: binary_sensor
+          integration: qalaam
+    sessions_today_sensor:
+      name: Today's session count
+      description: >
+        Sensor exposing the number of completed sessions today (e.g.
+        `sensor.qalaam_today_session_count`). 0 → red, 1+ → amber,
+        and the wird-done sensor above flips to green.
+      selector:
+        entity:
+          domain: sensor
+          integration: qalaam
+    in_prayer_window_sensor:
+      name: In-prayer-window binary sensor (optional)
+      description: >
+        ON during an active prayer window (e.g.
+        `binary_sensor.qalaam_in_prayer_window`). When ON the LED
+        extinguishes for ambient calm.
+      default: ""
+      selector:
+        entity:
+          domain: binary_sensor
+          integration: qalaam
+    transition_seconds:
+      name: Color-transition seconds
+      description: How smoothly to fade between states (the LED is for kids; quick flashes are jarring).
+      default: 2
+      selector:
+        number:
+          min: 0
+          max: 30
+          mode: slider
+          unit_of_measurement: s
+
+trigger:
+  - platform: state
+    entity_id: !input wird_done_sensor
+  - platform: state
+    entity_id: !input sessions_today_sensor
+  - platform: state
+    entity_id: !input in_prayer_window_sensor
+  # Refresh at midnight so red shows correctly at the start of a fresh day.
+  - platform: time
+    at: "00:00:01"
+
+variables:
+  wird_done: !input wird_done_sensor
+  sessions_today: !input sessions_today_sensor
+  prayer_sensor: !input in_prayer_window_sensor
+  in_prayer: >-
+    {{ prayer_sensor != "" and is_state(prayer_sensor, "on") }}
+  count: "{{ states(sessions_today) | int(0) }}"
+
+action:
+  - choose:
+      # Prayer window — extinguish for calm.
+      - conditions:
+          - "{{ in_prayer }}"
+        sequence:
+          - service: light.turn_off
+            target:
+              entity_id: !input door_light
+            data:
+              transition: !input transition_seconds
+      # Wird complete — green.
+      - conditions:
+          - condition: state
+            entity_id: !input wird_done_sensor
+            state: "on"
+        sequence:
+          - service: light.turn_on
+            target:
+              entity_id: !input door_light
+            data:
+              rgb_color: [76, 175, 80]
+              brightness_pct: 60
+              transition: !input transition_seconds
+      # Some sessions done but not all — amber.
+      - conditions:
+          - "{{ count > 0 }}"
+        sequence:
+          - service: light.turn_on
+            target:
+              entity_id: !input door_light
+            data:
+              rgb_color: [255, 165, 0]
+              brightness_pct: 50
+              transition: !input transition_seconds
+    # Default: nothing started today — gentle red.
+    default:
+      - service: light.turn_on
+        target:
+          entity_id: !input door_light
+        data:
+          rgb_color: [220, 80, 80]
+          brightness_pct: 35
+          transition: !input transition_seconds
+
+mode: restart

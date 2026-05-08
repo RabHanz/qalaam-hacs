@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.config_entries import ConfigEntry
@@ -33,7 +33,7 @@ class QalaamReviewCalendar(QalaamEntity, CalendarEntity):
     @property
     def event(self) -> CalendarEvent | None:
         # Stub: today's session at the next round hour. v0.5 reads /v1/hifdh/session.
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         start = (now + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
         return CalendarEvent(
             summary="Hifdh review",
